@@ -1,0 +1,8 @@
+{
+  "extends": "@onlyou/config/tsconfig/convex.json",
+  "compilerOptions": {
+    "outDir": "_generated"
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules", "_generated"]
+}
