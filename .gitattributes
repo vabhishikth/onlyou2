@@ -1,0 +1,16 @@
+# Normalize line endings across platforms — store LF in git, check out
+# native on Windows. Prevents LF↔CRLF churn on generated files.
+* text=auto eol=lf
+
+# Binary files — never touch
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
