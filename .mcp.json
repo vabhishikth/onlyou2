@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "obsidian-docs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@bitbonsai/mcpvault@latest",
+        "D:/onlyou2/docs"
+      ]
+    }
+  }
+}

@@ -36,7 +36,9 @@ Always use latest stable versions. Pin exact. Never downgrade.
 
 ## KNOWLEDGE BASE (50 docs in `docs/`)
 
-Accessible via **Obsidian MCP**. Search on-demand. Never front-load all docs into context.
+Accessible via **Obsidian skills**. Search on-demand. Never front-load all docs into context.
+
+**`ONLYOU-SOURCE-OF-TRUTH.md` is the master reference.** Read it first before diving into specific docs. When there are inconsistencies between documents, this file resolves them.
 
 The docs describe a v1 stack (NestJS/PostgreSQL/Prisma/tRPC/Redis/S3). Read them for **business logic only**. Translate to Convex equivalents.
 
@@ -50,9 +52,12 @@ Some docs have `-CHANGES.md` companions from a payment redesign. Always check fo
 
 1. Superpowers workflow for everything. No cowboy coding.
 2. Visual companion on for all UI work. Founder approves visuals first.
-3. Search docs via Obsidian MCP. Don't guess business logic.
+3. Search docs via Obsidian skills. Don't guess business logic.
 4. One feature at a time. Approval before moving on.
 5. Update `checkpoint.md` every session.
+6. Zero lint or TypeScript errors. Fix them immediately — never leave them for later.
+7. Keep it simple. Build the simplest thing that works. Don't over-engineer.
+8. Stay in scope. When fixing something, only touch what's broken. Don't refactor, reorganize, or "improve" unrelated code.
 
 ---
 
@@ -66,3 +71,13 @@ Some docs have `-CHANGES.md` companions from a payment redesign. Always check fo
 6. Nurse / Lab / Pharmacy portals
 7. Remaining verticals
 8. Landing page + notifications + polish
+
+---
+
+## KEY FACTS
+
+- 5 verticals: Hair Loss, ED, PE, Weight, PCOS
+- 6 roles: Patient, Doctor, Admin, Nurse, Lab, Pharmacy
+- India-first: ₹, Indian formatting, WhatsApp primary, UPI
+- Privacy: Lab/Pharmacy/Delivery never see diagnosis
+- MVP: No video (auto-skips), no lab APIs, local delivery only
