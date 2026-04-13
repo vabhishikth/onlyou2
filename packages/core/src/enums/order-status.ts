@@ -1,0 +1,5 @@
+export const ORDER_STATUSES = [
+  'CREATED', 'SENT_TO_PHARMACY', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY',
+  'DELIVERED', 'PHARMACY_ISSUE', 'DELIVERY_FAILED', 'REASSIGNED', 'CANCELLED',
+] as const
+export type OrderStatus = (typeof ORDER_STATUSES)[number]
