@@ -3,3 +3,30 @@
 .obsidian
 .superpowers/
 .worktrees/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.expo/
+.turbo/
+*.tsbuildinfo
+
+# Env files (beyond .env.local)
+.env*.local
+.env.local.backup
+
+# Plan-local tmp notes
+*.tmp.md
+
+# Native builds (Expo prebuild)
+ios/
+android/
+
+# IDE
+.vscode/
+.idea/
