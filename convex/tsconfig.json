@@ -1,5 +1,5 @@
 {
-  "extends": "@onlyou/config/tsconfig/convex.json",
+  "extends": "../packages/config/tsconfig/convex.json",
   "compilerOptions": {
     "outDir": "_generated"
   },
