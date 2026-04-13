@@ -1,0 +1,30 @@
+{
+  "name": "@onlyou/admin",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3003",
+    "build": "next build",
+    "start": "next start -p 3003",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .next .turbo *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@onlyou/core": "workspace:*",
+    "@onlyou/ui": "workspace:*",
+    "next": "16.2.3",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "convex": "1.35.1"
+  },
+  "devDependencies": {
+    "@onlyou/config": "workspace:*",
+    "@tailwindcss/postcss": "4.2.2",
+    "@types/node": "25.6.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "tailwindcss": "4.2.2",
+    "typescript": "6.0.2"
+  }
+}
