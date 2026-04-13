@@ -17,6 +17,15 @@
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "prepare": "husky"
   },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{md,json,css}": [
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
     "convex": "1.35.1",
     "turbo": "2.9.6",
