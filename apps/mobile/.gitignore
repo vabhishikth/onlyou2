@@ -1,0 +1,7 @@
+.expo/
+*.jks
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
