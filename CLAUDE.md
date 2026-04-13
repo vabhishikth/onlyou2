@@ -46,6 +46,8 @@ Some docs have `-CHANGES.md` companions from a payment redesign. Always check fo
 
 `DESIGN.md` is the source of truth for all visual decisions.
 
+**This vault is a living wiki.** When making architectural decisions, resolving inconsistencies, or learning something important during a build session, write it back as a note in `docs/` using Obsidian skills. Always search `docs/` before guessing.
+
 ---
 
 ## RULES
