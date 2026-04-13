@@ -1,0 +1,26 @@
+{
+  "name": "@onlyou/config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "files": ["tsconfig", "eslint", "prettier.config.js"],
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/next.json": "./tsconfig/next.json",
+    "./tsconfig/expo.json": "./tsconfig/expo.json",
+    "./tsconfig/convex.json": "./tsconfig/convex.json",
+    "./eslint/base": "./eslint/base.js",
+    "./eslint/next": "./eslint/next.js",
+    "./eslint/expo": "./eslint/expo.js",
+    "./prettier.config.js": "./prettier.config.js"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "8.58.1",
+    "@typescript-eslint/parser": "8.58.1",
+    "eslint": "10.2.0",
+    "eslint-config-next": "16.2.3",
+    "eslint-plugin-import": "2.32.0",
+    "prettier": "3.8.2",
+    "typescript": "6.0.2"
+  }
+}
