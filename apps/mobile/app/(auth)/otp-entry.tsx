@@ -1,6 +1,12 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { OtpBoxes } from "@/components/auth/OtpBoxes";
@@ -47,71 +53,75 @@ export default function OtpEntry() {
   }
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        paddingTop: insets.top + 12,
-        paddingBottom: insets.bottom + 20,
-        paddingHorizontal: 24,
-      }}
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <Pressable
-        onPress={() => router.back()}
+      <View
         style={{
-          width: 44,
-          height: 44,
-          justifyContent: "center",
-          marginBottom: 24,
+          flex: 1,
+          paddingTop: insets.top + 12,
+          paddingBottom: insets.bottom + 20,
+          paddingHorizontal: 24,
         }}
       >
-        <Text style={{ fontSize: 24, color: colors.textPrimary }}>‹</Text>
-      </Pressable>
-
-      <Text
-        style={{
-          fontFamily: "PlayfairDisplay_900Black",
-          fontSize: 32,
-          color: colors.textPrimary,
-          lineHeight: 36,
-          letterSpacing: -0.8,
-          marginBottom: 8,
-        }}
-      >
-        Enter the code
-      </Text>
-      <Text
-        style={{
-          fontSize: 14,
-          color: colors.textSecondary,
-          marginBottom: 24,
-        }}
-      >
-        Sent to {phone}
-      </Text>
-
-      <OtpBoxes onComplete={onComplete} />
-
-      {error ? (
-        <Text style={{ fontSize: 13, color: colors.error, marginTop: 16 }}>
-          {error}
-        </Text>
-      ) : null}
-
-      <View style={{ flex: 1 }} />
-
-      <Pressable onPress={onResend} disabled={resendIn > 0}>
-        <Text
+        <Pressable
+          onPress={() => router.back()}
           style={{
-            textAlign: "center",
-            fontSize: 13,
-            color: resendIn > 0 ? colors.textTertiary : colors.accent,
-            fontWeight: "600",
+            width: 44,
+            height: 44,
+            justifyContent: "center",
+            marginBottom: 24,
           }}
         >
-          {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+          <Text style={{ fontSize: 24, color: colors.textPrimary }}>‹</Text>
+        </Pressable>
+
+        <Text
+          style={{
+            fontFamily: "PlayfairDisplay_900Black",
+            fontSize: 32,
+            color: colors.textPrimary,
+            lineHeight: 36,
+            letterSpacing: -0.8,
+            marginBottom: 8,
+          }}
+        >
+          Enter the code
         </Text>
-      </Pressable>
-    </View>
+        <Text
+          style={{
+            fontSize: 14,
+            color: colors.textSecondary,
+            marginBottom: 24,
+          }}
+        >
+          Sent to {phone}
+        </Text>
+
+        <OtpBoxes onComplete={onComplete} />
+
+        {error ? (
+          <Text style={{ fontSize: 13, color: colors.error, marginTop: 16 }}>
+            {error}
+          </Text>
+        ) : null}
+
+        <View style={{ flex: 1 }} />
+
+        <Pressable onPress={onResend} disabled={resendIn > 0}>
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 13,
+              color: resendIn > 0 ? colors.textTertiary : colors.accent,
+              fontWeight: "600",
+            }}
+          >
+            {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+          </Text>
+        </Pressable>
+      </View>
+    </KeyboardAvoidingView>
   );
 }

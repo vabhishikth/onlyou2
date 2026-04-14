@@ -30,3 +30,8 @@ android/
 # IDE
 .vscode/
 .idea/
+
+# Founder walkthrough screenshots — kept locally for review, not versioned
+app test images/
+.claude/scheduled_tasks.lock
+.playwright-mcp/

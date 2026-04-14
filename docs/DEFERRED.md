@@ -175,6 +175,17 @@ Items decided during the Phase 2B code review. Must be reviewed at the Phase 2C 
 
 ---
 
+## Phase 2B visual fixes pass (2026-04-14)
+
+Items surfaced during founder walkthrough of the Phase 2B build. A same-day patch landed 8 fixes (splash/icon assets, PremiumButton primary variant invisible bug, lucide tab icons, profile period-tracker gender gate, phone/OTP/profile-setup `KeyboardAvoidingView`, DOB `DD-MM-YYYY` auto-format, address field reorder). Two minor inconsistencies noticed but intentionally **not** fixed in the same patch — tracked here:
+
+| Item                                                                                                                                                                                                                                                                 | Deferred to                | Why                                                                                                                                                                                      |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`onlyou` wordmark missing on profile-setup header** — welcome + phone-verify render the Playfair wordmark at the top; name / gender / DOB / address do not. Add for brand consistency across the entire auth funnel.                                               | Plan 2C (auth polish pass) | Cosmetic only. Pairs naturally with the CRO skill pass on auth screens already deferred above.                                                                                           |
+| **No back navigation on profile-setup steps** — `step` state is internal so a typo on step 1 (name) cannot be corrected without signing out. Add a back chevron that decrements `step`, and allow native swipe-back to also go one step instead of exiting the flow. | Plan 2C (auth polish pass) | UX blocker for anyone who mistypes early. Not urgent because the founder can always clear state + re-enter during dev, but a real user cannot. Same patch as the wordmark inconsistency. |
+
+---
+
 ## Phase 3 — Hair Loss end-to-end
 
 _(populated when Phase 3 brainstorm begins)_

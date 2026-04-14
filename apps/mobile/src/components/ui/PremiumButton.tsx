@@ -1,4 +1,4 @@
-import { Pressable, Text, type PressableProps } from "react-native";
+import { Pressable, Text, View, type PressableProps } from "react-native";
 
 import { colors } from "../../theme/colors";
 
@@ -13,19 +13,31 @@ export interface PremiumButtonProps extends Omit<
   disabled?: boolean;
 }
 
-const variantStyles: Record<
-  Variant,
-  { bg: string; fg: string; border?: string }
-> = {
-  primary: { bg: colors.ctaPrimary, fg: colors.ctaPrimaryText },
-  secondary: {
-    bg: colors.ctaSecondary,
-    fg: colors.textPrimary,
-    border: colors.ctaSecondaryBorder,
-  },
-  ghost: { bg: "transparent", fg: colors.textPrimary },
-  warm: { bg: colors.accentWarm, fg: colors.primaryForeground },
-};
+interface Tokens {
+  bg: string;
+  fg: string;
+  border?: string;
+}
+
+function resolveTokens(variant: Variant, disabled: boolean): Tokens {
+  if (disabled) {
+    return { bg: colors.ctaDisabled, fg: colors.ctaDisabledText };
+  }
+  switch (variant) {
+    case "primary":
+      return { bg: colors.ctaPrimary, fg: colors.ctaPrimaryText };
+    case "secondary":
+      return {
+        bg: colors.ctaSecondary,
+        fg: colors.textPrimary,
+        border: colors.ctaSecondaryBorder,
+      };
+    case "ghost":
+      return { bg: "transparent", fg: colors.textPrimary };
+    case "warm":
+      return { bg: colors.accentWarm, fg: colors.primaryForeground };
+  }
+}
 
 export function PremiumButton({
   label,
@@ -34,9 +46,7 @@ export function PremiumButton({
   onPress,
   ...rest
 }: PremiumButtonProps) {
-  const style = disabled
-    ? { bg: colors.ctaDisabled, fg: colors.ctaDisabledText }
-    : variantStyles[variant];
+  const tokens = resolveTokens(variant, disabled);
 
   return (
     <Pressable
@@ -44,28 +54,33 @@ export function PremiumButton({
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => ({
-        height: 56,
-        borderRadius: 999,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: style.bg,
-        borderWidth: style.border ? 1.5 : 0,
-        borderColor: style.border,
-        opacity: pressed && !disabled ? 0.9 : 1,
-      })}
       {...rest}
     >
-      <Text
-        style={{
-          color: style.fg,
-          fontSize: 16,
-          fontWeight: "700",
-          letterSpacing: 0.2,
-        }}
-      >
-        {label}
-      </Text>
+      {({ pressed }) => (
+        <View
+          style={{
+            height: 56,
+            borderRadius: 999,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: tokens.bg,
+            borderWidth: tokens.border ? 1.5 : 0,
+            borderColor: tokens.border ?? "transparent",
+            opacity: pressed && !disabled ? 0.9 : 1,
+          }}
+        >
+          <Text
+            style={{
+              color: tokens.fg,
+              fontSize: 16,
+              fontWeight: "700",
+              letterSpacing: 0.2,
+            }}
+          >
+            {label}
+          </Text>
+        </View>
+      )}
     </Pressable>
   );
 }

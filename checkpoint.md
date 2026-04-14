@@ -1,7 +1,61 @@
 # Checkpoint
 
 **Current phase:** Phase 2B — Auth + shell skeleton
-**Status:** ✅ COMPLETE on `feature/phase-2b-auth-shell` — code review APPROVE-WITH-FIXES, all 6 fixes applied. Ready to merge to master.
+**Status:** ✅ COMPLETE + visual fixes pass landed on master (2026-04-14). Ready to begin Plan 2C.
+
+## Visual fixes pass (2026-04-14, post-review founder walkthrough)
+
+Founder ran the Phase 2B build on iOS and surfaced a batch of bugs across
+screenshots IMG_6126–IMG_6156. All fixed in a single same-day patch:
+
+- **Splash + icon assets** — replaced yellow placeholder PNGs with the Playfair
+  Display "onlyou" wordmark on `#FAFAF8` (1024×1024). Regenerated via a
+  Playwright-rendered HTML → PNG pipeline (`splash.png`, `icon.png`,
+  `adaptive-icon.png`, `favicon.png`). iOS home-screen label still uses the
+  system font — that is OS-controlled, not ours.
+- **`PremiumButton` primary variant was rendering invisible on-device.**
+  Root cause traced to the `style={({pressed}) => ({...})}` function form
+  on `Pressable` combined with RN 0.81 under the new architecture — the
+  background color silently dropped on-device (tests passed, `/design`
+  showcase passed in dev, only the real device flow showed the bug).
+  Rewrote `PremiumButton` to render the pill inside a nested `<View>` so the
+  Pressable only provides the touch layer. `resolveTokens()` is now a
+  straight switch, no module-level eager `Record` object.
+- **Tab bar had no icons.** Added `lucide-react-native` imports (Home,
+  Compass, Activity, MessageCircle) via `tabBarIcon` on each `Tabs.Screen`.
+- **Profile placeholder showed Period tracker for male users.** Row is now
+  gated on `user?.gender === "female"` (gender type is lowercase — learned
+  during fix; ROLES is uppercase but `Gender` is lowercase).
+- **Phone-verify, OTP-entry, and profile-setup** all lacked keyboard handling
+  — Continue / Next buttons lived under the keyboard with no dismiss path.
+  Wrapped each screen in `KeyboardAvoidingView` (iOS: `padding` behavior)
+  plus `TouchableWithoutFeedback` → `Keyboard.dismiss` for tap-outside.
+- **DOB input was `YYYY-MM-DD` with numeric keypad** — impossible to type
+  the dashes. Switched to Indian-natural `DD-MM-YYYY` with an auto-formatter
+  that inserts dashes as digits arrive. Submit path converts to ISO
+  (`YYYY-MM-DD`) before calling `completeProfile` so the DB stays
+  ISO-compliant.
+- **Address screen field order was wrong** — pincode came first. Reordered
+  to envelope-natural: Street → City → State → Pincode. Pincode now uses
+  numeric keypad with 6-digit cap.
+- **`app test images/` added to `.gitignore`** — founder walkthrough
+  screenshots stay local, not versioned.
+
+**Deferrals from this pass** (tracked in `docs/DEFERRED.md` §Phase 2B visual
+fixes pass 2026-04-14):
+
+1. `onlyou` wordmark missing on profile-setup header (brand inconsistency)
+   — Plan 2C auth polish.
+2. No back navigation between profile-setup steps — typos on earlier steps
+   are unrecoverable without signing out. Plan 2C auth polish.
+
+**Manual acceptance:** founder walked the full funnel (welcome → phone →
+OTP → name → gender → DOB → address → home + all 4 tabs + profile) on iOS
+via IMG_6139–IMG_6156 and reported no remaining bugs.
+
+---
+
+## Original Phase 2B summary
 
 ## Last session (2026-04-14)
 

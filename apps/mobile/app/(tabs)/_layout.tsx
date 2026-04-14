@@ -1,4 +1,5 @@
 import { router, Tabs } from "expo-router";
+import { Activity, Compass, Home, MessageCircle } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -98,10 +99,42 @@ export default function TabsLayout() {
           tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
         }}
       >
-        <Tabs.Screen name="home" options={{ title: "Home" }} />
-        <Tabs.Screen name="explore" options={{ title: "Explore" }} />
-        <Tabs.Screen name="activity" options={{ title: "Activity" }} />
-        <Tabs.Screen name="messages" options={{ title: "Messages" }} />
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: "Home",
+            tabBarIcon: ({ color }) => (
+              <Home color={color} size={22} strokeWidth={1.75} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="explore"
+          options={{
+            title: "Explore",
+            tabBarIcon: ({ color }) => (
+              <Compass color={color} size={22} strokeWidth={1.75} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="activity"
+          options={{
+            title: "Activity",
+            tabBarIcon: ({ color }) => (
+              <Activity color={color} size={22} strokeWidth={1.75} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="messages"
+          options={{
+            title: "Messages",
+            tabBarIcon: ({ color }) => (
+              <MessageCircle color={color} size={22} strokeWidth={1.75} />
+            ),
+          }}
+        />
       </Tabs>
 
       {__DEV__ ? (

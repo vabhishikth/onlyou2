@@ -27,7 +27,9 @@ export default function ProfileIndex() {
     { title: "Payment methods", phase: "Plan 2D" },
     { title: "Notifications", phase: "Plan 2D" },
     { title: "Wallet", phase: "Phase 3" },
-    { title: "Period tracker", phase: "PCOS phase" },
+    ...(user?.gender === "female"
+      ? [{ title: "Period tracker", phase: "PCOS phase" }]
+      : []),
     { title: "Legal", phase: "Phase 8" },
     { title: "Help & support", phase: "Phase 8" },
   ];
