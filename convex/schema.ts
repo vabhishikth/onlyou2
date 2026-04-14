@@ -49,7 +49,7 @@ export default defineSchema({
 
   sessions: defineTable({
     userId: v.id("users"),
-    token: v.string(), // 32-byte hex
+    token: v.string(), // 32-byte token, hex-encoded
     expiresAt: v.number(),
     createdAt: v.number(),
   })

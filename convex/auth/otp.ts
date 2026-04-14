@@ -1,5 +1,7 @@
 "use node";
 
+import { randomBytes } from "node:crypto";
+
 import bcrypt from "bcryptjs";
 import { v } from "convex/values";
 
@@ -179,8 +181,5 @@ export const finalizeSignIn = mutation({
 });
 
 function generateSessionToken(): string {
-  const chars = "0123456789abcdef";
-  let out = "";
-  for (let i = 0; i < 32; i++) out += chars[Math.floor(Math.random() * 16)];
-  return out;
+  return randomBytes(32).toString("hex");
 }
