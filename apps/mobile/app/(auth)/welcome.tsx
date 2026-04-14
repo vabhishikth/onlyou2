@@ -108,13 +108,8 @@ export default function Welcome() {
           }}
         >
           By continuing you agree to our{" "}
-          <Text
-            onPress={() => router.push("/profile" as never)}
-            style={{ color: colors.accent }}
-          >
-            terms
-          </Text>
-          .
+          {/* TODO(phase-8): wire to terms screen */}
+          <Text style={{ color: colors.accent }}>terms</Text>.
         </Text>
       </View>
 
