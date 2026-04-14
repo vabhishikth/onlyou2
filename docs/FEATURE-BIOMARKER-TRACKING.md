@@ -5,6 +5,22 @@
 **Visual reference:** `docs/biomarker-reference.png`
 **Patient-app integration:** [[APP-PATIENT-ADDITIONS|APP-PATIENT-ADDITIONS.md]] Addition 2
 
+## ⚠️ Core principle — adaptive, not fixed
+
+**The biomarker system renders whatever markers are in the report, not a pre-chosen list.**
+
+Different lab reports contain completely different markers:
+
+- A basic metabolic panel has 8–14 markers
+- A comprehensive wellness panel has 25–40+
+- A thyroid-only panel has 3–5
+- A PCOS hormone panel has a totally different set (AMH, LH, FSH, prolactin, testosterone)
+- A CBC has 20+ red/white cell indices
+
+The Visual Biomarker Report must render _the contents of this specific report_. Nothing in this feature assumes a fixed marker count, a fixed marker list, or a template-driven narrative. The `report.markers[]` array is **variable-length**, always.
+
+**Two different reports for the same patient should look different in the app.** If Sanjana uploads a PCOS hormone panel this month and a thyroid + lipid panel next month, she should see two fundamentally different Visual Biomarker Reports — each one faithful to the contents of its source report. The app is a viewer for _whatever just came back from the lab_, not a dashboard on a fixed panel.
+
 ## What it is
 
 When a patient has lab results — either ordered by an ONLYOU doctor or uploaded from an outside lab — the app shows a **Visual Biomarker Report** instead of (or alongside) the raw PDF. The report is narrative-framed, status-badged, and trend-aware. It is the single most important UX bridge between "I got labs done" and "I understand what they mean, and what ONLYOU is doing about them."
@@ -104,19 +120,51 @@ When a patient has lab results — either ordered by an ONLYOU doctor or uploade
 
 ### Reference-range knowledge
 
+**The parser is marker-agnostic. The DB is seed-and-grow, not a whitelist.**
+
 - New Convex table: `biomarker_reference_ranges`
-  - `marker` (e.g., "vitamin_d", "total_testosterone")
+  - `marker` (canonical id, e.g., `vitamin_d`, `total_testosterone`)
+  - `aliases` (`string[]`) — alternative names labs use for the same marker (e.g., `25-OH Vitamin D`, `25-hydroxyvitamin D`, `Vit D (25-OH)`)
   - `unit`
   - `ageMin`, `ageMax`
   - `sex` (`male` | `female` | `any`)
   - `optimalMin`, `optimalMax`
   - `subOptimalMin`, `subOptimalMax`
   - `actionBelow`, `actionAbove`
-  - `category` (e.g., "Hormonal Balance")
+  - `category` (e.g., `Hormonal Balance`)
   - `explainer` (Markdown, shown on "Learn more" tap)
-- Seeded at launch from a curated dataset (we compile this from medical reference tables). Initial scope: the ~25 most common markers across the 5 verticals (vitamin D, testosterone, TSH, HbA1c, lipid panel, CBC, DHEA-S, prolactin, insulin, fasting glucose, cortisol, estradiol, FSH, LH, AMH, iron, ferritin, B12, creatinine, eGFR, ALT, AST, CRP, vitamin B9, homocysteine).
-- Every range row has a citation field — we track the source.
-- Age/sex sensitivity is first-class: a 25-year-old female's optimal estradiol differs dramatically from a 60-year-old female's.
+  - `source` (citation — tracked for every row)
+
+- **Seed at launch** is an MVP starting inventory, not a ceiling. The first seed covers ~25 common markers across the 5 verticals (vitamin D, testosterone, TSH, HbA1c, lipid panel components, CBC indices, DHEA-S, prolactin, insulin, fasting glucose, cortisol, estradiol, FSH, LH, AMH, iron, ferritin, B12, creatinine, eGFR, ALT, AST, CRP, B9, homocysteine). The DB grows over time as new markers are curated and medically reviewed. **Adding a new marker is a data change, not a code change.**
+
+- **The parser does not require the DB to match.** If a report contains a marker the DB doesn't know about, the parser still extracts it — it just can't classify it against our internal reference ranges. See "Unknown / unclassified markers" below.
+
+- Age/sex sensitivity is first-class: a 25-year-old female's optimal estradiol differs dramatically from a 60-year-old female's. Every classification query takes age + sex + marker and returns the matching row (or none).
+
+### Unknown / unclassified markers
+
+A real blood report will often contain markers we haven't curated yet. The feature degrades gracefully:
+
+1. **Extract** — the parser pulls the marker name, value, unit, and the lab's own reference range printed on the PDF (e.g., `90 – 200 mg/dL`).
+2. **Classify attempt** — match against `biomarker_reference_ranges` by canonical id or alias.
+3. **On miss** — render the marker with:
+   - A **fourth status variant: `unclassified`** (grey rail, grey badge labeled `Not classified`, no range-bar zones since we don't know the optimal range).
+   - The raw value + unit (unchanged).
+   - The lab's own reference range from the PDF, rendered as plain text (`Lab range: 90 – 200 mg/dL`) instead of the gradient range bar.
+   - **No sparkline trend** unless we have at least 2 reports with the same marker — trend is a function of history, not classification.
+   - A "Learn more" link that says "We don't have a plain-English explainer for this marker yet" with a way to flag it for curation.
+4. **Flag for curation** — every unclassified marker extraction creates a row in `biomarker_curation_queue` (new table) so the clinical advisor can prioritise additions to the reference DB.
+
+The four status variants the UI must support:
+
+| Variant            | Meaning                                            | Rail colour | Badge          |
+| ------------------ | -------------------------------------------------- | ----------- | -------------- |
+| `optimal`          | Classified + value in optimal range                | green       | Optimal        |
+| `sub-optimal`      | Classified + value in sub-optimal range            | lavender    | Sub-optimal    |
+| `action-required`  | Classified + value outside reference range         | red         | Action         |
+| **`unclassified`** | Not in reference DB; raw value + lab's range shown | grey        | Not classified |
+
+**Phase 2 shell note:** Plan 2D's `StatusBadge` component only implements the first three variants because the fixture has no unclassified markers. Phase 2.5 adds the fourth variant to the component library. This is logged in `docs/DEFERRED.md`.
 
 ### Trend logic
 
@@ -127,17 +175,21 @@ When a patient has lab results — either ordered by an ONLYOU doctor or uploade
 
 ## Phase mapping
 
-| Deliverable                                                                              | Phase                         | Notes                                                                                                   |
-| ---------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Visual Biomarker Report UI component (range bars, status badges, trend, narrative card)  | **Phase 2**                   | Built against fixture biomarker data. Reference fixture has ~8 markers across all 3 states              |
-| `profile/lab-results/[id].tsx` renders the visual report (not raw PDF)                   | **Phase 2**                   | Connected to fixture                                                                                    |
-| Upload flow (`lab-booking/upload-results.tsx`) with 3-second simulated `analyzing` state | **Phase 2**                   | No real parsing — flips to the fixture report                                                           |
-| `biomarker_reference_ranges` Convex table + schema                                       | **New phase**                 | Must precede real parsing. Could fold into Phase 3 if Hair Loss needs real labs; else a dedicated phase |
-| Curated reference-range seed data (25 markers)                                           | **New phase**                 | Medical review, source citations, seeder script                                                         |
-| `parseLabReport` Convex action (OCR + Claude extraction + classification + narrative)    | **New phase**                 | The core AI feature                                                                                     |
-| Real upload → parse → visual report wiring                                               | **New phase**                 | Replaces the Phase 2 simulated state                                                                    |
-| Doctor-ordered labs populating biomarker reports automatically                           | **Phase 3 tail or new phase** | Depends on when nurse flow lands                                                                        |
-| Integration with external lab APIs (Thyrocare, Metropolis, Lal PathLabs)                 | **Phase 8+**                  | Listed as "no lab APIs for MVP" in `CLAUDE.md`                                                          |
+| Deliverable                                                                                             | Phase                         | Notes                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Visual Biomarker Report UI component (range bars, status badges, trend, narrative card)                 | **Phase 2**                   | Built against 8-marker fixture. **The component already renders a variable-length `markers[]` array — 3, 8, 40 markers all render correctly.**                 |
+| `profile/lab-results/[id].tsx` renders the visual report (not raw PDF)                                  | **Phase 2**                   | Connected to fixture                                                                                                                                           |
+| Upload flow (`lab-booking/upload-results.tsx`) with 3-second simulated `analyzing` state                | **Phase 2**                   | No real parsing — flips to the fixture report                                                                                                                  |
+| `biomarker_reference_ranges` Convex table + schema (with `aliases` field + `source` citation)           | **Phase 2.5**                 | Must precede real parsing. **Schema is extensible — adding a new marker is an insert, not a code change.**                                                     |
+| Seed data for ~25 common markers (MVP starting inventory, **not a ceiling**)                            | **Phase 2.5**                 | Medical review, source citations, seeder script. Grows over time as new markers are curated.                                                                   |
+| `biomarker_curation_queue` table (captures unclassified markers flagged by the parser)                  | **Phase 2.5**                 | Every parse run that hits an unknown marker writes a row here, driving the curator's backlog.                                                                  |
+| **Adaptive `parseLabReport` Convex action** (OCR + Claude extraction + per-marker classify + narrative) | **Phase 2.5**                 | **Marker-agnostic.** Extracts every marker in the report, attempts classification against the DB, renders unknowns as `unclassified` instead of dropping them. |
+| **Fourth `StatusBadge` variant: `unclassified`** (grey rail, raw value + lab's own printed range)       | **Phase 2.5**                 | Required because real reports always contain markers the DB doesn't know yet. Plan 2D ships only 3 variants; this is the addition.                             |
+| `MarkerCard` unclassified render state (no gradient range bar; shows lab's printed range as text)       | **Phase 2.5**                 | Graceful degradation when the DB has no matching row                                                                                                           |
+| Real upload → parse → visual report wiring                                                              | **Phase 2.5**                 | Replaces the Phase 2 simulated state. **Works on any report, any marker set.**                                                                                 |
+| Narrative generation that adapts to whatever markers are present                                        | **Phase 2.5**                 | Claude-generated "In summary" must reference only the markers in _this_ report — no template strings keyed to a fixed list                                     |
+| Doctor-ordered labs populating biomarker reports automatically                                          | **Phase 2.5 or Phase 3 tail** | Depends on when the nurse flow lands                                                                                                                           |
+| Integration with external lab APIs (Thyrocare, Metropolis, Lal PathLabs)                                | **Phase 8+**                  | Listed as "no lab APIs for MVP" in `CLAUDE.md`                                                                                                                 |
 
 ## Open questions (to resolve before the "new phase" begins)
 

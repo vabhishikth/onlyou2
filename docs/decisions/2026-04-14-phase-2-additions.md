@@ -16,11 +16,13 @@ The patient app uses `user.gender` (from `profile-setup`) to filter verticals, p
 
 ### 2. Visual biomarker tracking (core feature)
 
-When lab results land — doctor-ordered or patient-uploaded — the app shows a Visual Biomarker Report with status badges (OPTIMAL / SUB-OPTIMAL / ACTION REQUIRED), range bars, trend comparison, and a plain-English narrative. The reference visual direction is `docs/biomarker-reference.png` (Clinical Curator tone, premium serif framing).
+When lab results land — doctor-ordered or patient-uploaded — the app shows a Visual Biomarker Report with status badges (OPTIMAL / SUB-OPTIMAL / ACTION REQUIRED / UNCLASSIFIED), range bars, trend comparison, and a plain-English narrative. The reference visual direction is `docs/biomarker-reference.png` (Clinical Curator tone, premium serif framing).
 
-**Scope in Phase 2:** The visual-report UI component and the `profile/lab-results/[id].tsx` screen are built against fixture biomarker data. Real OCR, extraction, classification, and reference-range seeding are deferred to a new phase.
+**Core principle: adaptive, not fixed.** The system renders whatever markers the uploaded report contains, not a pre-chosen list. Different reports have different panels (basic metabolic, thyroid-only, PCOS hormone, comprehensive wellness) with completely different marker sets. The parser is marker-agnostic — it extracts every marker in the report, classifies known ones against our reference DB, and gracefully degrades on unknown ones (fourth `unclassified` status variant: raw value + lab's own printed reference range + flag for curation). **Two different reports for the same patient can produce completely different Visual Biomarker Reports.**
 
-**Full spec:** [[FEATURE-BIOMARKER-TRACKING|FEATURE-BIOMARKER-TRACKING.md]].
+**Scope in Phase 2:** The visual-report UI component and the `profile/lab-results/[id].tsx` screen are built against an 8-marker fixture that only exercises the first three status variants. Crucially, the component already renders a variable-length `markers[]` array — 3, 8, or 40 markers all render correctly. Real adaptive OCR, extraction, classification, the fourth `unclassified` variant, the `biomarker_curation_queue`, and reference-range seeding are all deferred to Phase 2.5 (Biomarker foundation).
+
+**Full spec:** [[FEATURE-BIOMARKER-TRACKING|FEATURE-BIOMARKER-TRACKING.md]] — see §"Core principle — adaptive, not fixed" at the top of that file.
 
 ### 3. Conversion-optimized flows require CRO skills at implementation
 
