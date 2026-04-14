@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as authOtp from "../auth/otp.js";
 import type * as featureFlags from "../featureFlags.js";
 import type * as users from "../users.js";
 
@@ -18,6 +19,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "auth/otp": typeof authOtp;
   featureFlags: typeof featureFlags;
   users: typeof users;
 }>;
