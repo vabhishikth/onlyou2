@@ -1,4 +1,4 @@
-import { useAction } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 
 import { api } from "../../../../convex/_generated/api";
 import { useAuthStore } from "../stores/auth-store";
@@ -6,6 +6,7 @@ import { useAuthStore } from "../stores/auth-store";
 export function useSignIn() {
   const sendOtpAction = useAction(api.auth.otp.sendOtp);
   const verifyOtpAction = useAction(api.auth.otp.verifyOtp);
+  const signOutMutation = useMutation(api.auth.sessions.signOut);
   const setToken = useAuthStore((s) => s.setToken);
   const clearToken = useAuthStore((s) => s.clearToken);
 
@@ -20,6 +21,14 @@ export function useSignIn() {
   }
 
   async function signOut() {
+    const token = useAuthStore.getState().token;
+    if (token) {
+      try {
+        await signOutMutation({ token });
+      } catch {
+        // Best-effort — clear local storage even if server call fails
+      }
+    }
     await clearToken();
   }
 
