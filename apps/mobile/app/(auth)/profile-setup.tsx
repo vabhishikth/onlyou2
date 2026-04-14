@@ -1,3 +1,4 @@
+import { computeAgeYears, MIN_AGE_YEARS } from "@onlyou/core/validators/age";
 import { useMutation } from "convex/react";
 import { router, useFocusEffect, useNavigation } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -29,6 +30,15 @@ function formatDob(input: string): string {
   if (digits.length <= 2) return digits;
   if (digits.length <= 4) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
   return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
+}
+
+/** Convert the UI's `DD-MM-YYYY` representation to the ISO `YYYY-MM-DD`
+ *  form expected by the server + `computeAgeYears`. Returns `""` for
+ *  incomplete input so callers can short-circuit. */
+function dobToIso(dob: string): string {
+  if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) return "";
+  const [dd, mm, yyyy] = dob.split("-");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 const TITLE_STYLE = {
@@ -98,14 +108,17 @@ export default function ProfileSetup() {
   const [stateName, setStateName] = useState("");
   const [address, setAddress] = useState("");
 
+  const dobIso = dobToIso(dob);
+  const dobFormatValid = dobIso.length > 0;
+  const dobAge = dobFormatValid ? computeAgeYears(dobIso) : Number.NaN;
+  const dobUnderAge = dobFormatValid && dobAge < MIN_AGE_YEARS;
+
   async function onFinish() {
     if (!token) return;
-    const [dd, mm, yyyy] = dob.split("-");
-    const isoDob = `${yyyy}-${mm}-${dd}`;
     await completeProfile({
       token,
       name,
-      dob: isoDob,
+      dob: dobIso,
       gender: gender ?? "other",
       pincode,
       city,
@@ -252,19 +265,32 @@ export default function ProfileSetup() {
                 keyboardType="number-pad"
                 maxLength={10}
               />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: colors.textTertiary,
-                  marginTop: 8,
-                }}
-              >
-                Must be 18+ to use onlyou.
-              </Text>
+              {dobUnderAge ? (
+                <Text
+                  testID="dob-under-age-error"
+                  style={{
+                    fontSize: 12,
+                    color: colors.error,
+                    marginTop: 8,
+                  }}
+                >
+                  You must be 18 or older to use ONLYOU.
+                </Text>
+              ) : (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: colors.textTertiary,
+                    marginTop: 8,
+                  }}
+                >
+                  Must be 18+ to use onlyou.
+                </Text>
+              )}
               <View style={{ flex: 1 }} />
               <PremiumButton
                 label="Next"
-                disabled={!/^\d{2}-\d{2}-\d{4}$/.test(dob)}
+                disabled={!dobFormatValid || dobUnderAge}
                 onPress={() => setStep("address")}
               />
             </>
