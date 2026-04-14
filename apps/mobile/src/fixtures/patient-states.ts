@@ -22,7 +22,7 @@ export interface FixtureUser {
 export const FIXTURES: Record<PatientState, FixtureUser> = {
   new: {
     userId: "user_arjun_001",
-    phone: "+919999900001",
+    phone: "+91 99999 00001",
     name: "Arjun Sharma",
     gender: "male",
     age: 28,
@@ -37,7 +37,7 @@ export const FIXTURES: Record<PatientState, FixtureUser> = {
   },
   reviewing: {
     userId: "user_priya_002",
-    phone: "+919999900002",
+    phone: "+91 99999 00002",
     name: "Priya Nair",
     gender: "female",
     age: 32,
@@ -52,7 +52,7 @@ export const FIXTURES: Record<PatientState, FixtureUser> = {
   },
   ready: {
     userId: "user_rahul_003",
-    phone: "+919999900003",
+    phone: "+91 99999 00003",
     name: "Rahul Mehta",
     gender: "male",
     age: 35,
@@ -67,7 +67,7 @@ export const FIXTURES: Record<PatientState, FixtureUser> = {
   },
   active: {
     userId: "user_sanjana_004",
-    phone: "+919999900004",
+    phone: "+91 99999 00004",
     name: "Sanjana Iyer",
     gender: "female",
     age: 30,
