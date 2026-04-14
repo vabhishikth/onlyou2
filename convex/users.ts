@@ -1,13 +1,6 @@
 import { v } from "convex/values";
 
-import { mutation, query } from "./_generated/server";
-
-export const getCurrentUser = query({
-  args: {},
-  handler: async () => {
-    return null;
-  },
-});
+import { mutation } from "./_generated/server";
 
 export const completeProfile = mutation({
   args: {
