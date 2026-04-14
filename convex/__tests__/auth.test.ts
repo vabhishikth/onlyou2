@@ -42,3 +42,26 @@ describe("auth.otp — OTP lockout (MAX_ATTEMPTS = 3)", () => {
     expect(attempt?.attempts).toBe(3);
   });
 });
+
+describe("auth.otp — OTP expiry", () => {
+  it("rejects a verify after the TTL has elapsed", async () => {
+    const t = convexTest(schema, modules);
+    const phone = "+91 98765 43211";
+
+    await t.action(api.auth.otp.sendOtp, { phone });
+
+    // Push the attempt row's expiresAt into the past.
+    await t.run(async (ctx) => {
+      const row = await ctx.db
+        .query("otpAttempts")
+        .withIndex("by_phone", (q) => q.eq("phone", phone))
+        .unique();
+      if (!row) throw new Error("expected otpAttempts row");
+      await ctx.db.patch(row._id, { expiresAt: Date.now() - 1000 });
+    });
+
+    await expect(
+      t.action(api.auth.otp.verifyOtp, { phone, otp: "123456" }),
+    ).rejects.toThrow(/OTP expired/);
+  });
+});
