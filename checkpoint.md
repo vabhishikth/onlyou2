@@ -1,7 +1,7 @@
 # Checkpoint
 
 **Current phase:** Phase 2A — Foundation (patient app shell substrate)
-**Status:** ✅ COMPLETE — code review APPROVE-WITH-FIXES, findings addressed, ready for merge
+**Status:** ✅ COMPLETE — merged to master at `b4f2b8f` (code review APPROVE-WITH-FIXES, both findings addressed pre-merge)
 
 ## Last session (2026-04-14)
 
