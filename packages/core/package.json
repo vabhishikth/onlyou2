@@ -17,7 +17,9 @@
     "./tokens/z-index": "./src/tokens/z-index.ts",
     "./enums": "./src/enums/index.ts",
     "./flags": "./src/flags/index.ts",
-    "./formatters": "./src/formatters/index.ts"
+    "./formatters": "./src/formatters/index.ts",
+    "./validators": "./src/validators/index.ts",
+    "./validators/age": "./src/validators/age.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
