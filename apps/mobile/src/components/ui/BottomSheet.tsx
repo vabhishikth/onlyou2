@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors } from "../../theme/colors";
@@ -24,7 +24,13 @@ export function BottomSheet({
   if (!visible) return null;
 
   return (
-    <View style={StyleSheet.absoluteFill} testID={testID}>
+    <Modal
+      transparent
+      visible={visible}
+      onRequestClose={onClose}
+      animationType="slide"
+      testID={testID}
+    >
       <Pressable
         testID={testID ? `${testID}-overlay` : undefined}
         onPress={onClose}
@@ -68,6 +74,6 @@ export function BottomSheet({
           {children}
         </Pressable>
       </Pressable>
-    </View>
+    </Modal>
   );
 }

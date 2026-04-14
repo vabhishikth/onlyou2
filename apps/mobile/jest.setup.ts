@@ -9,3 +9,6 @@ jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
 }));
+
+// Modal mock is wired via moduleNameMapper in jest.config.js to avoid
+// babel-preset-expo codegen crashes in the react-native Modal module tree.
