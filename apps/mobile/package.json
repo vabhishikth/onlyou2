@@ -11,7 +11,9 @@
     "build": "echo 'Use EAS Build for native builds'",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf .expo .turbo *.tsbuildinfo"
+    "clean": "rm -rf .expo .turbo *.tsbuildinfo",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@expo-google-fonts/playfair-display": "0.4.2",
@@ -41,6 +43,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@onlyou/config": "workspace:*",
+    "@react-native/jest-preset": "^0.85.1",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^29.5.14",
