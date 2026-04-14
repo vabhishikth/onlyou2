@@ -6,8 +6,6 @@
  *
  * See docs/decisions/2026-04-14-phase-2-fixture-and-auth-pattern.md.
  */
-declare const console: { log: (msg: string) => void };
-
 export interface OtpSender {
   readonly name: string;
   send(phone: string, otp: string): Promise<void>;
