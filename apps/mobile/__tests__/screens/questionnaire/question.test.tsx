@@ -51,9 +51,9 @@ describe("Question screen", () => {
     expect(useQuestionnaireStore.getState().answers.gender).toBe("male");
   });
 
-  it("routes to review when the last question is answered", () => {
+  it("branches photo questions to the photo-upload stack", () => {
     mockParams.condition = "hair-loss";
-    mockParams.qid = "photos"; // last question in the bank
+    mockParams.qid = "photos"; // last question in the bank, type: photo
     const { getByText } = render(
       <TestProvider scenario="new">
         <QuestionScreen />
@@ -61,6 +61,6 @@ describe("Question screen", () => {
     );
     // Photo is handled elsewhere but canProceed is true immediately.
     fireEvent.press(getByText("Next"));
-    expect(router.push).toHaveBeenCalledWith("/questionnaire/hair-loss/review");
+    expect(router.push).toHaveBeenCalledWith("/photo-upload/hair-loss");
   });
 });

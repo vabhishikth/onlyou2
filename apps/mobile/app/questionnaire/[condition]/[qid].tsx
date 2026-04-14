@@ -75,16 +75,13 @@ export default function QuestionScreen() {
       setAnswer(question.id, text);
     }
 
-    const nextQ = questions[index + 1];
     if (question.type === "photo") {
-      // Photo upload stack is built in Task 14. For now, skip straight ahead.
-      if (nextQ) {
-        router.push(`/questionnaire/${condition}/${nextQ.id}`);
-      } else {
-        router.push(`/questionnaire/${condition}/review`);
-      }
+      // Hand off to the dedicated photo-upload stack. That stack owns the
+      // review-screen handoff once every required photo is captured.
+      router.push(`/photo-upload/${condition}`);
       return;
     }
+    const nextQ = questions[index + 1];
     if (nextQ) {
       router.push(`/questionnaire/${condition}/${nextQ.id}`);
     } else {
