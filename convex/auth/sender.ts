@@ -6,6 +6,8 @@
  *
  * See docs/decisions/2026-04-14-phase-2-fixture-and-auth-pattern.md.
  */
+declare const console: { log: (msg: string) => void }
+
 export interface OtpSender {
   readonly name: string
   send(phone: string, otp: string): Promise<void>
@@ -13,16 +15,9 @@ export interface OtpSender {
 
 export class ConsoleLogSender implements OtpSender {
   readonly name = 'console-log'
-  constructor(private readonly logger?: (msg: string) => void) {}
+  constructor(private readonly logger: (msg: string) => void = console.log) {}
 
   async send(phone: string, otp: string): Promise<void> {
-    const msg = `[OTP] ${phone} → ${otp}`
-    if (this.logger) {
-      this.logger(msg)
-    } else {
-      // eslint-disable-next-line no-console
-      // @ts-expect-error console is available in Convex runtime but not in ESNext lib
-      console.log(msg)
-    }
+    this.logger(`[OTP] ${phone} → ${otp}`)
   }
 }
