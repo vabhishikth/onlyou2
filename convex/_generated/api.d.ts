@@ -8,10 +8,12 @@
  * @module
  */
 
-import type * as authOtp from "../auth/otp.js";
-import type * as authSessions from "../auth/sessions.js";
+import type * as auth_otp from "../auth/otp.js";
+import type * as auth_otpDb from "../auth/otpDb.js";
+import type * as auth_sender from "../auth/sender.js";
+import type * as auth_sessions from "../auth/sessions.js";
 import type * as featureFlags from "../featureFlags.js";
-import type * as seedFakeUsers from "../seed/fakeUsers.js";
+import type * as seed_fakeUsers from "../seed/fakeUsers.js";
 import type * as users from "../users.js";
 
 import type {
@@ -21,10 +23,12 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  "auth/otp": typeof authOtp;
-  "auth/sessions": typeof authSessions;
+  "auth/otp": typeof auth_otp;
+  "auth/otpDb": typeof auth_otpDb;
+  "auth/sender": typeof auth_sender;
+  "auth/sessions": typeof auth_sessions;
   featureFlags: typeof featureFlags;
-  "seed/fakeUsers": typeof seedFakeUsers;
+  "seed/fakeUsers": typeof seed_fakeUsers;
   users: typeof users;
 }>;
 
