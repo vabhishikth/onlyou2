@@ -154,3 +154,32 @@ describe("auth.otp — finalizeSignIn idempotency", () => {
     expect(sessions).toHaveLength(2);
   });
 });
+
+describe("auth.sessions — signOut", () => {
+  it("deletes the sessions row and getCurrentUser returns null", async () => {
+    const t = convexTest(schema, modules);
+    const phone = "+91 99999 00004";
+
+    await t.action(api.auth.otp.sendOtp, { phone });
+    const { token } = await t.action(api.auth.otp.verifyOtp, {
+      phone,
+      otp: "000000",
+    });
+
+    const before = await t.query(api.auth.sessions.getCurrentUser, { token });
+    expect(before).not.toBeNull();
+
+    await t.mutation(api.auth.sessions.signOut, { token });
+
+    const after = await t.query(api.auth.sessions.getCurrentUser, { token });
+    expect(after).toBeNull();
+
+    const rows = await t.run(async (ctx) => {
+      return ctx.db
+        .query("sessions")
+        .withIndex("by_token", (q) => q.eq("token", token))
+        .collect();
+    });
+    expect(rows).toHaveLength(0);
+  });
+});
