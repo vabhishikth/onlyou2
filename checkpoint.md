@@ -1,56 +1,81 @@
 # Checkpoint
 
-**Current phase:** Phase 2A — Foundation (patient app shell substrate)
-**Status:** ✅ COMPLETE — merged to master at `b4f2b8f` (code review APPROVE-WITH-FIXES, both findings addressed pre-merge)
+**Current phase:** Phase 2B — Auth + shell skeleton
+**Status:** ✅ COMPLETE on `feature/phase-2b-auth-shell` — code review APPROVE-WITH-FIXES, all 6 fixes applied. Ready to merge to master.
 
 ## Last session (2026-04-14)
 
-Executed Phase 2A via subagent-driven development in worktree
-`feature/phase-2a-foundation`. 21 commits delivering the foundation layer for
-the patient app shell: test infrastructure, upgraded primitives, fixture layer,
-dev scenario switcher, custom ESLint rule, root layout.
+Executed Phase 2B via subagent-driven development in worktree
+`feature/phase-2b-auth-shell`. ~28 commits across 20 plan tasks + 6 review
+fixes + normalization, delivering full custom phone-OTP auth and the
+authenticated 4-tab shell skeleton.
 
 **Delivered:**
 
-- Jest + jest-expo 55 + React Native Testing Library 13 + AsyncStorage mock
-- 11 test suites, **33 tests passing** (covering smoke, test-utils, inputs,
-  buttons, bottom sheets, placeholders, gender gate, fixtures, store, hook,
-  scenario switcher)
-- Custom `onlyou/no-hardcoded-hex` ESLint rule in `@onlyou/config` — fails the
-  build on any hex literal outside token files (design showcase + expo config
-  file-level exemptions documented inline)
-- `PremiumInput` upgraded to floating-label pattern (60px, 14→11px label
-  animation via Reanimated) — closes Phase 1 deferral
-- `PremiumButton` gains `warm` variant using `accentWarm` token — consultation
-  CTA color per `VISUAL_DIRECTION.md` §1. Phase 1 haptics + spring scale
-  removed (Phase 8 launch polish per `DEFERRED.md`)
-- `<BottomSheet>` primitive — RN `Modal` + safe-area padding (Jest mocks the
-  Modal internal to dodge a babel-preset-expo codegen bug)
-- `<PlaceholderScreen>` for deferred route stubs
-- `<GenderGate>` + `useGender()` hook (reads active fixture user's gender)
-- `FIXTURES` — 4 seeded patient-state users (Arjun/Priya/Rahul/Sanjana,
-  covering both genders × 4 journey states: new, reviewing, ready, active)
-- `dev-scenario-store` Zustand + AsyncStorage persist, `__DEV__`-gated — the
-  production bundle dead-code-eliminates the persist middleware
-- `usePatientState()` hook — the single Convex-cutover seam for Phase 3+
-- `<ScenarioSwitcher>` bottom-sheet dev component listing all 4 scenarios
-- Root `_layout.tsx` with font loading (Playfair + Jakarta), splash gating,
-  GestureHandlerRootView, SafeAreaProvider, and scenario switcher mount
-- `app/index.tsx` — Plan 2A preview splash reading `usePatientState()` to
-  prove the full fixture → hook → UI chain works end-to-end
-- `onlyou://` deep-link scheme verified (already registered in Phase 1)
+- Convex schema extended: `users` profile + gates, `otpAttempts`, `sessions`
+  tables with indexes
+- Custom auth: `OtpSender` interface + `ConsoleLogSender`, `sendOtp` /
+  `verifyOtp` Convex actions (bcryptjs hashed OTP, dev bypass for
+  `+91 99999 000xx` / `000000`), `getCurrentUser` query, `signOut` mutation,
+  `completeProfile` mutation. Session tokens are 256-bit `node:crypto`
+  randomBytes hex (NOT Math.random — fixed in review B-1)
+- 4 seeded fake patients via idempotent `seedFakeUsers` internal mutation
+- Mobile: `ConvexReactClient` singleton, `auth-store` zustand backed by
+  `expo-secure-store`, `useCurrentUser` + `useSignIn` hooks
+- `<PhoneInput>` (+91 prefix, 10-digit cap) + `<OtpBoxes>` (6-cell
+  auto-advance) components with TDD coverage
+- Auth screens: welcome (+ dev quick-login drawer for the 4 fixtures),
+  phone-verify, otp-entry (30s resend timer), profile-setup
+  (one-question-per-screen multi-step: name → gender → DOB → address)
+- Root `_layout.tsx` rewired: `ConvexProvider` + auth-store hydration gate
+  (splash holds until both fonts and hydrated are true)
+- Real splash router at `app/index.tsx` — token + profileComplete gates,
+  clears stale tokens when server rejects
+- `(tabs)/_layout.tsx` — 4 tabs (home/explore/activity/messages) + custom
+  header with wordmark (triple-tap → ScenarioSwitcher in `__DEV__`) +
+  initials avatar pushing to `/profile`
+- 4 placeholder tab `index.tsx` screens via `<PlaceholderScreen>`
+- Profile stack placeholder with 12 row stubs + working sign-out (now
+  invalidates the server session before clearing local secure-store)
+- 14 test suites, **40 tests passing** — adds `auth-store`, `phone-input`,
+  `otp-boxes` to Phase 2A's coverage
+- `convex/_generated/api.d.ts` is a manually-maintained stub registering
+  `auth/otp`, `auth/sessions`, `seed/fake-users`, `featureFlags`, `users`
+  (the convex dev watcher cannot run in this environment — Plan 2C will
+  reconcile when convex-test infra is added)
 
-**Notable fix outside scope:** `eslint-plugin-import@2.32.0` crashes on
-ESLint 10 (`sourceCode.getTokenOrCommentBefore` removed). Swapped to
-`eslint-plugin-import-x` — this was the hidden blocker that would have
-stopped every subsequent phase, so fixing it was in-scope.
+**Notable fixes outside Phase 2B scope** (in-scope because they were hidden
+blockers for the rest of the phase):
 
-**Code review:** `docs/superpowers/reviews/2026-04-14-phase-2a-foundation-review.md`
-verdict APPROVE-WITH-FIXES. Both fixes applied (scope-creep `loading` prop
-removed from PremiumButton; this checkpoint update).
+- `convex/featureFlags.ts` lost an unused `import { v }` — pre-existing
+  lint debt cleared during the prettier normalization pass
+- All convex files normalized to project Prettier defaults (double quotes
+  - semicolons). Phase 2A `convex/schema.ts` had been written with the
+    wrong style and skipped the formatter
+
+**Plan bug corrected during execution:** ROLES enum is UPPERCASE
+(`'PATIENT'`), but the plan text used `'patient'`. The implementer used
+`'PATIENT'` in `finalizeSignIn` and `seedFakeUsers` — schema validation
+would have rejected the lowercase form.
+
+**Code review:**
+`docs/superpowers/reviews/2026-04-14-phase-2b-auth-shell-review.md`
+verdict APPROVE-WITH-FIXES. All 6 fixes applied:
+
+- B-1: `Math.random` session token → `node:crypto.randomBytes(32).toString("hex")`
+- I-1: Deleted dead `convex/users.ts:getCurrentUser` stub (real one in `auth/sessions.ts`)
+- I-2: `useSignIn().signOut()` now calls `api.auth.sessions.signOut` before clearing secure-store
+- I-3: `app/index.tsx` clears stale local token when `useCurrentUser()` returns `null`
+- S-7: Welcome "terms" link no longer points to authenticated `/profile` route
+- DEFERRED: 5 review-time deferrals tracked in `docs/DEFERRED.md` (CRO skills, convex-test harness, phone E.164 normalization, 18+ DOB enforcement, OtpBoxes/timer hygiene) — all routed to Plan 2C or 3
+
+**Manual acceptance status:** typecheck, lint, tests all green. Booting
+Expo on iOS / Android is a remaining manual step before the founder
+review (see Task 20 Step 2 in the plan).
 
 ## Next session
 
-**Phase 2B — Auth + shell skeleton.** Begins with a fresh worktree from
-master after Phase 2A merges. Plan already written:
-`docs/superpowers/plans/2026-04-14-phase-2b-auth-shell-skeleton.md`.
+**Plan 2C — Tab content + consultation journey.** Will pre-task the
+deferred CRO skill pass over the auth screens before extending into
+home/explore/activity/messages real content. Begins with a fresh worktree
+from master after Phase 2B merges.
