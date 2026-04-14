@@ -44,9 +44,28 @@ The docs describe a v1 stack (NestJS/PostgreSQL/Prisma/tRPC/Redis/S3). Read them
 
 Some docs have `-CHANGES.md` companions from a payment redesign. Always check for companions — they override the base. Key change: **patients pay AFTER doctor prescribes**, not before.
 
-`DESIGN.md` is the source of truth for all visual decisions.
+`docs/DESIGN.md` is the source of truth for all visual decisions.
 
 **This vault is a living wiki.** When making architectural decisions, resolving inconsistencies, or learning something important during a build session, write it back as a note in `docs/` using Obsidian skills. Always search `docs/` before guessing.
+
+---
+
+## DESIGN SYSTEM
+
+Before writing ANY patient-facing UI code, read these two files in order:
+
+1. **`docs/DESIGN.md`** — Tokens, colors, typography, spacing, components, file paths. Source of truth for all values.
+2. **`docs/VISUAL_DIRECTION.md`** — Screen-by-screen layouts, interaction patterns, and the "Clinical Luxe" feel checklist. Tells you HOW to compose the tokens from DESIGN.md into Hims-quality screens. **Authoritative for Phase 2 except the five carve-outs documented at the top of that file** (5-tab bar → we use 4 tabs + avatar; Shop tab; Cart; Aadhaar ID verification; haptics & full a11y → Phase 8).
+
+### Critical rules
+
+- Never hardcode hex values. Import from `@onlyou/core/tokens/colors`, `@onlyou/core/tokens/typography`, `@onlyou/core/tokens/spacing`.
+- Consultation flow CTAs use `accentWarm` (#C4956B), not `primary` (#141414).
+- One question per screen in consultation flows. No exceptions.
+- Bottom sheets for all pickers, confirmations, and secondary inputs.
+- Floating labels on all inputs (not placeholder-only).
+- 24px horizontal padding (`spacing.horizontal`) on every screen.
+- Run the "Clinical Luxe Feel Checklist" (`docs/VISUAL_DIRECTION.md` §1) before marking any patient-facing screen done.
 
 ---
 

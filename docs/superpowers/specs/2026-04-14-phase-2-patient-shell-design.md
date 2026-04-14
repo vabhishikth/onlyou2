@@ -7,12 +7,14 @@
 
 - `docs/APP-PATIENT.md` + `-CHANGES.md` + `-UPDATED-SECTIONS.md` + **`docs/APP-PATIENT-ADDITIONS.md`** (precedence in that order, additions wins).
 - `docs/FEATURE-BIOMARKER-TRACKING.md`
-- `docs/DESIGN.md`
+- `docs/DESIGN.md` — tokens, components, colors, typography, spacing
+- **`docs/VISUAL_DIRECTION.md`** — screen-by-screen layouts, interaction patterns, Clinical Luxe feel checklist. Authoritative for every patient-facing screen in Phase 2 except the five carve-outs documented at the top of that file (5-tab bar, Shop, Cart, Aadhaar ID verification, haptics + full a11y). See `docs/decisions/2026-04-14-visual-direction-adoption.md`.
 - `docs/decisions/2026-04-14-phase-2-navigation-ia.md`
 - `docs/decisions/2026-04-14-phase-2-fixture-and-auth-pattern.md`
 - `docs/decisions/2026-04-14-phase-2-additions.md`
+- `docs/decisions/2026-04-14-visual-direction-adoption.md`
 - `docs/DEFERRED.md` (running ledger — reviewed before this spec was written)
-- `CLAUDE.md` Rules 1–10
+- `CLAUDE.md` Rules 1–10 + the `DESIGN SYSTEM` section
 
 ---
 
@@ -305,7 +307,46 @@ Test assertions for these screens include the conversion-critical elements named
 
 Before Phase 2 merges to master, the `superpowers:requesting-code-review` skill runs on the full diff. Every finding is addressed or explicitly acknowledged. Review report is committed at `docs/superpowers/reviews/2026-XX-XX-phase-2-patient-shell-review.md`.
 
-### 4.12 Error handling + edge cases
+### 4.12 Visual quality gate (per `docs/VISUAL_DIRECTION.md`)
+
+Every patient-facing screen runs through the **Clinical Luxe Feel Checklist** (VISUAL_DIRECTION.md §1) before it can be marked done. 14 items, ~60 seconds per screen. If any item fails, the screen goes back for rework. No exceptions.
+
+**Binding rules from VISUAL_DIRECTION.md applied across Phase 2:**
+
+- **`accentWarm` (#C4956B) CTAs** — all consultation-flow primary buttons use the warm accent background instead of `primary`. Applies to: all questionnaire screens (entry, each question, review), `photo-upload/*`, `lab-booking/*`, `treatment/confirmation`, `treatment/plan-selection`, `treatment/payment`. The non-consultation screens (Home, Explore, Activity, Messages, Profile sub-screens, auth flow) keep `primary` (black) CTAs.
+- **One question per screen** in the questionnaire engine — already committed via `app-onboarding-questionnaire` skill, now reinforced by VISUAL_DIRECTION.md §2.5.
+- **Floating labels** on every input — no placeholder-only inputs. Floating-label `<PremiumInput>` is the only input primitive allowed.
+- **Bottom sheets for every picker** (state, city, date, time, promo, confirmation, dev scenario switcher). No full-screen modals for secondary inputs.
+- **24px horizontal padding** (`spacing.horizontal`) on every screen.
+- **Icon-only back button** (ChevronLeft, 44px tap target).
+- **No decorative gradients, glows, or heavy shadows** — only `shadow.soft`.
+- **Generous vertical spacing** between sections (32–40px).
+- **Status badges** use the semantic variants from `docs/DESIGN.md` §11.
+
+**Token imports are binding:**
+
+```ts
+// ✅ correct
+import { colors } from '@onlyou/core/tokens/colors';
+import { typography } from '@onlyou/core/tokens/typography';
+import { spacing } from '@onlyou/core/tokens/spacing';
+
+// ❌ never
+style={{ color: '#141414' }}
+```
+
+A lint rule (`no-hardcoded-hex`) enforces this — any hex literal in a style object fails the build.
+
+**Carve-outs explicitly NOT applied in Phase 2** (per `docs/decisions/2026-04-14-visual-direction-adoption.md`):
+
+- 5-tab bar → we use 4 tabs + profile avatar in the header (per navigation IA decision).
+- Shop tab + Cart screen → not in Phase 2 scope; onlyou is subscription-based, not catalog-based.
+- Aadhaar ID verification → not in Phase 2 scope.
+- Haptic feedback map (§7) + reduce-motion + full a11y audit (§8) → deferred to Phase 8.
+
+Touch-target ≥44px stays in Phase 2 as a base rule (it's free and prevents the worst a11y regressions).
+
+### 4.13 Error handling + edge cases
 
 - **Auth failures:** OTP send failure → toast + retry button. Wrong OTP 3 times → 10-minute lockout per phone, surfaced in UI.
 - **Gender mismatch** via deep link → redirect to `/explore` with a non-blocking toast.
@@ -379,13 +420,24 @@ Every item below must be true before merge.
 - [ ] Every finding addressed or explicitly acknowledged
 - [ ] Review report committed at `docs/superpowers/reviews/<date>-phase-2-patient-shell-review.md`
 
-### 6.10 Deferral hygiene (Rule 9)
+### 6.10 Visual quality gate (per VISUAL_DIRECTION.md)
+
+- [ ] Clinical Luxe Feel Checklist (14 items) run on every patient-facing screen, passed
+- [ ] `accentWarm` (#C4956B) used for every consultation-flow CTA; `primary` (#141414) for non-consultation
+- [ ] Every input is a floating-label `<PremiumInput>` — no placeholder-only inputs
+- [ ] Every picker / confirmation / secondary input uses a bottom sheet — no full-screen modals for secondary inputs
+- [ ] 24px horizontal padding on every screen
+- [ ] `no-hardcoded-hex` ESLint rule passes — all colors imported from `@onlyou/core/tokens/colors`
+- [ ] All touch targets ≥44px
+- [ ] No decorative gradients, glows, or non-`shadow.soft` shadows
+
+### 6.11 Deferral hygiene (Rule 9)
 
 - [ ] No stale "open decisions" in `DEFERRED.md` Phase 2 section
 - [ ] Every new deferral discovered during implementation is in the ledger with a named destination phase
 - [ ] Any Phase 1 deferrals closed by Phase 2 are struck through with the closing commit
 
-### 6.11 Founder approval gate
+### 6.12 Founder approval gate
 
 - [ ] Walks every tab on a real device (dev build)
 - [ ] Flips switcher to each scenario and confirms each looks right
