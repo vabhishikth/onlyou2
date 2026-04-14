@@ -65,3 +65,92 @@ describe("auth.otp — OTP expiry", () => {
     ).rejects.toThrow(/OTP expired/);
   });
 });
+
+describe("auth.otp — dev bypass", () => {
+  it("accepts `000000` for +91 99999 000XX and creates user + session", async () => {
+    const t = convexTest(schema, modules);
+    const phone = "+91 99999 00001";
+
+    await t.action(api.auth.otp.sendOtp, { phone });
+    const result = await t.action(api.auth.otp.verifyOtp, {
+      phone,
+      otp: "000000",
+    });
+
+    expect(result.token).toMatch(/^[0-9a-f]{64}$/);
+    expect(result.profileComplete).toBe(false);
+
+    const { users, sessions } = await t.run(async (ctx) => {
+      const users = await ctx.db
+        .query("users")
+        .withIndex("by_phone", (q) => q.eq("phone", phone))
+        .collect();
+      const sessions = await ctx.db.query("sessions").collect();
+      return { users, sessions };
+    });
+    expect(users).toHaveLength(1);
+    expect(users[0].phoneVerified).toBe(true);
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].token).toBe(result.token);
+  });
+
+  // CURRENT BEHAVIOR: the dev bypass has no NODE_ENV gate — it works
+  // regardless of environment. This test locks in that behavior so a
+  // future fix (gate behind NODE_ENV !== 'production') will intentionally
+  // fail this test and force a conscious update. See docs/DEFERRED.md
+  // "Phase 2B review deferrals" for the follow-up plan.
+  it("works regardless of NODE_ENV (documents current lack of gate)", async () => {
+    const t = convexTest(schema, modules);
+    const phone = "+91 99999 00002";
+    const prev = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    try {
+      await t.action(api.auth.otp.sendOtp, { phone });
+      const result = await t.action(api.auth.otp.verifyOtp, {
+        phone,
+        otp: "000000",
+      });
+      expect(result.token).toMatch(/^[0-9a-f]{64}$/);
+    } finally {
+      process.env.NODE_ENV = prev;
+    }
+  });
+});
+
+describe("auth.otp — finalizeSignIn idempotency", () => {
+  it("two dev-bypass sign-ins produce 1 user row and 2 session rows", async () => {
+    const t = convexTest(schema, modules);
+    const phone = "+91 99999 00003";
+
+    await t.action(api.auth.otp.sendOtp, { phone });
+    const first = await t.action(api.auth.otp.verifyOtp, {
+      phone,
+      otp: "000000",
+    });
+
+    await t.action(api.auth.otp.sendOtp, { phone });
+    const second = await t.action(api.auth.otp.verifyOtp, {
+      phone,
+      otp: "000000",
+    });
+
+    expect(first.userId).toBe(second.userId);
+    expect(first.token).not.toBe(second.token);
+
+    const { users, sessions } = await t.run(async (ctx) => {
+      const users = await ctx.db
+        .query("users")
+        .withIndex("by_phone", (q) => q.eq("phone", phone))
+        .collect();
+      const sessions = await ctx.db
+        .query("sessions")
+        .withIndex("by_user", (q) =>
+          q.eq("userId", users[0]?._id as (typeof users)[number]["_id"]),
+        )
+        .collect();
+      return { users, sessions };
+    });
+    expect(users).toHaveLength(1);
+    expect(sessions).toHaveLength(2);
+  });
+});
