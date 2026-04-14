@@ -87,6 +87,18 @@ export default function ProfileSetup() {
         >
           <Text
             style={{
+              fontFamily: "PlayfairDisplay_900Black",
+              fontSize: 18,
+              color: colors.textPrimary,
+              marginBottom: 24,
+            }}
+            testID="wordmark"
+          >
+            onlyou
+          </Text>
+
+          <Text
+            style={{
               fontSize: 10,
               color: colors.textTertiary,
               letterSpacing: 1.5,
