@@ -1,33 +1,62 @@
-import { useEffect } from 'react'
-import { View, Animated, Pressable, Text } from 'react-native'
-import { router } from 'expo-router'
+import { Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ScreenWrapper } from '../src/components/ui/ScreenWrapper'
-import { Logo } from '../src/components/ui/Logo'
-import { colors } from '../src/theme/colors'
+import { PlaceholderScreen } from "@/components/placeholder-screen";
+import { usePatientState } from "@/hooks/use-patient-state";
+import { colors } from "@/theme/colors";
 
+/**
+ * Plan 2A — foundation preview. Plan 2B replaces this with the real splash
+ * → (auth)/welcome gate.
+ */
 export default function Index() {
-  const opacity = new Animated.Value(0)
-
-  useEffect(() => {
-    Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }).start()
-  }, [])
+  const user = usePatientState();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScreenWrapper scroll={false}>
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 32 }}>
-        <Animated.View style={{ opacity, alignItems: 'center' }}>
-          <Logo size={56} />
-        </Animated.View>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colors.background,
+        paddingTop: insets.top,
+      }}
+    >
+      <PlaceholderScreen
+        title={`Hello, ${user.name.split(" ")[0]}`}
+        phase="Phase 2B"
+        reason="The real splash + auth flow ships in Plan 2B. Meanwhile the scenario switcher is live — wire up a triple-tap handler in Plan 2B's tab layout."
+      />
+      <View
+        style={{
+          position: "absolute",
+          bottom: insets.bottom + 24,
+          left: 24,
+          right: 24,
+        }}
+      >
         <Pressable
-          onPress={() => router.push('/design')}
-          style={{ paddingVertical: 12, paddingHorizontal: 20 }}
+          onPress={() => {
+            // Plan 2B wires the real triple-tap from the (tabs) header.
+          }}
+          style={{
+            padding: 12,
+            borderRadius: 999,
+            borderWidth: 1,
+            borderColor: colors.border,
+            alignItems: "center",
+          }}
         >
-          <Text style={{ fontSize: 14, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 2 }}>
-            Tap to explore design system
+          <Text
+            style={{
+              fontSize: 11,
+              color: colors.textTertiary,
+              letterSpacing: 0.3,
+            }}
+          >
+            Active fixture: {user.name} · {user.state}
           </Text>
         </Pressable>
       </View>
-    </ScreenWrapper>
-  )
+    </View>
+  );
 }

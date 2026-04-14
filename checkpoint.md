@@ -1,42 +1,56 @@
 # Checkpoint
 
-**Current phase:** Phase 1 — Monorepo scaffold + Convex + design system
-**Status:** ✅ COMPLETE — merged to master, founder visually approved
+**Current phase:** Phase 2A — Foundation (patient app shell substrate)
+**Status:** ✅ COMPLETE — code review APPROVE-WITH-FIXES, findings addressed, ready for merge
 
-## Last session (2026-04-13)
+## Last session (2026-04-14)
 
-Executed the full Phase 1 plan via subagent-driven development in a worktree
-(`feature/phase-1-scaffold`), then merged to master. 12 commits covering
-Phases A–K:
+Executed Phase 2A via subagent-driven development in worktree
+`feature/phase-2a-foundation`. 21 commits delivering the foundation layer for
+the patient app shell: test infrastructure, upgraded primitives, fixture layer,
+dev scenario switcher, custom ESLint rule, root layout.
 
-- **A** — Workspace root (pnpm 10.33.0, Turborepo 2.9.6, tsconfig base)
-- **B** — `packages/config` (shared TS/ESLint flat/Prettier bases)
-- **C** — `packages/core` (DESIGN.md tokens, 11 enums, 7 feature flags, IN formatters)
-- **D** — `convex/` (users + featureFlags schema, auth placeholder)
-- **E** — `packages/ui` (10 Tailwind 4 primitives + globals.css @theme block)
-- **F/G/H** — `apps/{landing,doctor,admin}` (Next.js 16 + /design showcase, ports 3001/2/3)
-- **I** — `apps/mobile` (Expo SDK 55 + NativeWind 4 + Playfair/Jakarta fonts)
-- **J** — Husky + lint-staged pre-commit (blocks on lint/typecheck failure)
-- **K** — Convex deployed to `aromatic-labrador-938`, 7 flags seeded, /design verified
+**Delivered:**
 
-All packages/apps typecheck clean. Founder visually verified landing's /design
-route at localhost:3001 — all 10 sections rendered correctly (typography,
-palette, buttons, inputs, badges, cards, dialog, skeleton, empty, error).
+- Jest + jest-expo 55 + React Native Testing Library 13 + AsyncStorage mock
+- 11 test suites, **33 tests passing** (covering smoke, test-utils, inputs,
+  buttons, bottom sheets, placeholders, gender gate, fixtures, store, hook,
+  scenario switcher)
+- Custom `onlyou/no-hardcoded-hex` ESLint rule in `@onlyou/config` — fails the
+  build on any hex literal outside token files (design showcase + expo config
+  file-level exemptions documented inline)
+- `PremiumInput` upgraded to floating-label pattern (60px, 14→11px label
+  animation via Reanimated) — closes Phase 1 deferral
+- `PremiumButton` gains `warm` variant using `accentWarm` token — consultation
+  CTA color per `VISUAL_DIRECTION.md` §1. Phase 1 haptics + spring scale
+  removed (Phase 8 launch polish per `DEFERRED.md`)
+- `<BottomSheet>` primitive — RN `Modal` + safe-area padding (Jest mocks the
+  Modal internal to dodge a babel-preset-expo codegen bug)
+- `<PlaceholderScreen>` for deferred route stubs
+- `<GenderGate>` + `useGender()` hook (reads active fixture user's gender)
+- `FIXTURES` — 4 seeded patient-state users (Arjun/Priya/Rahul/Sanjana,
+  covering both genders × 4 journey states: new, reviewing, ready, active)
+- `dev-scenario-store` Zustand + AsyncStorage persist, `__DEV__`-gated — the
+  production bundle dead-code-eliminates the persist middleware
+- `usePatientState()` hook — the single Convex-cutover seam for Phase 3+
+- `<ScenarioSwitcher>` bottom-sheet dev component listing all 4 scenarios
+- Root `_layout.tsx` with font loading (Playfair + Jakarta), splash gating,
+  GestureHandlerRootView, SafeAreaProvider, and scenario switcher mount
+- `app/index.tsx` — Plan 2A preview splash reading `usePatientState()` to
+  prove the full fixture → hook → UI chain works end-to-end
+- `onlyou://` deep-link scheme verified (already registered in Phase 1)
 
-Two known cosmetic gaps (tracked for later phases, not Phase 1 scope):
+**Notable fix outside scope:** `eslint-plugin-import@2.32.0` crashes on
+ESLint 10 (`sourceCode.getTokenOrCommentBefore` removed). Swapped to
+`eslint-plugin-import-x` — this was the hidden blocker that would have
+stopped every subsequent phase, so fixing it was in-scope.
 
-- Cards look bare — full styling lands in Phase 3 (Hair Loss condition cards)
-- Inputs are basic — floating labels + +91 prefix land in Phase 2 (patient forms)
+**Code review:** `docs/superpowers/reviews/2026-04-14-phase-2a-foundation-review.md`
+verdict APPROVE-WITH-FIXES. Both fixes applied (scope-creep `loading` prop
+removed from PremiumButton; this checkpoint update).
 
 ## Next session
 
-**Phase 2 — Patient app shell (all screens).** Approval gate after this phase.
-
-Starts with a brainstorming session on the screen tree for the Expo patient app.
-Read `docs/APP-PATIENT.md` + `docs/APP-PATIENT-CHANGES.md` first (the `-CHANGES`
-companion overrides the base — payment-after-prescription redesign). Auth
-(Convex Auth + Gupshup phone OTP) is wired up as part of Phase 2 since the
-login screen is part of the shell.
-
-Use `superpowers:brainstorming` skill with visual companion ON — the founder
-approves visually. Mock up every screen in the browser before writing code.
+**Phase 2B — Auth + shell skeleton.** Begins with a fresh worktree from
+master after Phase 2A merges. Plan already written:
+`docs/superpowers/plans/2026-04-14-phase-2b-auth-shell-skeleton.md`.

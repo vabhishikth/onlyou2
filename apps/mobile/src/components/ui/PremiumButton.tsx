@@ -1,83 +1,71 @@
-import { useRef } from 'react'
-import { Pressable, Text, ActivityIndicator, Animated, type ViewStyle } from 'react-native'
-import * as Haptics from 'expo-haptics'
+import { Pressable, Text, type PressableProps } from "react-native";
 
-import { colors } from '../../theme/colors'
-import { radii } from '../../theme/spacing'
+import { colors } from "../../theme/colors";
 
-export type PremiumButtonVariant = 'primary' | 'secondary' | 'ghost'
+type Variant = "primary" | "secondary" | "ghost" | "warm";
 
-export interface PremiumButtonProps {
-  label: string
-  onPress?: () => void
-  variant?: PremiumButtonVariant
-  loading?: boolean
-  disabled?: boolean
-  style?: ViewStyle
+export interface PremiumButtonProps extends Omit<
+  PressableProps,
+  "children" | "style"
+> {
+  label: string;
+  variant?: Variant;
+  disabled?: boolean;
 }
+
+const variantStyles: Record<
+  Variant,
+  { bg: string; fg: string; border?: string }
+> = {
+  primary: { bg: colors.ctaPrimary, fg: colors.ctaPrimaryText },
+  secondary: {
+    bg: colors.ctaSecondary,
+    fg: colors.textPrimary,
+    border: colors.ctaSecondaryBorder,
+  },
+  ghost: { bg: "transparent", fg: colors.textPrimary },
+  warm: { bg: colors.accentWarm, fg: colors.primaryForeground },
+};
 
 export function PremiumButton({
   label,
+  variant = "primary",
+  disabled = false,
   onPress,
-  variant = 'primary',
-  loading,
-  disabled,
-  style,
+  ...rest
 }: PremiumButtonProps) {
-  const scale = useRef(new Animated.Value(1)).current
-  const isDisabled = disabled || loading
-
-  function handlePressIn() {
-    Animated.spring(scale, { toValue: 0.97, damping: 10, stiffness: 200, useNativeDriver: true }).start()
-    if (!isDisabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-  }
-  function handlePressOut() {
-    Animated.spring(scale, { toValue: 1, damping: 10, stiffness: 200, useNativeDriver: true }).start()
-  }
-
-  const bg =
-    variant === 'primary'
-      ? isDisabled
-        ? colors.ctaDisabled
-        : colors.ctaPrimary
-      : variant === 'secondary'
-        ? colors.ctaSecondary
-        : 'transparent'
-  const fg =
-    variant === 'primary'
-      ? isDisabled
-        ? colors.ctaDisabledText
-        : colors.ctaPrimaryText
-      : colors.textPrimary
-  const borderColor = variant === 'secondary' ? colors.ctaSecondaryBorder : 'transparent'
+  const style = disabled
+    ? { bg: colors.ctaDisabled, fg: colors.ctaDisabledText }
+    : variantStyles[variant];
 
   return (
-    <Animated.View style={[{ transform: [{ scale }] }, style]}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        disabled={isDisabled}
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        height: 56,
+        borderRadius: 999,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: style.bg,
+        borderWidth: style.border ? 1.5 : 0,
+        borderColor: style.border,
+        opacity: pressed && !disabled ? 0.9 : 1,
+      })}
+      {...rest}
+    >
+      <Text
         style={{
-          backgroundColor: bg,
-          borderRadius: radii.base,
-          borderWidth: variant === 'secondary' ? 1 : 0,
-          borderColor,
-          paddingVertical: 14,
-          paddingHorizontal: 24,
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: 52,
+          color: style.fg,
+          fontSize: 16,
+          fontWeight: "700",
+          letterSpacing: 0.2,
         }}
       >
-        {loading ? (
-          <ActivityIndicator color={fg} />
-        ) : (
-          <Text style={{ color: fg, fontSize: 16, fontFamily: 'PlusJakartaSans_600SemiBold' }}>
-            {label}
-          </Text>
-        )}
-      </Pressable>
-    </Animated.View>
-  )
+        {label}
+      </Text>
+    </Pressable>
+  );
 }

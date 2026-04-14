@@ -1,8 +1,24 @@
 import tsParser from '@typescript-eslint/parser'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
-import importPlugin from 'eslint-plugin-import'
+import importPlugin from 'eslint-plugin-import-x'
+import { createRequire } from 'module'
+
+const require = createRequire(import.meta.url)
+const noHardcodedHex = require('./no-hardcoded-hex')
 
 export default [
+  {
+    plugins: {
+      onlyou: {
+        rules: {
+          'no-hardcoded-hex': noHardcodedHex,
+        },
+      },
+    },
+    rules: {
+      'onlyou/no-hardcoded-hex': 'error',
+    },
+  },
   {
     files: ['**/*.{ts,tsx,js,jsx}'],
     languageOptions: {

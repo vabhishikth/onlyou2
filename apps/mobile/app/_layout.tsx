@@ -1,30 +1,53 @@
-import { useEffect } from 'react'
-import { Stack } from 'expo-router'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
-import * as SplashScreen from 'expo-splash-screen'
-import { StatusBar } from 'expo-status-bar'
+import { PlayfairDisplay_900Black } from "@expo-google-fonts/playfair-display";
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+} from "@expo-google-fonts/plus-jakarta-sans";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useState } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import '../global.css'
-import { useOnlyouFonts } from '../src/theme/fonts'
+import { ScenarioSwitcher } from "@/dev/scenario-switcher";
 
-SplashScreen.preventAutoHideAsync()
+import "../global.css";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useOnlyouFonts()
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+
+  const [fontsLoaded] = useFonts({
+    PlayfairDisplay_900Black,
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+  });
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync()
-  }, [fontsLoaded])
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
 
-  if (!fontsLoaded) return null
+  if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="design" />
-      </Stack>
-    </SafeAreaProvider>
-  )
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+        </Stack>
+        {__DEV__ ? (
+          <ScenarioSwitcher
+            visible={switcherOpen}
+            onClose={() => setSwitcherOpen(false)}
+          />
+        ) : null}
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
 }
