@@ -11,8 +11,6 @@ export interface PremiumButtonProps extends Omit<
   label: string;
   variant?: Variant;
   disabled?: boolean;
-  /** Shows a loading state and prevents interaction (visual passthrough — ActivityIndicator not rendered to keep bundle slim; button is simply disabled). */
-  loading?: boolean;
 }
 
 const variantStyles: Record<
@@ -33,20 +31,18 @@ export function PremiumButton({
   label,
   variant = "primary",
   disabled = false,
-  loading = false,
   onPress,
   ...rest
 }: PremiumButtonProps) {
-  const isDisabled = disabled || loading;
-  const style = isDisabled
+  const style = disabled
     ? { bg: colors.ctaDisabled, fg: colors.ctaDisabledText }
     : variantStyles[variant];
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled }}
-      disabled={isDisabled}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => ({
         height: 56,
@@ -56,7 +52,7 @@ export function PremiumButton({
         backgroundColor: style.bg,
         borderWidth: style.border ? 1.5 : 0,
         borderColor: style.border,
-        opacity: pressed && !isDisabled ? 0.9 : 1,
+        opacity: pressed && !disabled ? 0.9 : 1,
       })}
       {...rest}
     >

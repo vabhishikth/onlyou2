@@ -79,7 +79,7 @@ export default function DesignScreen() {
           <PremiumButton label="Continue" variant="primary" />
           <PremiumButton label="Back" variant="secondary" />
           <PremiumButton label="Skip for now" variant="ghost" />
-          <PremiumButton label="Loading" variant="primary" loading />
+          <PremiumButton label="Consultation CTA" variant="warm" />
           <PremiumButton label="Disabled" variant="primary" disabled />
         </View>
       </Section>
