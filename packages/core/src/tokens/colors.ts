@@ -33,6 +33,7 @@ export const colors = {
   accentLight: "#F0EDF7",
   accentWarm: "#C4956B",
   warm: "#C4956B",
+  warmBg: "#FDF9F3",
   accentScale: {
     50: "#F0EDF7",
     100: "#E4DFF0",
