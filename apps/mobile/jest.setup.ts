@@ -1,5 +1,8 @@
 import "@testing-library/jest-native/extend-expect";
 
+// React Native sets __DEV__ = true in dev builds. Jest runs as dev.
+(global as unknown as Record<string, unknown>).__DEV__ = true;
+
 jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
