@@ -9,7 +9,9 @@
  */
 
 import type * as authOtp from "../auth/otp.js";
+import type * as authSessions from "../auth/sessions.js";
 import type * as featureFlags from "../featureFlags.js";
+import type * as seedFakeUsers from "../seed/fake-users.js";
 import type * as users from "../users.js";
 
 import type {
@@ -20,7 +22,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   "auth/otp": typeof authOtp;
+  "auth/sessions": typeof authSessions;
   featureFlags: typeof featureFlags;
+  "seed/fake-users": typeof seedFakeUsers;
   users: typeof users;
 }>;
 
