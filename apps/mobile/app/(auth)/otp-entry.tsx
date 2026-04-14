@@ -21,16 +21,31 @@ export default function OtpEntry() {
   const { sendOtp, verifyOtp } = useSignIn();
   const [error, setError] = useState<string | undefined>();
   const [resendIn, setResendIn] = useState(RESEND_SECONDS);
+  const [otpResetSignal, setOtpResetSignal] = useState(0);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Use a single token that bumps each time we want to (re)start the
+  // countdown. Initial mount + taps on "Resend" bump this. The effect
+  // owns one interval per bump and clears it on unmount or when the
+  // countdown hits 0 — no leaked intervals, no background drift.
+  const [countdownToken, setCountdownToken] = useState(0);
   useEffect(() => {
-    timer.current = setInterval(() => {
-      setResendIn((s) => (s > 0 ? s - 1 : 0));
+    setResendIn(RESEND_SECONDS);
+    const id = setInterval(() => {
+      setResendIn((s) => {
+        if (s <= 1) {
+          clearInterval(id);
+          return 0;
+        }
+        return s - 1;
+      });
     }, 1000);
+    timer.current = id;
     return () => {
-      if (timer.current) clearInterval(timer.current);
+      clearInterval(id);
+      if (timer.current === id) timer.current = null;
     };
-  }, []);
+  }, [countdownToken]);
 
   async function onComplete(otp: string) {
     setError(undefined);
@@ -43,13 +58,17 @@ export default function OtpEntry() {
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Incorrect code");
+      // Clear the 6 stale digits so the user can retype immediately.
+      setOtpResetSignal((n) => n + 1);
     }
   }
 
   async function onResend() {
     if (resendIn > 0) return;
     await sendOtp(phone);
-    setResendIn(RESEND_SECONDS);
+    // Bump the token — the effect reseeds `resendIn` and starts a fresh
+    // interval, guaranteeing we never have two running at once.
+    setCountdownToken((n) => n + 1);
   }
 
   return (
@@ -99,7 +118,7 @@ export default function OtpEntry() {
           Sent to {phone}
         </Text>
 
-        <OtpBoxes onComplete={onComplete} />
+        <OtpBoxes onComplete={onComplete} resetSignal={otpResetSignal} />
 
         {error ? (
           <Text style={{ fontSize: 13, color: colors.error, marginTop: 16 }}>
