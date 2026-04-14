@@ -1,4 +1,4 @@
-import { colors } from '@onlyou/core/src/tokens/colors'
+import { colors } from '@onlyou/core/tokens/colors'
 
 /** @type {import('tailwindcss').Config} */
 export default {
