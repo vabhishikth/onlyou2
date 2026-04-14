@@ -68,6 +68,7 @@ Some docs have `-CHANGES.md` companions from a payment redesign. Always check fo
 
 1. Monorepo scaffold + Convex + design system
 2. Patient app shell (all screens) → **APPROVAL GATE**
+   2.5. Biomarker foundation — OCR, parsing, reference ranges, visual report wiring → **APPROVAL GATE** _(cross-vertical; builds once, every vertical plugs into it)_
 3. Hair Loss end-to-end
 4. Doctor portal → **APPROVAL GATE**
 5. Admin portal
