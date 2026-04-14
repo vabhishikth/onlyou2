@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { ConsoleLogSender, type OtpSender } from "../sender";
 
 describe("OtpSender", () => {
