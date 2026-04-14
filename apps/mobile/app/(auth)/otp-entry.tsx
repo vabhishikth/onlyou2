@@ -57,7 +57,11 @@ export default function OtpEntry() {
         router.replace("/(tabs)/home" as never);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Incorrect code");
+      const msg =
+        e instanceof Error && e.message
+          ? e.message
+          : "Wrong code. Try again or tap Resend below.";
+      setError(msg);
       // Clear the 6 stale digits so the user can retype immediately.
       setOtpResetSignal((n) => n + 1);
     }
@@ -110,12 +114,23 @@ export default function OtpEntry() {
         </Text>
         <Text
           style={{
-            fontSize: 14,
+            fontSize: 15,
             color: colors.textSecondary,
+            lineHeight: 22,
+            marginBottom: 4,
+          }}
+        >
+          We texted a 6-digit code to
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: colors.textPrimary,
+            fontWeight: "600",
             marginBottom: 24,
           }}
         >
-          Sent to {phone}
+          {phone}
         </Text>
 
         <OtpBoxes onComplete={onComplete} resetSignal={otpResetSignal} />
@@ -138,6 +153,22 @@ export default function OtpEntry() {
             }}
           >
             {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => router.back()}
+          style={{ marginTop: 12, paddingVertical: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Change phone number"
+        >
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 12,
+              color: colors.textTertiary,
+            }}
+          >
+            Change number
           </Text>
         </Pressable>
       </View>
