@@ -1,22 +1,22 @@
-import { useEffect } from 'react'
-import { Stack } from 'expo-router'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
-import * as SplashScreen from 'expo-splash-screen'
-import { StatusBar } from 'expo-status-bar'
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import '../global.css'
-import { useOnlyouFonts } from '../src/theme/fonts'
+import "../global.css";
+import { useOnlyouFonts } from "../src/theme/fonts";
 
-SplashScreen.preventAutoHideAsync()
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useOnlyouFonts()
+  const [fontsLoaded] = useOnlyouFonts();
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync()
-  }, [fontsLoaded])
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
 
-  if (!fontsLoaded) return null
+  if (!fontsLoaded) return null;
 
   return (
     <SafeAreaProvider>
@@ -26,5 +26,5 @@ export default function RootLayout() {
         <Stack.Screen name="design" />
       </Stack>
     </SafeAreaProvider>
-  )
+  );
 }
