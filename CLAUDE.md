@@ -61,6 +61,7 @@ Some docs have `-CHANGES.md` companions from a payment redesign. Always check fo
 7. Keep it simple. Build the simplest thing that works. Don't over-engineer.
 8. Stay in scope. When fixing something, only touch what's broken. Don't refactor, reorganize, or "improve" unrelated code.
 9. **Track every deferred item in `docs/DEFERRED.md` the moment it's decided.** Not in checkpoints, not in chat, not in commit messages only — in the ledger. Every entry names a destination phase ("later" is not valid). Every phase brainstorm reviews this file first. When deferred work ships, strike it through with a commit reference. No exceptions.
+10. **Mandatory code review after every phase, before merge.** Once a phase's implementation is complete (all screens built, tests green, founder visually approved), invoke the `superpowers:requesting-code-review` skill — or spawn the `superpowers:code-reviewer` agent directly — to review the whole diff against the phase plan and coding standards. Address every finding, then merge. No phase ships without this review. The review report is committed to `docs/superpowers/reviews/<YYYY-MM-DD>-<phase>-review.md` alongside the plan and spec.
 
 ---
 
