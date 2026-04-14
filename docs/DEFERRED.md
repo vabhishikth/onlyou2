@@ -108,6 +108,42 @@ Things the founder should explicitly weigh in on before Phase 3 starts:
 - **Deep-link handling (`onlyou://` scheme)** → Scheme registered in Expo config, routes wired for `messages/[id]`, `activity/[id]`, `lab-results/[id]`. Actual deep-link _triggering_ (notification tap → app open → route) comes with Phase 8 push infra. Tracked in DEFERRED as "deep link trigger handlers from push notifications → Phase 8".
 - **Android + iOS parity** → Both platforms in Phase 2 since Expo gives us most of it for free. Apple Sign-In iOS-only (Android shows Google + email only, standard). FLAG_SECURE only on Android for prescription screens; iOS screenshot prevention is a Phase 8 polish item.
 
+### Mid-brainstorm additions (2026-04-14)
+
+Three cross-cutting additions were made to Phase 2 after the six core questions were answered. See [[decisions/2026-04-14-phase-2-additions|the decision note]] and [[APP-PATIENT-ADDITIONS|APP-PATIENT-ADDITIONS.md]].
+
+| Addition                                 | Phase 2 scope                                                                                                     | Deferred                                                                                                                                                                                                                |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gender-aware UI visibility               | Full rule, `useGender()` hook + `<GenderGate>`, fixture covers both sexes                                         | Nothing — in scope for Phase 2                                                                                                                                                                                          |
+| Visual biomarker tracking (UI component) | Built against fixture data (`~8 markers × 3 states`), rendered in `profile/lab-results/[id].tsx` and after upload | Real OCR / PDF parsing, Claude-extraction action, `biomarker_reference_ranges` seed data, clinical review, real upload → parse wiring — all → **new biomarker-foundation phase (unnumbered, pre-Phase 3 or folded in)** |
+| Conversion-optimized flows (CRO skills)  | Skills invoked at each target screen's implementation task                                                        | Nothing — in scope for Phase 2 (skill invocation is a planning convention, not deferred work)                                                                                                                           |
+
+### Biomarker feature — detailed deferrals
+
+| Item                                                                                  | Deferred to                                | Why                                                                      |
+| ------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------ |
+| `biomarker_reference_ranges` Convex table + schema + age/sex-aware lookup             | Biomarker foundation phase                 | Prerequisite for real classification — must precede real parsing         |
+| Curated seed data for ~25 common markers (with citations)                             | Biomarker foundation phase                 | Requires medical-review partner and curation effort                      |
+| Clinical advisor sign-off on reference ranges                                         | Biomarker foundation phase                 | Cannot ship to real patients without medical review                      |
+| OCR service choice (Tesseract vs Google Vision vs AWS Textract) + integration         | Biomarker foundation phase                 | Decision + implementation                                                |
+| `parseLabReport` Convex action (OCR → Claude extraction → classification → narrative) | Biomarker foundation phase                 | Core AI feature                                                          |
+| Real upload → parse → visual report wiring (replaces the Phase 2 simulated state)     | Biomarker foundation phase                 |                                                                          |
+| Doctor-ordered labs auto-populating biomarker reports                                 | Phase 3 tail or biomarker foundation phase | Depends on whether nurse flow lands first                                |
+| "Learn more" per-marker explainer screen content                                      | Biomarker foundation phase                 | Plain-English Markdown, needs writer                                     |
+| Multi-report long-term trend line chart                                               | Post-foundation (follow-up)                | Foundation phase ships per-marker trend arrow; full chart is a follow-up |
+| External lab-API integrations (Thyrocare, Metropolis, Lal PathLabs)                   | Phase 8+                                   | `CLAUDE.md` explicitly says "no lab APIs for MVP"                        |
+| Retry / partial-failure recovery UX for failed parses                                 | Biomarker foundation phase                 | Error state UX                                                           |
+
+### Open decisions (for the next brainstorm cycle)
+
+- **Where does the biomarker foundation phase live in the build order?** New phase 2.5? Folded into Phase 3? Post-Phase-3? Needs a decision before Phase 3 plan is written.
+
+---
+
+## Biomarker foundation phase — TBD
+
+_(populated when this phase's brainstorm begins; sequencing to be decided)_
+
 ---
 
 ## Phase 3 — Hair Loss end-to-end
