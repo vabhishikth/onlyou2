@@ -38,7 +38,7 @@ export const FIXTURES: Record<PatientState, FixtureUser> = {
   reviewing: {
     userId: "user_priya_002",
     phone: "+91 99999 00002",
-    name: "Priya Nair",
+    name: "Priya Iyer",
     gender: "female",
     age: 32,
     state: "reviewing",
@@ -68,7 +68,7 @@ export const FIXTURES: Record<PatientState, FixtureUser> = {
   active: {
     userId: "user_sanjana_004",
     phone: "+91 99999 00004",
-    name: "Sanjana Iyer",
+    name: "Sanjana Rao",
     gender: "female",
     age: 30,
     state: "active",
