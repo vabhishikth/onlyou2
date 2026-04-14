@@ -5,21 +5,18 @@ import { DeliveryStepper } from "@/components/delivery/DeliveryStepper";
 import { usePatientState } from "@/hooks/use-patient-state";
 import { colors } from "@/theme/colors";
 
-export default function TrackingDetail() {
+export default function ActivityDetail() {
   const user = usePatientState();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const order = user.orders.find((o) => o.id === orderId);
+  const delivery = user.deliveries.find((d) => d.orderId === orderId);
 
-  const delivery = user.deliveries.find((d) => d.orderId === id);
-  const order = user.orders.find((o) => o.id === id);
-
-  if (!delivery || !order) {
+  if (!order) {
     return (
       <View
-        style={{ flex: 1, backgroundColor: colors.background, padding: 24 }}
+        style={{ flex: 1, padding: 24, backgroundColor: colors.background }}
       >
-        <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-          Order not found.
-        </Text>
+        <Text style={{ color: colors.textSecondary }}>Order not found.</Text>
       </View>
     );
   }
@@ -42,19 +39,26 @@ export default function TrackingDetail() {
           fontSize: 28,
           color: colors.textPrimary,
           marginTop: 16,
-          marginBottom: 4,
+          marginBottom: 8,
+          letterSpacing: -0.6,
         }}
       >
-        Delivery tracking
+        Order {order.id}
       </Text>
       <Text
         style={{ fontSize: 12, color: colors.textTertiary, marginBottom: 24 }}
       >
-        Order {order.id} · {order.itemCount} items · ₹
+        {order.vertical.replace("-", " ")} · ₹
         {(order.totalPaise / 100).toFixed(0)}
       </Text>
 
-      <DeliveryStepper progress={delivery.progress} />
+      {delivery ? (
+        <DeliveryStepper progress={delivery.progress} />
+      ) : (
+        <Text style={{ fontSize: 13, color: colors.textTertiary }}>
+          Delivery tracking will appear here once the order is dispatched.
+        </Text>
+      )}
     </ScrollView>
   );
 }
