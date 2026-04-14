@@ -18,17 +18,17 @@ Core skills you'll use constantly: brainstorming, writing-plans, subagent-driven
 
 ## STACK
 
-| Layer | Choice |
-|-------|--------|
-| Backend + DB + Real-time + Auth + Files + Jobs | **Convex** |
-| Patient App | React Native **Expo** (latest SDK) |
-| Web Portals | **Next.js** (latest, one app per portal) |
-| Styling (web) | **Tailwind CSS** + **shadcn/ui** (latest) |
-| Styling (mobile) | **NativeWind** (latest) |
-| Monorepo | **Turborepo** + **pnpm** |
-| Payments | **Razorpay** via Convex HTTP actions |
-| Notifications | **Gupshup** (WhatsApp/SMS) + **FCM** |
-| AI assessments | **Claude API** via Convex actions |
+| Layer                                          | Choice                                    |
+| ---------------------------------------------- | ----------------------------------------- |
+| Backend + DB + Real-time + Auth + Files + Jobs | **Convex**                                |
+| Patient App                                    | React Native **Expo** (latest SDK)        |
+| Web Portals                                    | **Next.js** (latest, one app per portal)  |
+| Styling (web)                                  | **Tailwind CSS** + **shadcn/ui** (latest) |
+| Styling (mobile)                               | **NativeWind** (latest)                   |
+| Monorepo                                       | **Turborepo** + **pnpm**                  |
+| Payments                                       | **Razorpay** via Convex HTTP actions      |
+| Notifications                                  | **Gupshup** (WhatsApp/SMS) + **FCM**      |
+| AI assessments                                 | **Claude API** via Convex actions         |
 
 Always use latest stable versions. Pin exact. Never downgrade.
 
@@ -60,6 +60,7 @@ Some docs have `-CHANGES.md` companions from a payment redesign. Always check fo
 6. Zero lint or TypeScript errors. Fix them immediately — never leave them for later.
 7. Keep it simple. Build the simplest thing that works. Don't over-engineer.
 8. Stay in scope. When fixing something, only touch what's broken. Don't refactor, reorganize, or "improve" unrelated code.
+9. **Track every deferred item in `docs/DEFERRED.md` the moment it's decided.** Not in checkpoints, not in chat, not in commit messages only — in the ledger. Every entry names a destination phase ("later" is not valid). Every phase brainstorm reviews this file first. When deferred work ships, strike it through with a commit reference. No exceptions.
 
 ---
 
