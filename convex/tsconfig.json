@@ -1,8 +1,10 @@
 {
   "extends": "../packages/config/tsconfig/convex.json",
   "compilerOptions": {
-    "outDir": "_generated"
+    "outDir": "_generated",
+    "rootDir": "..",
+    "types": ["node", "jest"]
   },
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts", "../packages/core/src/**/*.ts"],
   "exclude": ["node_modules", "_generated"]
 }

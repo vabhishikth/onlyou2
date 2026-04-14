@@ -159,6 +159,20 @@ _(Full phase spec populated when Phase 2.5 brainstorm begins — after Phase 2 a
 
 ---
 
+## Phase 2B review deferrals (2026-04-14)
+
+Items decided during the Phase 2B code review. Must be reviewed at the Phase 2C brainstorm.
+
+| Item                                                                                                                                                                                                                                                                                                                                            | Deferred to                                                | Why                                                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **CRO skill pass on auth screens** — run `signup-flow-cro` on `welcome.tsx`, `phone-verify.tsx`, `otp-entry.tsx`; run `onboarding-cro` + `app-onboarding-questionnaire` on `profile-setup.tsx` (steps, copy, progress affordances, skip patterns). CRO skills were listed as required at Tasks 13–16 but were skipped during 2B implementation. | Plan 2C (pre-task)                                         | Founder has not seen visuals yet; a single CRO sweep across auth + consultation flows gives better continuity than two partial passes. |
+| **Convex-side test harness for auth flow** — no `convex-test` setup exists yet. Set up at start of Plan 2C and add tests for: OTP lockout (`MAX_ATTEMPTS`), OTP expiry, dev bypass path, `finalizeSignIn` user-creation idempotency, `signOut` session deletion.                                                                                | Plan 2C                                                    | Highest-risk code in Phase 2B is currently untested against regressions.                                                               |
+| **Phone string normalization** — `+91 99999 12345` vs `+919999912345` vs `9999912345` all currently store as different rows in `users.by_phone`. Normalize to E.164 in a single helper before any insert/lookup. Risk: duplicate user rows if not done before real signups.                                                                     | Plan 3 (Hair Loss vertical, when first real users sign up) | Works as-is for fixture phones; risk materialises when Gupshup sends E.164-formatted numbers in Phase 3.                               |
+| **18+ DOB enforcement** — `profile-setup.tsx` shows "Must be 18+" copy but only validates format. Add age computation + reject under-18 in `completeProfile` mutation server-side, and mirror in client disabled check.                                                                                                                         | Plan 2C                                                    | Regulatory/T&C requirement; cheaper to add before the questionnaire engine lands.                                                      |
+| **OTP resend timer leak / OtpBoxes reset on failure** — resend interval keeps firing after it hits 0 (endless no-op renders); `OtpBoxes` has no `resetSignal` prop so failed verify leaves 6 stale digits on screen requiring manual backspace.                                                                                                 | Plan 2C (auth polish pass)                                 | Minor UX hygiene; functional today, polish before first real users.                                                                    |
+
+---
+
 ## Phase 3 — Hair Loss end-to-end
 
 _(populated when Phase 3 brainstorm begins)_
