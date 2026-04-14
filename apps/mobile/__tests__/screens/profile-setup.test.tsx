@@ -1,11 +1,8 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 
 jest.mock("expo-router", () => ({
   router: { replace: jest.fn(), back: jest.fn() },
   useNavigation: () => ({ addListener: jest.fn(() => jest.fn()) }),
-}));
-
-jest.mock("@react-navigation/native", () => ({
   useFocusEffect: (_cb: () => void) => {},
 }));
 
@@ -36,6 +33,21 @@ describe("<ProfileSetup> header", () => {
 
   it("does not show a back chevron on step 1 (name)", () => {
     const { queryByTestId } = render(<ProfileSetup />);
+    expect(queryByTestId("profile-setup-back")).toBeNull();
+  });
+
+  it("shows a back chevron after advancing past step 1 and decrements on press", () => {
+    const { getByTestId, getByText, queryByTestId } = render(<ProfileSetup />);
+    // Advance name -> gender
+    fireEvent.changeText(getByTestId("profile-name-input"), "Aarav Kumar");
+    fireEvent.press(getByText("Next"));
+
+    // On gender step: back chevron visible
+    const back = getByTestId("profile-setup-back");
+    expect(back).toBeTruthy();
+
+    // Press back -> step 1 (name) — back chevron disappears, typed name preserved
+    fireEvent.press(back);
     expect(queryByTestId("profile-setup-back")).toBeNull();
   });
 });

@@ -1,7 +1,9 @@
 import { useMutation } from "convex/react";
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useFocusEffect, useNavigation } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  BackHandler,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -19,7 +21,8 @@ import { PremiumInput } from "@/components/ui/PremiumInput";
 import { useAuthStore } from "@/stores/auth-store";
 import { colors } from "@/theme/colors";
 
-type Step = "name" | "gender" | "dob" | "address";
+const STEPS = ["name", "gender", "dob", "address"] as const;
+type Step = (typeof STEPS)[number];
 
 function formatDob(input: string): string {
   const digits = input.replace(/\D/g, "").slice(0, 8);
@@ -38,10 +41,53 @@ const TITLE_STYLE = {
 
 export default function ProfileSetup() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const token = useAuthStore((s) => s.token);
   const completeProfile = useMutation(api.users.completeProfile);
 
   const [step, setStep] = useState<Step>("name");
+  // Ref shadow of `step` so the navigation listeners (which close over a
+  // stale value otherwise) always see the current step.
+  const stepRef = useRef<Step>("name");
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
+
+  const goBackStep = useCallback(() => {
+    const idx = STEPS.indexOf(stepRef.current);
+    if (idx > 0) {
+      setStep(STEPS[idx - 1]);
+      return true;
+    }
+    return false;
+  }, []);
+
+  // Android hardware-back: decrement step, or let the OS exit on step 1.
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        return goBackStep();
+      });
+      return () => sub.remove();
+    }, [goBackStep]),
+  );
+
+  // iOS swipe-back + navigation pop: intercept so back decrements the step
+  // instead of dismissing the whole profile flow. When we're already on
+  // step 1 we let navigation proceed normally.
+  useEffect(() => {
+    const unsub = navigation.addListener(
+      "beforeRemove" as never,
+      ((e: { preventDefault: () => void }) => {
+        if (STEPS.indexOf(stepRef.current) > 0) {
+          e.preventDefault();
+          goBackStep();
+        }
+      }) as never,
+    );
+    return unsub;
+  }, [navigation, goBackStep]);
+
   const [name, setName] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | null>(
     null,
@@ -69,7 +115,7 @@ export default function ProfileSetup() {
     router.replace("/(tabs)/home" as never);
   }
 
-  const stepNumber = ["name", "gender", "dob", "address"].indexOf(step) + 1;
+  const stepNumber = STEPS.indexOf(step) + 1;
 
   return (
     <KeyboardAvoidingView
@@ -85,6 +131,27 @@ export default function ProfileSetup() {
             paddingHorizontal: 24,
           }}
         >
+          {step !== "name" ? (
+            <Pressable
+              testID="profile-setup-back"
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={goBackStep}
+              style={{
+                width: 44,
+                height: 44,
+                justifyContent: "center",
+                marginBottom: 4,
+                marginLeft: -8,
+                paddingLeft: 8,
+              }}
+            >
+              <ChevronLeft size={24} color={colors.textPrimary} />
+            </Pressable>
+          ) : (
+            <View style={{ height: 44, marginBottom: 4 }} />
+          )}
+
           <Text
             style={{
               fontFamily: "PlayfairDisplay_900Black",
@@ -116,6 +183,7 @@ export default function ProfileSetup() {
                 {"What's your name?"}
               </Text>
               <PremiumInput
+                testID="profile-name-input"
                 label="Full name"
                 value={name}
                 onChangeText={setName}
