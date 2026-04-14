@@ -6,18 +6,18 @@
  *
  * See docs/decisions/2026-04-14-phase-2-fixture-and-auth-pattern.md.
  */
-declare const console: { log: (msg: string) => void }
+declare const console: { log: (msg: string) => void };
 
 export interface OtpSender {
-  readonly name: string
-  send(phone: string, otp: string): Promise<void>
+  readonly name: string;
+  send(phone: string, otp: string): Promise<void>;
 }
 
 export class ConsoleLogSender implements OtpSender {
-  readonly name = 'console-log'
+  readonly name = "console-log";
   constructor(private readonly logger: (msg: string) => void = console.log) {}
 
   async send(phone: string, otp: string): Promise<void> {
-    this.logger(`[OTP] ${phone} → ${otp}`)
+    this.logger(`[OTP] ${phone} → ${otp}`);
   }
 }

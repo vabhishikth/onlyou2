@@ -1,14 +1,14 @@
-import { defineSchema, defineTable } from 'convex/server'
-import { v } from 'convex/values'
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
 
-import { ROLES } from '../packages/core/src/enums/roles'
+import { ROLES } from "../packages/core/src/enums/roles";
 
-const roleValidator = v.union(...ROLES.map((r) => v.literal(r)))
+const roleValidator = v.union(...ROLES.map((r) => v.literal(r)));
 const genderValidator = v.union(
-  v.literal('male'),
-  v.literal('female'),
-  v.literal('other'),
-)
+  v.literal("male"),
+  v.literal("female"),
+  v.literal("other"),
+);
 
 export default defineSchema({
   users: defineTable({
@@ -35,9 +35,9 @@ export default defineSchema({
 
     createdAt: v.number(),
   })
-    .index('by_phone', ['phone'])
-    .index('by_email', ['email'])
-    .index('by_fixture', ['isFixture']),
+    .index("by_phone", ["phone"])
+    .index("by_email", ["email"])
+    .index("by_fixture", ["isFixture"]),
 
   otpAttempts: defineTable({
     phone: v.string(),
@@ -45,20 +45,20 @@ export default defineSchema({
     expiresAt: v.number(),
     attempts: v.number(),
     createdAt: v.number(),
-  }).index('by_phone', ['phone']),
+  }).index("by_phone", ["phone"]),
 
   sessions: defineTable({
-    userId: v.id('users'),
+    userId: v.id("users"),
     token: v.string(), // 32-byte hex
     expiresAt: v.number(),
     createdAt: v.number(),
   })
-    .index('by_token', ['token'])
-    .index('by_user', ['userId']),
+    .index("by_token", ["token"])
+    .index("by_user", ["userId"]),
 
   featureFlags: defineTable({
     key: v.string(),
     value: v.boolean(),
     updatedAt: v.number(),
-  }).index('by_key', ['key']),
-})
+  }).index("by_key", ["key"]),
+});
