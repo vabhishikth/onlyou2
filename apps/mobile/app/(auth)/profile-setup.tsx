@@ -49,6 +49,14 @@ const TITLE_STYLE = {
   letterSpacing: -0.6,
 };
 
+const STAKES_STYLE = {
+  fontSize: 14,
+  color: colors.textSecondary,
+  lineHeight: 20,
+  marginTop: 8,
+  marginBottom: 24,
+};
+
 export default function ProfileSetup() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -184,16 +192,39 @@ export default function ProfileSetup() {
               letterSpacing: 1.5,
               fontWeight: "700",
               textTransform: "uppercase",
-              marginBottom: 16,
+              marginBottom: 10,
             }}
           >
             About you · {stepNumber} of 4
           </Text>
 
+          <View
+            testID="profile-setup-progress"
+            style={{
+              flexDirection: "row",
+              gap: 6,
+              marginBottom: 20,
+            }}
+          >
+            {STEPS.map((s, i) => (
+              <View
+                key={s}
+                style={{
+                  flex: 1,
+                  height: 3,
+                  borderRadius: 999,
+                  backgroundColor:
+                    i < stepNumber ? colors.accentWarm : colors.border,
+                }}
+              />
+            ))}
+          </View>
+
           {step === "name" && (
             <>
-              <Text style={[TITLE_STYLE, { marginBottom: 24 }]}>
-                {"What's your name?"}
+              <Text style={TITLE_STYLE}>{"What's your name?"}</Text>
+              <Text style={STAKES_STYLE}>
+                So your doctor knows who they&apos;re treating.
               </Text>
               <PremiumInput
                 testID="profile-name-input"
@@ -213,8 +244,9 @@ export default function ProfileSetup() {
 
           {step === "gender" && (
             <>
-              <Text style={[TITLE_STYLE, { marginBottom: 24 }]}>
-                Your gender
+              <Text style={TITLE_STYLE}>Your gender</Text>
+              <Text style={STAKES_STYLE}>
+                Helps us show you the right treatments and dosing.
               </Text>
               <View style={{ gap: 12 }}>
                 {(["male", "female", "other"] as const).map((g) => (
@@ -254,8 +286,9 @@ export default function ProfileSetup() {
 
           {step === "dob" && (
             <>
-              <Text style={[TITLE_STYLE, { marginBottom: 24 }]}>
-                Date of birth
+              <Text style={TITLE_STYLE}>Date of birth</Text>
+              <Text style={STAKES_STYLE}>
+                Required on every prescription in India.
               </Text>
               <PremiumInput
                 label="DD-MM-YYYY"
@@ -298,8 +331,10 @@ export default function ProfileSetup() {
 
           {step === "address" && (
             <>
-              <Text style={[TITLE_STYLE, { marginBottom: 24 }]}>
-                Where do we deliver?
+              <Text style={TITLE_STYLE}>Where do we deliver?</Text>
+              <Text style={STAKES_STYLE}>
+                We ship your medication in discreet packaging — nothing on the
+                outside hints at what&apos;s inside.
               </Text>
               <View style={{ gap: 16 }}>
                 <PremiumInput
