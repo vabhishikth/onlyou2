@@ -1,15 +1,62 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PremiumButton } from "@/components/ui/PremiumButton";
+import type { Vertical } from "@/fixtures/patient-states";
+import { VERTICALS } from "@/fixtures/verticals";
+import { usePatientState } from "@/hooks/use-patient-state";
 import { colors } from "@/theme/colors";
+
+type PlanId = "monthly" | "quarterly" | "six-month";
+
+const PLAN_LABELS: Record<PlanId, string> = {
+  monthly: "Monthly plan",
+  quarterly: "Quarterly plan",
+  "six-month": "6-month plan",
+};
+
+function formatInr(paise: number): string {
+  const rupees = Math.round(paise / 100);
+  return `₹${rupees.toLocaleString("en-IN")}`;
+}
+
+function resolveTotalPaise(vertical: Vertical, plan: PlanId): number {
+  const pricing = VERTICALS[vertical].pricing;
+  switch (plan) {
+    case "monthly":
+      return pricing.monthlyPaise;
+    case "quarterly":
+      return pricing.quarterlyTotalPaise;
+    case "six-month":
+      return pricing.sixMonthTotalPaise;
+  }
+}
 
 export default function Payment() {
   const insets = useSafeAreaInsets();
+  const user = usePatientState();
+  const params = useLocalSearchParams<{ plan?: string; vertical?: string }>();
   const [method, setMethod] = useState<"upi" | "card">("upi");
   const [processing, setProcessing] = useState(false);
+
+  const fallbackVertical =
+    (user.consultations[0]?.vertical as Vertical | undefined) ?? "hair-loss";
+  const vertical = ((): Vertical => {
+    const v = params.vertical;
+    if (v && v in VERTICALS) return v as Vertical;
+    return fallbackVertical;
+  })();
+  const plan = ((): PlanId => {
+    const p = params.plan;
+    if (p === "monthly" || p === "quarterly" || p === "six-month") return p;
+    return "quarterly";
+  })();
+
+  const totalPaise = resolveTotalPaise(vertical, plan);
+  const totalLabel = formatInr(totalPaise);
+  const planLabel = PLAN_LABELS[plan];
 
   async function onPay() {
     setProcessing(true);
@@ -94,8 +141,7 @@ export default function Payment() {
           >
             Order summary
           </Text>
-          <Row label="Quarterly plan" value="₹2,499" />
-          <Row label="Wallet credit" value="−₹200" />
+          <Row label={planLabel} value={totalLabel} />
           <View
             style={{
               height: 1,
@@ -103,7 +149,7 @@ export default function Payment() {
               marginVertical: 8,
             }}
           />
-          <Row label="Total" value="₹2,299" bold />
+          <Row label="Total" value={totalLabel} bold />
         </View>
 
         <Text
@@ -119,7 +165,7 @@ export default function Payment() {
       >
         <PremiumButton
           variant="warm"
-          label={processing ? "Processing…" : "Pay ₹2,299"}
+          label={processing ? "Processing…" : `Pay ${totalLabel}`}
           disabled={processing}
           onPress={onPay}
         />

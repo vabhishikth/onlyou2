@@ -171,7 +171,12 @@ export default function PlanSelection() {
         <PremiumButton
           variant="warm"
           label="Continue to payment"
-          onPress={() => router.push("/treatment/payment")}
+          onPress={() =>
+            router.push({
+              pathname: "/treatment/payment",
+              params: { plan: selected, vertical: consultation.vertical },
+            })
+          }
         />
       </View>
     </View>
