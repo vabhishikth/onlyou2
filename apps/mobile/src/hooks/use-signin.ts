@@ -2,6 +2,7 @@ import { useAction, useMutation } from "convex/react";
 
 import { api } from "../../../../convex/_generated/api";
 import { useAuthStore } from "../stores/auth-store";
+import { useDevScenarioStore } from "../stores/dev-scenario-store";
 
 export function useSignIn() {
   const sendOtpAction = useAction(api.auth.otp.sendOtp);
@@ -17,6 +18,10 @@ export function useSignIn() {
   async function verifyOtp(phone: string, otp: string) {
     const result = await verifyOtpAction({ phone, otp });
     await setToken(result.token);
+    // Reset the persisted dev scenario so fresh logins always start on the
+    // `new` patient state, regardless of whatever the previous user left
+    // in AsyncStorage.
+    useDevScenarioStore.getState().resetScenario();
     return result;
   }
 
@@ -30,6 +35,7 @@ export function useSignIn() {
       }
     }
     await clearToken();
+    useDevScenarioStore.getState().resetScenario();
   }
 
   return { sendOtp, verifyOtp, signOut };
