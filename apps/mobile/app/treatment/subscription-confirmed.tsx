@@ -71,7 +71,7 @@ export default function SubscriptionConfirmed() {
       <View style={{ flex: 1 }} />
 
       <View style={{ width: "100%" }}>
-        <PremiumButton label="Go to home" onPress={onDone} />
+        <PremiumButton variant="warm" label="Go to home" onPress={onDone} />
       </View>
     </View>
   );

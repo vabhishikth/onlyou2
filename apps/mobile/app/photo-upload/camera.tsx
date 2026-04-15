@@ -65,7 +65,7 @@ export default function CameraScreen() {
       <View
         style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 16 }}
       >
-        <PremiumButton label="Capture" onPress={onCapture} />
+        <PremiumButton variant="warm" label="Capture" onPress={onCapture} />
       </View>
     </View>
   );

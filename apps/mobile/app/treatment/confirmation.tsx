@@ -63,6 +63,7 @@ export default function Confirmation() {
 
       <View style={{ width: "100%" }}>
         <PremiumButton
+          variant="warm"
           label="Back to home"
           onPress={() => router.replace("/(tabs)/home")}
         />
