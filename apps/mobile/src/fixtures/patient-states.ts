@@ -128,7 +128,7 @@ const priya: FixtureUser = {
   consultations: [
     {
       id: "c-priya-1",
-      vertical: "pcos",
+      vertical: "hair-loss",
       status: "under-review",
       submittedAt: now - 4 * HOUR,
     },
@@ -139,9 +139,9 @@ const priya: FixtureUser = {
   conversations: [
     {
       id: "conv-priya-1",
-      vertical: "pcos",
-      doctorName: "Dr. Neha Kapoor",
-      doctorSpecialty: "Endocrinologist",
+      vertical: "hair-loss",
+      doctorName: "Dr. Priya Sharma",
+      doctorSpecialty: "Dermatologist",
       unreadCount: 0,
       lastMessagePreview:
         "Your doctor will respond once your case is reviewed.",
