@@ -25,10 +25,10 @@ describe("Messages tab — chat screen", () => {
         <ChatScreen />
       </TestProvider>,
     );
-    expect(getByText("Dr. Neha Kapoor")).toBeTruthy();
-    expect(getByText(/Based on your labs/)).toBeTruthy();
+    expect(getByText("Dr. Priya Sharma")).toBeTruthy();
+    expect(getByText(/Starting you on Minoxidil/)).toBeTruthy();
     expect(getByText(/how long until I see changes/)).toBeTruthy();
-    expect(getByText(/Cycle regulation usually takes 3 months/)).toBeTruthy();
+    expect(getByText(/early shedding stop in 6–8 weeks/)).toBeTruthy();
   });
 
   it("renders a disabled input with the coming-soon hint", () => {

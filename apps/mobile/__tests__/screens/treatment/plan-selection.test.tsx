@@ -36,6 +36,9 @@ describe("Treatment plan-selection screen", () => {
 
     fireEvent.press(getByText("Monthly"));
     fireEvent.press(getByText("Continue to payment"));
-    expect(router.push).toHaveBeenCalledWith("/treatment/payment");
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/treatment/payment",
+      params: { plan: "monthly", vertical: "hair-loss" },
+    });
   });
 });

@@ -52,6 +52,6 @@ describe("Home tab — 4 states", () => {
       </TestProvider>,
     );
     expect(getAllByText(/Day 12/).length).toBeGreaterThan(0);
-    expect(getByText("Metformin 500mg")).toBeTruthy();
+    expect(getByText("Minoxidil 2%")).toBeTruthy();
   });
 });

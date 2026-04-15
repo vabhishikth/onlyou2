@@ -20,7 +20,7 @@ describe("Activity tab — index", () => {
     expect(getByText("Completed")).toBeTruthy();
     // sanjana has one out-for-delivery order in the active bucket
     expect(getByText("Out for delivery")).toBeTruthy();
-    expect(getByText(/pcos · 2 items/)).toBeTruthy();
+    expect(getByText(/hair loss · 3 items/)).toBeTruthy();
     // no completed orders yet for sanjana
     expect(queryByText("No completed orders yet.")).toBeTruthy();
   });

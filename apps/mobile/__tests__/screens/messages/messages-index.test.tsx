@@ -9,16 +9,16 @@ jest.mock("expo-router", () => ({
 const MessagesIndex = require("../../../app/(tabs)/messages/index").default;
 
 describe("Messages tab — index", () => {
-  it("shows sanjana's conversation with Dr. Neha Kapoor", () => {
+  it("shows sanjana's conversation with Dr. Priya Sharma", () => {
     const { getByText } = render(
       <TestProvider scenario="active">
         <MessagesIndex />
       </TestProvider>,
     );
     expect(getByText("Messages")).toBeTruthy();
-    expect(getByText("Dr. Neha Kapoor")).toBeTruthy();
-    expect(getByText(/Endocrinologist · pcos/)).toBeTruthy();
-    expect(getByText(/Day 14 going well/)).toBeTruthy();
+    expect(getByText("Dr. Priya Sharma")).toBeTruthy();
+    expect(getByText(/Dermatologist · hair loss/)).toBeTruthy();
+    expect(getByText(/nightly minoxidil/)).toBeTruthy();
   });
 
   it("renders empty state when the user has no conversations", () => {

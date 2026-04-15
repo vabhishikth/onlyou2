@@ -239,43 +239,48 @@ const sanjana: FixtureUser = {
   consultations: [
     {
       id: "c-sanjana-1",
-      vertical: "pcos",
+      vertical: "hair-loss",
       status: "active",
       submittedAt: now - 14 * DAY,
-      doctorName: "Dr. Neha Kapoor",
-      doctorSpecialty: "Endocrinologist",
-      diagnosis: "PCOS — irregular cycle, mild insulin resistance",
+      doctorName: "Dr. Priya Sharma",
+      doctorSpecialty: "Dermatologist",
+      diagnosis: "Female pattern hair loss — early stage",
     },
   ],
   prescriptions: [
     {
       id: "rx-sanjana-1",
       consultationId: "c-sanjana-1",
-      vertical: "pcos",
+      vertical: "hair-loss",
       items: [
         {
-          name: "Metformin 500mg",
-          dosage: "1 tablet",
-          schedule: "Twice daily with meals",
+          name: "Minoxidil 2%",
+          dosage: "1 ml",
+          schedule: "Apply to scalp at bedtime",
         },
         {
-          name: "Inositol 2g",
-          dosage: "1 scoop",
-          schedule: "Once daily with water",
+          name: "Biotin 10,000mcg",
+          dosage: "1 capsule",
+          schedule: "Once daily",
+        },
+        {
+          name: "Ferritin + Vitamin D",
+          dosage: "1 tablet",
+          schedule: "Once daily after breakfast",
         },
       ],
       issuedAt: now - 12 * DAY,
-      doctorName: "Dr. Neha Kapoor",
+      doctorName: "Dr. Priya Sharma",
     },
   ],
   orders: [
     {
       id: "o-sanjana-1",
       prescriptionId: "rx-sanjana-1",
-      vertical: "pcos",
+      vertical: "hair-loss",
       status: "out-for-delivery",
-      itemCount: 2,
-      totalPaise: 99900,
+      itemCount: 3,
+      totalPaise: 249900,
       placedAt: now - 12 * DAY,
       expectedDelivery: now + 4 * HOUR,
     },
@@ -295,18 +300,18 @@ const sanjana: FixtureUser = {
   conversations: [
     {
       id: "conv-sanjana-1",
-      vertical: "pcos",
-      doctorName: "Dr. Neha Kapoor",
-      doctorSpecialty: "Endocrinologist",
+      vertical: "hair-loss",
+      doctorName: "Dr. Priya Sharma",
+      doctorSpecialty: "Dermatologist",
       unreadCount: 0,
-      lastMessagePreview: "Day 14 going well — keep tracking your cycle.",
+      lastMessagePreview: "Stay consistent with the nightly minoxidil.",
       lastMessageAt: now - DAY,
       messages: [
         {
           id: "m-1",
           conversationId: "conv-sanjana-1",
           fromPatient: false,
-          text: "Based on your labs, starting Metformin + Inositol for cycle regulation.",
+          text: "Starting you on Minoxidil 2% nightly with biotin and ferritin support.",
           sentAt: now - 12 * DAY,
         },
         {
@@ -320,7 +325,7 @@ const sanjana: FixtureUser = {
           id: "m-3",
           conversationId: "conv-sanjana-1",
           fromPatient: false,
-          text: "Cycle regulation usually takes 3 months. Keep logging your cycle in the app.",
+          text: "Most patients see early shedding stop in 6–8 weeks. Stay consistent with the nightly minoxidil.",
           sentAt: now - DAY,
         },
       ],
@@ -329,7 +334,7 @@ const sanjana: FixtureUser = {
   subscriptions: [
     {
       id: "s-sanjana-1",
-      vertical: "pcos",
+      vertical: "hair-loss",
       plan: "quarterly",
       priceMonthlyPaise: 83300,
       nextBillingAt: now + 60 * DAY,
