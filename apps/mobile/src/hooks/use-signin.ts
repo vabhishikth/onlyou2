@@ -18,10 +18,9 @@ export function useSignIn() {
   async function verifyOtp(phone: string, otp: string) {
     const result = await verifyOtpAction({ phone, otp });
     await setToken(result.token);
-    // Reset the persisted dev scenario so fresh logins always start on the
-    // `new` patient state, regardless of whatever the previous user left
-    // in AsyncStorage.
-    useDevScenarioStore.getState().resetScenario();
+    // Scope the dev scenario to this user. Fresh users land on "new";
+    // returning users get whatever scenario they last persisted.
+    useDevScenarioStore.getState().setActiveUser(result.userId);
     return result;
   }
 
@@ -35,7 +34,9 @@ export function useSignIn() {
       }
     }
     await clearToken();
-    useDevScenarioStore.getState().resetScenario();
+    // Keep the per-user scenario map intact so a returning user re-login
+    // restores their previous state — just drop the active pointer.
+    useDevScenarioStore.getState().setActiveUser(null);
   }
 
   return { sendOtp, verifyOtp, signOut };
