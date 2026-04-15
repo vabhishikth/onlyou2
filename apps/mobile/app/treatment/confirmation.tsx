@@ -3,10 +3,20 @@ import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PremiumButton } from "@/components/ui/PremiumButton";
+import { useDevScenarioStore } from "@/stores/dev-scenario-store";
 import { colors } from "@/theme/colors";
 
 export default function Confirmation() {
   const insets = useSafeAreaInsets();
+  const setScenario = useDevScenarioStore((s) => s.setScenario);
+
+  function onDone() {
+    // Dev affordance: flip to `reviewing` so home shows the UnderReviewCard
+    // after the mocked consultation submit, matching the subscription-
+    // confirmed → active pattern.
+    setScenario("reviewing");
+    router.replace("/(tabs)/home");
+  }
 
   return (
     <View
@@ -62,11 +72,7 @@ export default function Confirmation() {
       <View style={{ flex: 1 }} />
 
       <View style={{ width: "100%" }}>
-        <PremiumButton
-          variant="warm"
-          label="Back to home"
-          onPress={() => router.replace("/(tabs)/home")}
-        />
+        <PremiumButton variant="warm" label="Back to home" onPress={onDone} />
       </View>
     </View>
   );
