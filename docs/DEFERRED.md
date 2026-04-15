@@ -186,9 +186,31 @@ Items surfaced during founder walkthrough of the Phase 2B build. A same-day patc
 
 ---
 
+## Phase 2C walkthrough findings (2026-04-15, in progress)
+
+Surfaced while the founder walked the Phase 2C branch on Expo Go. Two hotfixes
+are already applied in the working tree but **uncommitted**; the rest are
+pending for the same-day patch before merge. The walkthrough itself is paused
+at the photo-upload screen — resume from there next session.
+
+| Item                                                                                                                                                                                                                                                                                                                                                                                     | Status                                | Destination                                     | Notes                                                                                                                                                                                           |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **profile-setup Finish looped back to DOB** — `beforeRemove` navigation listener intercepted the legitimate `router.replace("/(tabs)/home")` and decremented the step instead.                                                                                                                                                                                                           | 🔧 Fixed in working tree, uncommitted | Phase 2C walkthrough patch                      | `app/(auth)/profile-setup.tsx` — added `finishingRef` and a guard in the listener; `onFinish` sets the ref before the replace.                                                                  |
+| **Triple-tap wordmark crashed Expo Go** — `Gesture.Tap().onEnd(...)` runs on the UI thread by default; setting React state from the worklet is a hard crash.                                                                                                                                                                                                                             | 🔧 Fixed in working tree, uncommitted | Phase 2C walkthrough patch                      | `app/(tabs)/_layout.tsx` — added `.runOnJS(true)` to the gesture.                                                                                                                               |
+| **Photo-upload screen layout + decorative `📷` emoji** — 2-col grid uses `width: "48%"` + `gap: 12` which makes alignment off; the capture icon is a `📷` emoji (and `✓` on captured), violating the Clinical Luxe "no decorative emojis" rule.                                                                                                                                          | ⏳ Pending                            | Phase 2C walkthrough patch                      | `app/photo-upload/[condition].tsx:76–116` — tighten grid math and swap the emoji for a lucide `Camera` / `Check` icon.                                                                          |
+| **`convex/__tests__/users.test.ts` tsc errors (lines 71–73)** — `ctx.db.get(userId)` with `string` instead of `Id<"users">`, and two property accesses that need the union narrowed. `pnpm typecheck` missed this because the workspace tsconfig doesn't cover `convex/__tests__/`; `npx convex dev` tsc catches it and is currently running with `--typecheck=disable` as a workaround. | ⏳ Pending                            | Phase 2C walkthrough patch                      | 3-line fix: cast `userId as Id<"users">`, narrow return with a table-tag check. Must land before merge so convex dev runs cleanly.                                                              |
+| **Questionnaire content is stub-only** — hair-loss + ED each ship ~4 stub questions in Phase 2C, but the vertical docs specify 26–32 questions per vertical with validated clinical instruments (IIEF-5 / PEDT / Rotterdam / BMI + ED screening). This is **not a 2C bug** — real content is explicitly scoped to the vertical phases. Logged here so it's not forgotten.                | ℹ️ By design                          | Phase 3 (hair-loss), Phase 6+ (other verticals) | See `docs/VERTICAL-HAIR-LOSS.md §4.1` and siblings for the per-vertical breakdowns.                                                                                                             |
+| **Photo upload: add "Choose from library" alongside "Take photo"** — founder asked for this during the walkthrough. Current screen only routes to the mocked camera. Needs `expo-image-picker` installed, a bottom-sheet picker ("Take photo" / "Choose from library"), Android permissions in `app.json`.                                                                               | ⏳ Deferred                           | Phase 3 (Hair Loss end-to-end)                  | Right now photos are fully mocked — a library picker into a mocked pipeline is wasted work. Phase 3 replaces the whole photo pipeline with real Convex-storage uploads; add library pick there. |
+
+---
+
 ## Phase 3 — Hair Loss end-to-end
 
 _(populated when Phase 3 brainstorm begins)_
+
+**Carry-forwards from Phase 2C walkthrough (2026-04-15):**
+
+- Photo upload needs a real bottom-sheet picker ("Take photo" / "Choose from library") backed by `expo-image-picker`, replacing the mocked camera-only route. See Phase 2C walkthrough findings above for context.
 
 ---
 

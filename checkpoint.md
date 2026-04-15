@@ -1,10 +1,13 @@
 # Checkpoint
 
 **Current phase:** Phase 2C — Tab content + consultation journey
-**Status:** ✅ CODE COMPLETE on `feature/phase-2c-tab-content-consultation`
-at `D:/onlyou2-phase-2c`. 42 commits ahead of master. Code review APPROVE-WITH-FIXES
-landed and **all 6 review fixes shipped (I-1 through I-5 + S-14)**. **Awaiting
-founder walkthrough + merge to master.**
+**Status:** 🔄 WALKTHROUGH IN PROGRESS on `feature/phase-2c-tab-content-consultation`
+at `D:/onlyou2-phase-2c`. 45 commits ahead of master. Founder is mid-walkthrough
+on Expo Go (iOS). Paused at the **photo-upload screen** after flagging layout
+
+- library-upload issues. Two walkthrough hotfixes are already in the working
+  tree but **uncommitted**. Two more fixes pending before merge. See "Session
+  resume notes" at the bottom of this file.
 
 ## Decisions at Plan 2C brainstorm (2026-04-14)
 
@@ -133,4 +136,97 @@ What to look for when running this on iOS Expo Go:
 - Master: `a028640` (checkpoint after the rate-limit pause earlier this session)
 - Phase 2C branch: `feature/phase-2c-tab-content-consultation`
 - Worktree: `D:/onlyou2-phase-2c`
-- Commits ahead of master: **42**
+- Commits ahead of master: **45** (includes the 3 review-fix + carry-forward commits: `5311594`, `7ab0b4e`, `a5f9516`, `f673bde`, `8e8bee9`, `466c450` — 6 commits added since the previous checkpoint's 42)
+
+---
+
+## Session resume notes (2026-04-15 walkthrough — PAUSED)
+
+### Where the founder stopped
+
+Paused on the **photo-upload screen** inside the hair-loss consultation flow.
+Flagged two issues on that screen (layout/emoji + needs library upload). See
+`docs/DEFERRED.md` → "Phase 2C walkthrough findings (2026-04-15)" for the full
+list. Founder has NOT yet seen: review screen → submit → confirmation →
+plan-ready → plan-selection → payment → subscription-confirmed → activity tab →
+messages tab. Resume the walkthrough after the same-day patch lands.
+
+### Uncommitted working-tree changes (DO NOT LOSE)
+
+Two walkthrough hotfixes applied this session but not committed:
+
+1. **`apps/mobile/app/(auth)/profile-setup.tsx`** — added `finishingRef` and a
+   guard inside the `beforeRemove` navigation listener; `onFinish` sets the ref
+   to `true` before `router.replace("/(tabs)/home")`. Fixes the bug where
+   tapping Finish on the address step looped back to DOB because the listener
+   intercepted the legitimate forward navigation.
+2. **`apps/mobile/app/(tabs)/_layout.tsx`** — added `.runOnJS(true)` to the
+   triple-tap `Gesture.Tap()` so its `onEnd` callback runs on the JS thread.
+   Without it, `setSwitcherOpen(true)` runs on the UI thread and crashes Expo
+   Go hard (silent shutdown, no RN red box).
+
+Plus one untracked file (gitignored):
+
+3. **`apps/mobile/.env.local`** — created this session with
+   `EXPO_PUBLIC_CONVEX_URL=https://aromatic-labrador-938.convex.cloud` so the
+   mobile app can find Convex. `.env.local` is gitignored; this file needs to
+   exist on any machine that runs the app. Flag for Plan 3: document in a
+   README or `.env.example`.
+
+Other uncommitted files (noise, **leave alone**): `.agents/skills/convex-*/**`,
+`.claude/skills/convex-*/**`, `CLAUDE.md`, `skills-lock.json`,
+`apps/mobile/expo-env.d.ts`, `convex/_generated/ai/` (untracked). These are
+Convex agent skill updates written automatically by `npx convex dev` during
+this session — not part of 2C.
+
+### Phase 2C walkthrough patch — what still needs doing
+
+Before merge to master, land a single same-day visual fix patch covering:
+
+1. ✅ **profile-setup finish loop** — already in working tree, just commit.
+2. ✅ **triple-tap crash** — already in working tree, just commit.
+3. ⏳ **Photo-upload layout + de-emoji** — `app/photo-upload/[condition].tsx`
+   lines 76–116. Tighten the 2-col grid (drop `width: "48%"` math for a real
+   flex layout), swap the `📷` / `✓` emojis for lucide `Camera` / `Check`
+   icons. Clinical Luxe compliant.
+4. ⏳ **`convex/__tests__/users.test.ts` tsc errors (lines 71–73)** — 3-line
+   fix: cast `userId as Id<"users">` (import `Id` from
+   `"../_generated/dataModel"`) and narrow the `ctx.db.get` return with a
+   table-tag check before reading `profileComplete` / `dob`. Must land so
+   `npx convex dev` stops needing `--typecheck=disable`.
+5. ⏳ **Re-run acceptance checks** — `pnpm --filter @onlyou/mobile test`,
+   `pnpm test:convex`, `pnpm typecheck`, `pnpm --filter @onlyou/mobile lint`.
+   Checkpoint the new test counts.
+6. ⏳ **Founder resumes walkthrough from photo-upload onward** — confirmation
+   → plan-ready → payment → activity → messages.
+7. ⏳ **Spawn `superpowers:code-reviewer` for a fresh second-pass review** on
+   the consolidated diff (all walkthrough fixes + the test-file fix), report
+   goes to `docs/superpowers/reviews/<date>-phase-2c-walkthrough-review.md`.
+8. ⏳ **Merge** `feature/phase-2c-tab-content-consultation` → `master`.
+
+### Running processes when session paused
+
+- **Terminal 1:** `npx convex dev --typecheck=disable` (running in
+  `D:/onlyou2-phase-2c`). `--typecheck=disable` flag is the workaround for the
+  test-file TS errors; **remove the flag after item #4 above lands**.
+- **Terminal 2:** `pnpm --filter @onlyou/mobile dev` (Expo). Founder's iPhone
+  connected via Expo Go, auth session persisted, currently on the home tab.
+
+### Context from this session's discussions
+
+- **Questionnaire content scope clarified.** Founder asked why the questionnaire
+  only has ~4 questions. The real spec per `docs/VERTICAL-*.md §4.1`:
+  - Hair Loss: 28 questions (23–25 after skip logic)
+  - ED: 28 questions (24–26 after skip logic) — includes IIEF-5
+  - PE: 26 questions (20–23 after skip logic) — includes PEDT
+  - PCOS: 32 questions (26–30 after skip logic) — includes Rotterdam
+  - Weight: ~30 questions — includes BMI + ED screening
+    Decision: **ship 2C with stubs**, real clinical content lands in each
+    vertical's own phase (Phase 3 for hair-loss first). Logged to DEFERRED.
+- **Library upload on photo-upload** deferred to Phase 3 (see DEFERRED entry).
+  Right now photos are fully mocked; adding a library picker into a mocked
+  pipeline is wasted work because Phase 3 replaces the whole upload pipeline
+  with real Convex-storage uploads.
+- **Second-pass code review** was NOT run this session. Founder asked for one;
+  decision was to defer the fresh review until after all walkthrough fixes
+  land, so there's a single consolidated diff to review instead of three.
