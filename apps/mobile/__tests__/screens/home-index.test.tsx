@@ -6,6 +6,10 @@ jest.mock("expo-router", () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
 }));
 
+jest.mock("@/hooks/use-current-user", () => ({
+  useCurrentUser: () => undefined,
+}));
+
 const HomeIndex = require("../../app/(tabs)/home/index").default;
 
 describe("Home tab — 4 states", () => {

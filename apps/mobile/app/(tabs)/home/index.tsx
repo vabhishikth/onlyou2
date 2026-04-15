@@ -7,13 +7,19 @@ import { MedicationReminder } from "@/components/home/MedicationReminder";
 import { PlanReadyCard } from "@/components/home/PlanReadyCard";
 import { UnderReviewCard } from "@/components/home/UnderReviewCard";
 import { PremiumButton } from "@/components/ui/PremiumButton";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { usePatientState } from "@/hooks/use-patient-state";
 import { colors } from "@/theme/colors";
 
 export default function HomeIndex() {
   const user = usePatientState();
+  const currentUser = useCurrentUser();
 
-  const firstName = user.name.split(" ")[0];
+  // Prefer the signed-in user's real name; fall back to the fixture when
+  // signed out or while the query is loading. Phase 3 replaces the whole
+  // fixture layer with real Convex queries.
+  const displayName = currentUser?.name ?? user.name;
+  const firstName = displayName.split(" ")[0];
   const consultation = user.consultations[0];
   const prescription = user.prescriptions[0];
   const delivery = user.deliveries[0];
