@@ -102,7 +102,7 @@ export default function PlanReady() {
                 color: colors.textPrimary,
               }}
             >
-              💊 {item.name}
+              {item.name}
             </Text>
             <Text
               style={{
@@ -125,7 +125,7 @@ export default function PlanReady() {
             marginBottom: 8,
           }}
         >
-          · Reduced shedding in 1–3 months
+          · Your medication ships in private packaging
         </Text>
         <Text
           style={{
@@ -135,12 +135,12 @@ export default function PlanReady() {
             marginBottom: 8,
           }}
         >
-          · Visible improvement in 3–6 months
+          · Track every shipment in the Activity tab
         </Text>
         <Text
           style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 19 }}
         >
-          · Unlimited messaging with your doctor during treatment
+          · Message your doctor any time during treatment
         </Text>
       </ScrollView>
 
