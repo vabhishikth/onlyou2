@@ -1,5 +1,8 @@
 import { fireEvent, render } from "@testing-library/react-native";
-import { Alert } from "react-native";
+import { router } from "expo-router";
+import { Alert, Text } from "react-native";
+
+import { QuestionShell } from "@/components/questionnaire/QuestionShell";
 
 jest.mock("expo-router", () => ({
   router: {
@@ -10,11 +13,6 @@ jest.mock("expo-router", () => ({
   },
   Stack: ({ children }: { children: React.ReactNode }) => children,
 }));
-
-import { Text } from "react-native";
-import { router } from "expo-router";
-
-import { QuestionShell } from "@/components/questionnaire/QuestionShell";
 
 const mockBack = router.back as jest.Mock;
 const mockDismissAll = (router as unknown as { dismissAll: jest.Mock })
