@@ -1,8 +1,6 @@
 {
   "extends": "@onlyou/config/tsconfig/expo.json",
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
