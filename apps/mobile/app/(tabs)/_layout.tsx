@@ -21,6 +21,7 @@ export default function TabsLayout() {
 
   const tripleTap = Gesture.Tap()
     .numberOfTaps(3)
+    .runOnJS(true)
     .onEnd(() => {
       if (__DEV__) setSwitcherOpen(true);
     });

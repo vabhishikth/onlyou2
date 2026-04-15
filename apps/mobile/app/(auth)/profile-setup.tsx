@@ -70,6 +70,9 @@ export default function ProfileSetup() {
   useEffect(() => {
     stepRef.current = step;
   }, [step]);
+  // Set while `onFinish` is navigating to home, so the `beforeRemove`
+  // listener lets the navigation through instead of decrementing the step.
+  const finishingRef = useRef(false);
 
   const goBackStep = useCallback(() => {
     const idx = STEPS.indexOf(stepRef.current);
@@ -97,6 +100,7 @@ export default function ProfileSetup() {
     const unsub = navigation.addListener(
       "beforeRemove" as never,
       ((e: { preventDefault: () => void }) => {
+        if (finishingRef.current) return;
         if (STEPS.indexOf(stepRef.current) > 0) {
           e.preventDefault();
           goBackStep();
@@ -133,6 +137,7 @@ export default function ProfileSetup() {
       state: stateName,
       address,
     });
+    finishingRef.current = true;
     router.replace("/(tabs)/home" as never);
   }
 
