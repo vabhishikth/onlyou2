@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { Camera, Check } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -88,7 +89,8 @@ export default function PhotoUploadContainer() {
                 })
               }
               style={{
-                width: "48%",
+                flexBasis: "48%",
+                flexGrow: 1,
                 aspectRatio: 1,
                 borderRadius: 14,
                 backgroundColor: captured ? colors.accentLight : colors.white,
@@ -98,14 +100,21 @@ export default function PhotoUploadContainer() {
                 justifyContent: "center",
               }}
             >
-              <Text style={{ fontSize: 28, marginBottom: 4 }}>
-                {captured ? "✓" : "📷"}
-              </Text>
+              {captured ? (
+                <Check size={28} color={colors.accent} strokeWidth={2.5} />
+              ) : (
+                <Camera
+                  size={28}
+                  color={colors.textSecondary}
+                  strokeWidth={1.75}
+                />
+              )}
               <Text
                 style={{
                   fontSize: 12,
                   fontWeight: "700",
                   color: colors.textPrimary,
+                  marginTop: 8,
                 }}
               >
                 {shot}

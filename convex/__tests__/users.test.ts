@@ -3,6 +3,7 @@ import { convexTest } from "convex-test";
 import { describe, expect, it } from "vitest";
 
 import { api } from "../_generated/api";
+import type { Id } from "../_generated/dataModel";
 import schema from "../schema";
 
 const modules = import.meta.glob("../**/*.ts");
@@ -68,9 +69,12 @@ describe("users.completeProfile — 18+ enforcement", () => {
       address: "1 Example Lane",
     });
 
-    const user = await t.run((ctx) => ctx.db.get(userId));
-    expect(user?.profileComplete).toBe(true);
-    expect(user?.dob).toBe(dob);
+    const user = await t.run((ctx) => ctx.db.get(userId as Id<"users">));
+    if (!user || !("profileComplete" in user)) {
+      throw new Error("expected user document");
+    }
+    expect(user.profileComplete).toBe(true);
+    expect(user.dob).toBe(dob);
   });
 
   it("rejects a malformed DOB string", async () => {
