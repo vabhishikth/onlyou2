@@ -7,27 +7,25 @@ import { MedicationReminder } from "@/components/home/MedicationReminder";
 import { PlanReadyCard } from "@/components/home/PlanReadyCard";
 import { UnderReviewCard } from "@/components/home/UnderReviewCard";
 import { PremiumButton } from "@/components/ui/PremiumButton";
-import { useCurrentUser } from "@/hooks/use-current-user";
+import { useDisplayUser } from "@/hooks/use-display-user";
 import { usePatientState } from "@/hooks/use-patient-state";
 import { useDevScenarioStore } from "@/stores/dev-scenario-store";
 import { colors } from "@/theme/colors";
 
 export default function HomeIndex() {
   const user = usePatientState();
-  const currentUser = useCurrentUser();
+  const displayUser = useDisplayUser();
   const lastSource = useDevScenarioStore((s) => s.lastSource);
   const overrideVertical = useDevScenarioStore((s) =>
     s.activeUserId ? s.verticalsByUser[s.activeUserId] : undefined,
   );
 
-  // When the dev switcher set the scenario, greet with the fixture user's
-  // name so the demo reads coherently (Priya / Rahul / Sanjana). Flow-
-  // driven scenarios keep the real signed-in name. Phase 3 replaces the
-  // whole fixture layer with real Convex queries.
+  // `useDisplayUser` swaps to the fixture identity when the dev switcher
+  // flipped the scenario, so greeting / avatar / profile all read as that
+  // demo user together. Phase 3 replaces the fixture layer with real
+  // Convex queries.
   const useFixtureIdentity = lastSource === "dev";
-  const displayName = useFixtureIdentity
-    ? user.name
-    : (currentUser?.name ?? user.name);
+  const displayName = displayUser?.name ?? user.name;
   const firstName = displayName.split(" ")[0];
   const consultation = user.consultations[0];
   const prescription = user.prescriptions[0];

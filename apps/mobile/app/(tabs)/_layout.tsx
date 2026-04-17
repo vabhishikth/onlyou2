@@ -6,7 +6,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ScenarioSwitcher } from "@/dev/scenario-switcher";
-import { useCurrentUser } from "@/hooks/use-current-user";
+import { useDisplayUser } from "@/hooks/use-display-user";
 import { colors } from "@/theme/colors";
 
 /**
@@ -16,7 +16,7 @@ import { colors } from "@/theme/colors";
  */
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
-  const user = useCurrentUser();
+  const user = useDisplayUser();
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const tripleTap = Gesture.Tap()
