@@ -150,7 +150,10 @@ Standalone mini-phase between Phase 2 (shell) and Phase 3 (Hair Loss). Its own a
 [[decisions/2026-04-17-phase-2.5-scope-boundary]] ·
 [[decisions/2026-04-17-pregnancy-safety-guard]] ·
 [[decisions/2026-04-17-claude-vision-native-parsing]] ·
-[[decisions/2026-04-17-biomarker-values-split]]
+[[decisions/2026-04-17-biomarker-values-split]] ·
+[[decisions/2026-04-18-phase-2.5-plan-split]]
+
+**Ships as 4 sub-plans** (see [[decisions/2026-04-18-phase-2.5-plan-split]]): 2.5A Foundation → 2.5B Parse pipeline → 2.5C Ingestion + curation + portal contracts → 2.5D Mobile + approval gate. Only 2.5D triggers the Phase 2.5 approval gate and merge to master. Plan 2.5A: [[superpowers/plans/2026-04-18-phase-2.5a-foundation]].
 
 **Core principle:** The biomarker system is **adaptive, not fixed**. Renders whatever markers the uploaded report contains — 3, 8, or 40 — and degrades gracefully on markers the DB doesn't yet know.
 

@@ -214,6 +214,10 @@ Answers landed in [[superpowers/specs/2026-04-17-phase-2.5-biomarker-foundation-
 - **Curation backfill** is a named deliverable, not an edge case — admin surface + reclassification job + `lab_report_updated` notification.
 - **Rate limits**: 5/day + 50/month per user. Kill-switch feature flag `biomarker_parsing_enabled`.
 
+## Planning structure (2026-04-18)
+
+- **Ships as 4 sub-plans** — 2.5A Foundation → 2.5B Parse pipeline → 2.5C Ingestion + curation + portal contracts → 2.5D Mobile + approval gate. Each sub-plan produces working, testable software with its own first-pass review. Only 2.5D triggers the Phase 2.5 approval gate and merge to master. See [[decisions/2026-04-18-phase-2.5-plan-split]].
+
 ## Tracking
 
 - `docs/DEFERRED.md` — full Phase 2.5 prerequisites + deferrals ledger
@@ -223,4 +227,6 @@ Answers landed in [[superpowers/specs/2026-04-17-phase-2.5-biomarker-foundation-
 - `docs/decisions/2026-04-17-pregnancy-safety-guard.md` — clinical safety guard
 - `docs/decisions/2026-04-17-claude-vision-native-parsing.md` — parsing strategy
 - `docs/decisions/2026-04-17-biomarker-values-split.md` — per-marker row table
+- `docs/decisions/2026-04-18-phase-2.5-plan-split.md` — 4-sub-plan ship structure
+- `docs/superpowers/plans/2026-04-18-phase-2.5a-foundation.md` — Plan 2.5A (tokens + schema + seed)
 - `docs/decisions/2026-04-14-phase-2-additions.md` — original decision record for this feature's introduction
