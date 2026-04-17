@@ -1,18 +1,28 @@
-import { render } from "@testing-library/react-native";
+import { act, render } from "@testing-library/react-native";
 
+import { useDevScenarioStore } from "@/stores/dev-scenario-store";
 import { TestProvider } from "@/test-utils";
 
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
 }));
 
+let mockCurrentUser: { name: string } | undefined = undefined;
+
 jest.mock("@/hooks/use-current-user", () => ({
-  useCurrentUser: () => undefined,
+  useCurrentUser: () => mockCurrentUser,
 }));
 
 const HomeIndex = require("../../app/(tabs)/home/index").default;
 
 describe("Home tab — 4 states", () => {
+  beforeEach(() => {
+    mockCurrentUser = undefined;
+    act(() => {
+      useDevScenarioStore.getState().resetScenario();
+    });
+  });
+
   it("new user shows the empty-state CTA", () => {
     const { getByText } = render(
       <TestProvider scenario="new">
@@ -57,5 +67,52 @@ describe("Home tab — 4 states", () => {
     );
     expect(getAllByText(/Day 12/).length).toBeGreaterThan(0);
     expect(getByText("Minoxidil 2%")).toBeTruthy();
+  });
+
+  it("greets with fixture name when dev switcher set the scenario", () => {
+    mockCurrentUser = { name: "Arjun Real-Account" };
+    act(() => {
+      useDevScenarioStore.getState().setActiveUser("user-arjun-real");
+      useDevScenarioStore.getState().setScenario("active", { source: "dev" });
+    });
+    const { getByText } = render(
+      <TestProvider scenario="active">
+        <HomeIndex />
+      </TestProvider>,
+    );
+    expect(getByText(/Good morning, Sanjana\./)).toBeTruthy();
+  });
+
+  it("greets with real user name when flow progressed the scenario", () => {
+    mockCurrentUser = { name: "Arjun Real-Account" };
+    act(() => {
+      useDevScenarioStore.getState().setActiveUser("user-arjun-real");
+      useDevScenarioStore
+        .getState()
+        .setScenario("reviewing", { vertical: "ed", source: "flow" });
+    });
+    const { getByText } = render(
+      <TestProvider scenario="reviewing">
+        <HomeIndex />
+      </TestProvider>,
+    );
+    expect(getByText(/Thanks for submitting, Arjun\./)).toBeTruthy();
+  });
+
+  it("UnderReviewCard reflects the flow-carried vertical, not the fixture", () => {
+    mockCurrentUser = { name: "Arjun Real-Account" };
+    act(() => {
+      useDevScenarioStore.getState().setActiveUser("user-arjun-real");
+      useDevScenarioStore
+        .getState()
+        .setScenario("reviewing", { vertical: "ed", source: "flow" });
+    });
+    const { getByText } = render(
+      <TestProvider scenario="reviewing">
+        <HomeIndex />
+      </TestProvider>,
+    );
+    // Priya fixture is hair-loss; override should surface "ED" instead.
+    expect(getByText(/reviewing your ED case/i)).toBeTruthy();
   });
 });

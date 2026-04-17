@@ -49,7 +49,7 @@ export function ScenarioSwitcher({ visible, onClose }: Props) {
             <Pressable
               key={state}
               onPress={() => {
-                setScenario(state);
+                setScenario(state, { source: "dev" });
                 onClose();
               }}
               style={{

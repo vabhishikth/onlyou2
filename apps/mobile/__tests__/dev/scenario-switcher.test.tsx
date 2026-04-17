@@ -27,4 +27,12 @@ describe("<ScenarioSwitcher>", () => {
     expect(useDevScenarioStore.getState().activeScenario).toBe("active");
     expect(onClose).toHaveBeenCalled();
   });
+
+  it("tags switcher-driven changes with source='dev' so home greets the fixture", () => {
+    const { getByText } = render(
+      <ScenarioSwitcher visible onClose={() => {}} />,
+    );
+    fireEvent.press(getByText("Sanjana Rao"));
+    expect(useDevScenarioStore.getState().lastSource).toBe("dev");
+  });
 });

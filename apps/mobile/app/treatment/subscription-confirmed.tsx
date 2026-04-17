@@ -11,9 +11,11 @@ export default function SubscriptionConfirmed() {
   const setScenario = useDevScenarioStore((s) => s.setScenario);
 
   function onDone() {
-    // Dev affordance: flip the scenario so home reflects the active
-    // subscription state after the mocked purchase flow.
-    setScenario("active");
+    // Flip to `active` so home reflects the active subscription state
+    // after the mocked purchase. `source: "flow"` keeps the greeting on
+    // the real user's name; the vertical override persisted at submit
+    // time carries through without being changed here.
+    setScenario("active", { source: "flow" });
     router.replace("/(tabs)/home");
   }
 

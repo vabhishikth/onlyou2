@@ -61,4 +61,77 @@ describe("dev-scenario-store", () => {
     });
     expect(useDevScenarioStore.getState().activeScenario).toBe("ready");
   });
+
+  it("setScenario defaults lastSource to 'dev' when no opts passed", () => {
+    act(() => {
+      useDevScenarioStore.getState().setScenario("active");
+    });
+    expect(useDevScenarioStore.getState().lastSource).toBe("dev");
+  });
+
+  it("setScenario records the source when provided", () => {
+    act(() => {
+      useDevScenarioStore.getState().setScenario("reviewing", {
+        source: "flow",
+      });
+    });
+    expect(useDevScenarioStore.getState().lastSource).toBe("flow");
+  });
+
+  it("persists a flow-carried vertical per user", () => {
+    act(() => {
+      useDevScenarioStore.getState().setActiveUser("user-a");
+      useDevScenarioStore.getState().setScenario("reviewing", {
+        vertical: "ed",
+        source: "flow",
+      });
+    });
+    expect(useDevScenarioStore.getState().verticalsByUser["user-a"]).toBe("ed");
+  });
+
+  it("keeps the vertical override when setScenario is called without a vertical", () => {
+    act(() => {
+      useDevScenarioStore.getState().setActiveUser("user-a");
+      useDevScenarioStore.getState().setScenario("reviewing", {
+        vertical: "ed",
+        source: "flow",
+      });
+      // Subsequent flow step (e.g. pay → active) shouldn't clobber the
+      // vertical just because it omits the opts param.
+      useDevScenarioStore.getState().setScenario("active", { source: "flow" });
+    });
+    expect(useDevScenarioStore.getState().verticalsByUser["user-a"]).toBe("ed");
+  });
+
+  it("does not touch verticalsByUser when no user is active", () => {
+    act(() => {
+      useDevScenarioStore.getState().setScenario("reviewing", {
+        vertical: "ed",
+        source: "flow",
+      });
+    });
+    expect(useDevScenarioStore.getState().verticalsByUser).toEqual({});
+  });
+
+  it("setActiveUser resets lastSource so the next render picks it up fresh", () => {
+    act(() => {
+      useDevScenarioStore.getState().setActiveUser("user-a");
+      useDevScenarioStore.getState().setScenario("active", { source: "dev" });
+      useDevScenarioStore.getState().setActiveUser("user-b");
+    });
+    expect(useDevScenarioStore.getState().lastSource).toBeNull();
+  });
+
+  it("resetScenario wipes verticalsByUser and lastSource too", () => {
+    act(() => {
+      useDevScenarioStore.getState().setActiveUser("user-a");
+      useDevScenarioStore.getState().setScenario("reviewing", {
+        vertical: "ed",
+        source: "flow",
+      });
+      useDevScenarioStore.getState().resetScenario();
+    });
+    expect(useDevScenarioStore.getState().verticalsByUser).toEqual({});
+    expect(useDevScenarioStore.getState().lastSource).toBeNull();
+  });
 });

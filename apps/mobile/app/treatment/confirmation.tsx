@@ -4,17 +4,23 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useDevScenarioStore } from "@/stores/dev-scenario-store";
+import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
 
 export default function Confirmation() {
   const insets = useSafeAreaInsets();
   const setScenario = useDevScenarioStore((s) => s.setScenario);
+  const selectedVertical = useQuestionnaireStore((s) => s.condition);
 
   function onDone() {
-    // Dev affordance: flip to `reviewing` so home shows the UnderReviewCard
-    // after the mocked consultation submit, matching the subscription-
-    // confirmed → active pattern.
-    setScenario("reviewing");
+    // Flip to `reviewing` so home shows UnderReviewCard. Carry the
+    // user-selected vertical so the card's label matches what they
+    // actually picked, even though the underlying fixture is pinned
+    // to hair-loss in Phase 2C.
+    setScenario("reviewing", {
+      vertical: selectedVertical ?? undefined,
+      source: "flow",
+    });
     router.replace("/(tabs)/home");
   }
 

@@ -9,21 +9,39 @@ import { UnderReviewCard } from "@/components/home/UnderReviewCard";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { usePatientState } from "@/hooks/use-patient-state";
+import { useDevScenarioStore } from "@/stores/dev-scenario-store";
 import { colors } from "@/theme/colors";
 
 export default function HomeIndex() {
   const user = usePatientState();
   const currentUser = useCurrentUser();
+  const lastSource = useDevScenarioStore((s) => s.lastSource);
+  const overrideVertical = useDevScenarioStore((s) =>
+    s.activeUserId ? s.verticalsByUser[s.activeUserId] : undefined,
+  );
 
-  // Prefer the signed-in user's real name; fall back to the fixture when
-  // signed out or while the query is loading. Phase 3 replaces the whole
-  // fixture layer with real Convex queries.
-  const displayName = currentUser?.name ?? user.name;
+  // When the dev switcher set the scenario, greet with the fixture user's
+  // name so the demo reads coherently (Priya / Rahul / Sanjana). Flow-
+  // driven scenarios keep the real signed-in name. Phase 3 replaces the
+  // whole fixture layer with real Convex queries.
+  const useFixtureIdentity = lastSource === "dev";
+  const displayName = useFixtureIdentity
+    ? user.name
+    : (currentUser?.name ?? user.name);
   const firstName = displayName.split(" ")[0];
   const consultation = user.consultations[0];
   const prescription = user.prescriptions[0];
   const delivery = user.deliveries[0];
   const activeSub = user.subscriptions[0];
+  // Prefer the flow-submitted vertical so review/plan/active cards show
+  // what the user actually picked. Dev-switcher flips ignore the override
+  // and render the fixture's own vertical.
+  const effectiveVertical = useFixtureIdentity
+    ? consultation?.vertical
+    : (overrideVertical ?? consultation?.vertical);
+  const activeVertical = useFixtureIdentity
+    ? activeSub?.vertical
+    : (overrideVertical ?? activeSub?.vertical);
 
   return (
     <ScrollView
@@ -48,7 +66,7 @@ export default function HomeIndex() {
       >
         {subtitleFor(
           user.state,
-          activeSub?.vertical,
+          activeVertical,
           dayCount(activeSub?.startedAt),
         )}
       </Text>
@@ -87,9 +105,9 @@ export default function HomeIndex() {
         </View>
       )}
 
-      {user.state === "reviewing" && consultation && (
+      {user.state === "reviewing" && consultation && effectiveVertical && (
         <UnderReviewCard
-          vertical={consultation.vertical}
+          vertical={effectiveVertical}
           hoursAgo={Math.max(
             1,
             Math.floor((Date.now() - consultation.submittedAt) / 3600000),
@@ -97,90 +115,97 @@ export default function HomeIndex() {
         />
       )}
 
-      {user.state === "ready" && consultation && prescription && (
-        <>
-          <PlanReadyCard
-            vertical={consultation.vertical}
-            doctorName={prescription.doctorName}
-            onPress={() => router.push("/treatment/plan-ready")}
-          />
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: colors.border,
-              backgroundColor: colors.white,
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 12,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 10,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                color: colors.textTertiary,
-                fontWeight: "800",
-                marginBottom: 6,
-              }}
-            >
-              Plan valid
-            </Text>
-            <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-              28 days remaining. After 30 days the plan expires and a new review
-              is required.
-            </Text>
-          </View>
-        </>
-      )}
-
-      {user.state === "active" && activeSub && consultation && prescription && (
-        <>
-          <ActiveTreatmentCard
-            vertical={activeSub.vertical}
-            dayCount={dayCount(activeSub.startedAt)}
-          />
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: colors.border,
-              backgroundColor: colors.white,
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 12,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 10,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                color: colors.textTertiary,
-                fontWeight: "800",
-                marginBottom: 10,
-              }}
-            >
-              Today&apos;s medications
-            </Text>
-            {prescription.items.map((item, idx) => (
-              <MedicationReminder
-                key={item.name}
-                name={item.name}
-                schedule={item.schedule}
-                done={idx === 0}
-              />
-            ))}
-          </View>
-          {delivery && (
-            <DeliveryTrackingBanner
-              status={delivery.status}
-              onPress={() =>
-                router.push(`/(tabs)/home/tracking/${delivery.orderId}`)
-              }
+      {user.state === "ready" &&
+        consultation &&
+        prescription &&
+        effectiveVertical && (
+          <>
+            <PlanReadyCard
+              vertical={effectiveVertical}
+              doctorName={prescription.doctorName}
+              onPress={() => router.push("/treatment/plan-ready")}
             />
-          )}
-        </>
-      )}
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.white,
+                borderRadius: 16,
+                padding: 16,
+                marginBottom: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 10,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                  color: colors.textTertiary,
+                  fontWeight: "800",
+                  marginBottom: 6,
+                }}
+              >
+                Plan valid
+              </Text>
+              <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                28 days remaining. After 30 days the plan expires and a new
+                review is required.
+              </Text>
+            </View>
+          </>
+        )}
+
+      {user.state === "active" &&
+        activeSub &&
+        consultation &&
+        prescription &&
+        activeVertical && (
+          <>
+            <ActiveTreatmentCard
+              vertical={activeVertical}
+              dayCount={dayCount(activeSub.startedAt)}
+            />
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.white,
+                borderRadius: 16,
+                padding: 16,
+                marginBottom: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 10,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                  color: colors.textTertiary,
+                  fontWeight: "800",
+                  marginBottom: 10,
+                }}
+              >
+                Today&apos;s medications
+              </Text>
+              {prescription.items.map((item, idx) => (
+                <MedicationReminder
+                  key={item.name}
+                  name={item.name}
+                  schedule={item.schedule}
+                  done={idx === 0}
+                />
+              ))}
+            </View>
+            {delivery && (
+              <DeliveryTrackingBanner
+                status={delivery.status}
+                onPress={() =>
+                  router.push(`/(tabs)/home/tracking/${delivery.orderId}`)
+                }
+              />
+            )}
+          </>
+        )}
     </ScrollView>
   );
 }
