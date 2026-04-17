@@ -1,13 +1,11 @@
 # Checkpoint
 
 **Current phase:** Phase 2C — Tab content + consultation journey
-**Status:** 🔄 WALKTHROUGH IN PROGRESS on `feature/phase-2c-tab-content-consultation`
-at `D:/onlyou2-phase-2c`. 45 commits ahead of master. Founder is mid-walkthrough
-on Expo Go (iOS). Paused at the **photo-upload screen** after flagging layout
-
-- library-upload issues. Two walkthrough hotfixes are already in the working
-  tree but **uncommitted**. Two more fixes pending before merge. See "Session
-  resume notes" at the bottom of this file.
+**Status:** 🟢 READY TO MERGE on `feature/phase-2c-tab-content-consultation`
+at `D:/onlyou2-phase-2c`. **57 commits ahead of master.** Second-pass code
+review **APPROVE** (no Critical, no Important, 2 of 3 Suggestions applied;
+S-17 left as known cosmetic). Founder final Expo Go re-verify is the last
+gate before merge.
 
 ## Decisions at Plan 2C brainstorm (2026-04-14)
 
@@ -16,7 +14,7 @@ on Expo Go (iOS). Paused at the **photo-upload screen** after flagging layout
   Both items struck through in `docs/DEFERRED.md` Phase 2B review deferrals row.
   Re-open only if a native module forces it.
 
-## What shipped on the 2C branch (42 commits)
+## What shipped on the 2C branch (57 commits)
 
 ### Pre-tasks (17 commits)
 
@@ -29,8 +27,7 @@ on Expo Go (iOS). Paused at the **photo-upload screen** after flagging layout
   - Android hardware back via shared `goBackStep` callback), 18+ DOB enforced
     client + server, OTP resend interval cleanup + OtpBoxes resetSignal
 - **Pre-task C** (4 commits) — CRO pass on welcome / phone-verify / otp-entry /
-  profile-setup. Founder still needs to sanity-check 4 copy choices flagged
-  in the Pre-task C report (e.g. "Private care, delivered." headline)
+  profile-setup
 
 ### Plan 2C tasks (18 commits, Tasks 1–21)
 
@@ -59,174 +56,99 @@ on Expo Go (iOS). Paused at the **photo-upload screen** after flagging layout
 | 20   | Activity tab + detail + shared DeliveryStepper       | `9926632` |
 | 21   | Messages tab list + read-only chat                   | `5be3180` |
 
-### Code review + fix pass (7 commits)
+### First-pass code review + fix pass (7 commits, 2026-04-14)
 
 Review: `docs/superpowers/reviews/2026-04-14-phase-2c-tab-content-consultation-review.md`
-verdict **APPROVE-WITH-FIXES**. All six fixes applied:
+verdict **APPROVE-WITH-FIXES**. All six fixes applied across commits
+`5311594`, `7ab0b4e`, `a5f9516`, `f673bde`, `8e8bee9`, `466c450`.
 
-- **I-1** (`5311594`) — payment screen now reads `plan` + `vertical` from
-  router params instead of hardcoding "₹2,299". `plan-selection.tsx` passes
-  the chosen tier through. New test asserts both quarterly and 6-month totals.
-- **I-2** (`7ab0b4e`) — `confirmation`, `subscription-confirmed`, and
-  `photo-upload/camera` CTAs now use `variant="warm"` per Clinical Luxe rule.
-- **I-3** (`a5f9516`) — Sanjana fixture reassigned from PCOS (unavailable in
-  Phase 2) to hair-loss with Dr. Priya Sharma + Minoxidil 2% / Biotin /
-  Ferritin combo. Updated dependent test assertions across 5 test files.
-- **I-4** (`f673bde`) — `plan-ready.tsx` "What to expect" bullets are now
-  vertical-agnostic ("private packaging" / "track in Activity tab" / "message
-  your doctor anytime").
-- **I-5** (`f673bde`, same commit as I-4) — removed decorative `💊` emoji
-  from medication list per Clinical Luxe rule.
-- **S-14** (`8e8bee9`) — cleared two import-order lint warnings in
-  `question-shell.test.tsx`.
-- **DEFERRED carry-forwards** (`466c450`) — four review-recommended deferrals
-  added under "Phase 2C review deferrals (2026-04-15)": treatment store,
-  consultationId param threading, real subscription activation mutation
-  (all → Plan 3), spacing token housekeeping pass (→ Plan 8).
+### Walkthrough fixes (2026-04-15 → 2026-04-17, 12 commits)
+
+Founder-driven fixes from iOS Expo Go acceptance testing:
+
+| Commit    | Fix                                                                  |
+| --------- | -------------------------------------------------------------------- |
+| `c483fc1` | Profile-setup finish loop + triple-tap crash                         |
+| `35b9861` | tsconfig: drop deprecated baseUrl + ignoreDeprecations               |
+| `d80cefa` | Photo-upload grid (flexBasis/flexGrow) + lucide icons + tsc fix      |
+| `61f0aa3` | Confirmation flips dev scenario to `reviewing`                       |
+| `c00fdb9` | Home greeting uses real signed-in user name                          |
+| `8ff6879` | Reviewing fixture: pcos → hair-loss                                  |
+| `344b9c8` | Reset dev scenario on sign-in/out (interim; superseded by `3bc4db5`) |
+| `3bc4db5` | Per-user dev scenario persistence — `scenariosByUser` map            |
+| `820457e` | Vertical carry-through + tag dev switcher with `source: "dev"`       |
+| `c321c63` | Swap identity everywhere on dev switch — introduces `useDisplayUser` |
+| `5eb6ae4` | docs(review): second-pass walkthrough review                         |
+| `4b55489` | Review nits (S-15 test assertion + S-16 defensive guard on hook)     |
+
+### Second-pass code review (2026-04-17)
+
+Review: `docs/superpowers/reviews/2026-04-17-phase-2c-walkthrough-review.md`
+verdict **APPROVE**. No Critical, no Important, 3 Suggestions:
+
+- **S-15** (`4b55489`) — added `expect(lastSource).toBe("flow")` to
+  `subscription-confirmed.test.tsx`.
+- **S-16** (`4b55489`) — `useDisplayUser` now guards the dev fallback with
+  `lastSource === "dev" && activeUserId`. Defensive; unreachable today.
+- **S-17** — **intentionally deferred**. Brief (<300ms) "Arjun" greeting
+  flash during the auth query's loading window. Cosmetic only; a loading
+  skeleton is scope-creep.
 
 ## Test counts at acceptance
 
-- `pnpm --filter @onlyou/mobile test` — **136 passed** (+76 from Phase 2B's 60
-  baseline; +75 from Plan 2C scope including the +9 review-fix updates)
+- `pnpm --filter @onlyou/mobile test` — **150 passed** (44 suites)
 - `pnpm test:convex` — **10 passed** (new suite — Pre-task A delivered)
-- `pnpm typecheck` — clean across all 6 workspaces
-- `pnpm --filter @onlyou/mobile lint` — clean (only `MODULE_TYPELESS_PACKAGE_JSON`
-  Node warnings, no errors)
+- `pnpm typecheck` — clean across all 7 workspaces
+- `pnpm --filter @onlyou/mobile lint` — clean (only pre-existing
+  `MODULE_TYPELESS_PACKAGE_JSON` Node warnings, no errors)
 - `pnpm lint` (root) still has pre-existing `next lint` failures in
   admin/doctor/landing apps — unrelated to 2C
 
-## Walkthrough notes for the founder
-
-What to look for when running this on iOS Expo Go:
-
-1. **Dev scenario switcher** is still the triple-tap-on-wordmark gesture from
-   Phase 2B — flip between new / reviewing / ready / active to walk all four
-   home states. Sanjana (`active`) is now the hair-loss scenario, NOT pcos —
-   so tapping Hair Loss in Explore from the active state should stay clean.
-2. **End-to-end consultation flow** — start as `new`, hit Explore → Hair Loss
-   → "Start consultation" → questionnaire → photo upload (mocked) → review →
-   Submit → confirmation. Tap "Back to home" — confirmation pops you to home.
-3. **Plan-ready → payment → confirmed** — switch to `ready` scenario, tap the
-   PlanReadyCard CTA on home, walk through plan-selection (try monthly /
-   quarterly / 6-month — payment screen now shows the right total), tap Pay,
-   wait ~1.5s for the mocked Razorpay sweep, hit "Go to home" — the dev store
-   flips to `active` and home re-renders accordingly.
-4. **Activity + Messages tabs** in the `active` state show real fixture
-   content — sanjana's hair-loss order out-for-delivery, conversation with
-   Dr. Priya Sharma. Chat input is intentionally disabled with a "Coming soon"
-   hint.
-5. **Copy to sanity-check** (from Pre-task C report): "Private care, delivered."
-   headline, "No credit card" friction line on welcome, "We texted a 6-digit
-   code" wording on phone-verify, "Discreet packaging, delivered home" trust
-   bullet, "Choose your plan →" arrow on plan-ready CTA.
-
 ## Next steps
 
-1. **Founder runs** the full walkthrough on Expo Go (iOS) against the
-   `feature/phase-2c-tab-content-consultation` branch. Catch anything that
-   looks/feels wrong.
-2. **Same-day visual fix patch** if needed (matching the Phase 2B pattern).
-3. **Merge** `feature/phase-2c-tab-content-consultation` → `master`.
-4. **Phase 2C completes**, `checkpoint.md` updated, brainstorm Phase 2.5
-   (Biomarker foundation) — that's the next mini-phase between shell and
-   Hair Loss per the build order.
+1. **Founder final re-verify** on Expo Go (iOS) — shake → Reload, then run
+   the identity swap checks below. Last gate before merge.
+2. **Merge** `feature/phase-2c-tab-content-consultation` → `master`.
+3. **Phase 2C completes.** Brainstorm Phase 2.5 (Biomarker foundation) —
+   the next mini-phase between shell and Hair Loss per the build order.
+
+## Final re-verify checks (identity swap — the last batch of walkthrough fixes)
+
+Shake → **Reload** on Expo Go, then:
+
+1. **Triple-tap → Priya (Under review)** — every surface reads "Priya Iyer":
+   greeting "Thanks for submitting, Priya", avatar initials **PI**, profile
+   screen shows Priya's name + phone + gender.
+2. **Triple-tap → Sanjana (Treatment active)** — "Good morning, Sanjana",
+   avatar **SR**, profile shows Sanjana. Activity tab has 1 out-for-delivery
+   order. Messages tab has 1 conversation with Dr. Priya Sharma.
+3. **Triple-tap → Priya → Messages tab** — should show Dr. Priya Sharma
+   conversation (earlier report of "empty Messages" needs a last look).
+4. **Fresh signup → ED consultation** — greeting uses YOUR real name;
+   UnderReviewCard says "reviewing your **ED** case" (not hair-loss).
+5. **Sign out and sign back in with same phone** — state restored.
+6. **Sign out and sign up with a different phone** — fresh empty state.
 
 ## Branch + worktree
 
-- Master: `a028640` (checkpoint after the rate-limit pause earlier this session)
+- Master: `1321292` (last pre-merge master tip)
 - Phase 2C branch: `feature/phase-2c-tab-content-consultation`
 - Worktree: `D:/onlyou2-phase-2c`
-- Commits ahead of master: **45** (includes the 3 review-fix + carry-forward commits: `5311594`, `7ab0b4e`, `a5f9516`, `f673bde`, `8e8bee9`, `466c450` — 6 commits added since the previous checkpoint's 42)
+- Commits ahead of master: **57**
 
----
+## Untracked / gitignored files (leave alone)
 
-## Session resume notes (2026-04-15 walkthrough — PAUSED)
+- `apps/mobile/.env.local` — `EXPO_PUBLIC_CONVEX_URL=https://aromatic-labrador-938.convex.cloud`
+  Gitignored; must exist on any machine running the app.
+- `convex/_generated/ai/` — auto-generated by `npx convex dev`, not part of 2C.
+- `apps/mobile/expo-env.d.ts` — auto-written trailing-newline differences
+  ignored during commits.
 
-### Where the founder stopped
+## Prior context (still valid)
 
-Paused on the **photo-upload screen** inside the hair-loss consultation flow.
-Flagged two issues on that screen (layout/emoji + needs library upload). See
-`docs/DEFERRED.md` → "Phase 2C walkthrough findings (2026-04-15)" for the full
-list. Founder has NOT yet seen: review screen → submit → confirmation →
-plan-ready → plan-selection → payment → subscription-confirmed → activity tab →
-messages tab. Resume the walkthrough after the same-day patch lands.
-
-### Uncommitted working-tree changes (DO NOT LOSE)
-
-Two walkthrough hotfixes applied this session but not committed:
-
-1. **`apps/mobile/app/(auth)/profile-setup.tsx`** — added `finishingRef` and a
-   guard inside the `beforeRemove` navigation listener; `onFinish` sets the ref
-   to `true` before `router.replace("/(tabs)/home")`. Fixes the bug where
-   tapping Finish on the address step looped back to DOB because the listener
-   intercepted the legitimate forward navigation.
-2. **`apps/mobile/app/(tabs)/_layout.tsx`** — added `.runOnJS(true)` to the
-   triple-tap `Gesture.Tap()` so its `onEnd` callback runs on the JS thread.
-   Without it, `setSwitcherOpen(true)` runs on the UI thread and crashes Expo
-   Go hard (silent shutdown, no RN red box).
-
-Plus one untracked file (gitignored):
-
-3. **`apps/mobile/.env.local`** — created this session with
-   `EXPO_PUBLIC_CONVEX_URL=https://aromatic-labrador-938.convex.cloud` so the
-   mobile app can find Convex. `.env.local` is gitignored; this file needs to
-   exist on any machine that runs the app. Flag for Plan 3: document in a
-   README or `.env.example`.
-
-Other uncommitted files (noise, **leave alone**): `.agents/skills/convex-*/**`,
-`.claude/skills/convex-*/**`, `CLAUDE.md`, `skills-lock.json`,
-`apps/mobile/expo-env.d.ts`, `convex/_generated/ai/` (untracked). These are
-Convex agent skill updates written automatically by `npx convex dev` during
-this session — not part of 2C.
-
-### Phase 2C walkthrough patch — what still needs doing
-
-Before merge to master, land a single same-day visual fix patch covering:
-
-1. ✅ **profile-setup finish loop** — already in working tree, just commit.
-2. ✅ **triple-tap crash** — already in working tree, just commit.
-3. ⏳ **Photo-upload layout + de-emoji** — `app/photo-upload/[condition].tsx`
-   lines 76–116. Tighten the 2-col grid (drop `width: "48%"` math for a real
-   flex layout), swap the `📷` / `✓` emojis for lucide `Camera` / `Check`
-   icons. Clinical Luxe compliant.
-4. ⏳ **`convex/__tests__/users.test.ts` tsc errors (lines 71–73)** — 3-line
-   fix: cast `userId as Id<"users">` (import `Id` from
-   `"../_generated/dataModel"`) and narrow the `ctx.db.get` return with a
-   table-tag check before reading `profileComplete` / `dob`. Must land so
-   `npx convex dev` stops needing `--typecheck=disable`.
-5. ⏳ **Re-run acceptance checks** — `pnpm --filter @onlyou/mobile test`,
-   `pnpm test:convex`, `pnpm typecheck`, `pnpm --filter @onlyou/mobile lint`.
-   Checkpoint the new test counts.
-6. ⏳ **Founder resumes walkthrough from photo-upload onward** — confirmation
-   → plan-ready → payment → activity → messages.
-7. ⏳ **Spawn `superpowers:code-reviewer` for a fresh second-pass review** on
-   the consolidated diff (all walkthrough fixes + the test-file fix), report
-   goes to `docs/superpowers/reviews/<date>-phase-2c-walkthrough-review.md`.
-8. ⏳ **Merge** `feature/phase-2c-tab-content-consultation` → `master`.
-
-### Running processes when session paused
-
-- **Terminal 1:** `npx convex dev --typecheck=disable` (running in
-  `D:/onlyou2-phase-2c`). `--typecheck=disable` flag is the workaround for the
-  test-file TS errors; **remove the flag after item #4 above lands**.
-- **Terminal 2:** `pnpm --filter @onlyou/mobile dev` (Expo). Founder's iPhone
-  connected via Expo Go, auth session persisted, currently on the home tab.
-
-### Context from this session's discussions
-
-- **Questionnaire content scope clarified.** Founder asked why the questionnaire
-  only has ~4 questions. The real spec per `docs/VERTICAL-*.md §4.1`:
-  - Hair Loss: 28 questions (23–25 after skip logic)
-  - ED: 28 questions (24–26 after skip logic) — includes IIEF-5
-  - PE: 26 questions (20–23 after skip logic) — includes PEDT
-  - PCOS: 32 questions (26–30 after skip logic) — includes Rotterdam
-  - Weight: ~30 questions — includes BMI + ED screening
-    Decision: **ship 2C with stubs**, real clinical content lands in each
-    vertical's own phase (Phase 3 for hair-loss first). Logged to DEFERRED.
-- **Library upload on photo-upload** deferred to Phase 3 (see DEFERRED entry).
-  Right now photos are fully mocked; adding a library picker into a mocked
-  pipeline is wasted work because Phase 3 replaces the whole upload pipeline
-  with real Convex-storage uploads.
-- **Second-pass code review** was NOT run this session. Founder asked for one;
-  decision was to defer the fresh review until after all walkthrough fixes
-  land, so there's a single consolidated diff to review instead of three.
+- **Questionnaire content scope:** 2C ships with stubs (~4 questions).
+  Real clinical content (28–32 questions per vertical) lands in each
+  vertical's own phase (Phase 3 for hair-loss). Logged in DEFERRED.
+- **Library upload on photo-upload:** deferred to Phase 3.
+- **Camera black screen:** intentional Phase 2 mock. Real `expo-camera`
+  wired in Phase 3.
