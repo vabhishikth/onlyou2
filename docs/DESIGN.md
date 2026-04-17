@@ -1,22 +1,14 @@
 # Onlyou Design System
 
-  
-
 > **"Clinical Luxe"** — A premium healthcare aesthetic that feels sophisticated and trustworthy, not sterile. Inspired by Hims, Ro, Manual UK, and Curology.
-
-  
 
 This document is the single source of truth for every design decision in the Onlyou project. It covers the patient mobile app (React Native / Expo), all web dashboards and portals (Next.js), and the shared design tokens that keep both platforms visually aligned.
 
-  
+> **Two registers — by design.** Most screens use **Clinical Luxe** (Playfair Display serif, `#141414` primary ink, `#C4956B` warm accent, lavender `#9B8EC4`). **Biomarker surfaces** use a distinct system — **Instrument Serif** for display, **JetBrains Mono** for data + clinical metadata, **Inter** for UI, against warm-parchment (`#F6F1E9`) with espresso ink (`#1C1612`) and copper-amber accent (`#B4641F`). This is deliberate. A lab report should feel considered, document-like, reverent — less chatty than the consultation / treatment flow. New biomarker-surface screens (routes under `apps/mobile/app/lab-results/**`, `apps/mobile/app/lab-booking/upload-results*`, and components under `apps/mobile/src/components/biomarker/**`) inherit this second palette. New consultation-surface screens inherit Clinical Luxe. When in doubt, ask. **Do not collapse the two systems — the register shift is intentional signalling, not an inconsistency to fix.** Decision record: [[decisions/2026-04-17-biomarker-design-register]].
 
 ---
 
-  
-
 ## Table of Contents
-
-  
 
 1. [Design Philosophy](#1-design-philosophy)
 
@@ -58,55 +50,29 @@ This document is the single source of truth for every design decision in the Onl
 
 20. [File Reference](#20-file-reference)
 
-  
-
 ---
-
-  
 
 ## 1. Design Philosophy
 
-  
-
 The Onlyou design system follows five core principles:
-
-  
 
 **Premium, not clinical.** Warm off-whites instead of hospital blue-whites. Serif headings for brand personality. Soft shadows with low opacity for depth without heaviness.
 
-  
-
 **Restrained color.** The palette is predominantly near-black (#141414) on warm off-white (#FAFAF8). Lavender accent (#9B8EC4) appears sparingly — links, focus rings, interactive highlights. Gold (#C4956B) is reserved for premium badges only.
-
-  
 
 **Clear hierarchy.** Four levels of text color (primary, secondary, tertiary, muted) paired with a dual-font system (serif headings, sans-serif body) create unmistakable visual hierarchy without relying on size alone.
 
-  
-
 **Treatment-specific identity.** Each health vertical (Hair Loss, Sexual Health, PCOS, Weight Management) has a subtle background tint and muted icon color. These tints are extremely subtle — 5-8% opacity feel — so the brand stays cohesive while each vertical has its own visual lane.
-
-  
 
 **Cross-platform parity.** The mobile app (React Native) and web dashboards (Next.js) share identical color values, font choices, and spacing scales. Platform-specific implementations (StyleSheet.create vs Tailwind classes) consume the same semantic tokens.
 
-  
-
 ---
-
-  
 
 ## 1.1 Logo
 
-  
-
 The Onlyou logo is a **text-only wordmark** — no image file, no SVG. It is the word **"onlyou"** rendered entirely in lowercase.
 
-  
-
 **Specification:**
-
-  
 
 | Property | Value |
 
@@ -124,8 +90,6 @@ The Onlyou logo is a **text-only wordmark** — no image file, no SVG. It is the
 
 | Letter Spacing | -0.5px (tight) |
 
-  
-
 **Usage in code (mobile):**
 
 ```typescript
@@ -134,7 +98,7 @@ import { textStyles } from '@/theme/typography';
 
 import { colors } from '@/theme/colors';
 
-  
+
 
 // textStyles.logo = { fontFamily: 'PlayfairDisplay_900Black', fontSize: 36, lineHeight: 43.2, letterSpacing: -0.5 }
 
@@ -146,8 +110,6 @@ import { colors } from '@/theme/colors';
 
 ```
 
-  
-
 **Where it appears:**
 
 - Splash screen (`mobile/app/index.tsx`) — centered, fades in with opacity animation
@@ -155,8 +117,6 @@ import { colors } from '@/theme/colors';
 - Welcome screen (`mobile/app/welcome.tsx`) — centered
 
 - Phone entry / login screen (`mobile/app/(auth)/phone.tsx`) — top of screen, animates in with FadeInUp (delay 0, duration 400ms)
-
-  
 
 **Key rules:**
 
@@ -168,19 +128,11 @@ import { colors } from '@/theme/colors';
 
 - No tagline, icon, or symbol accompanies the wordmark.
 
-  
-
 ---
-
-  
 
 ## 2. Color System
 
-  
-
 ### 2.1 Core Palette
-
-  
 
 | Token | Hex | Usage |
 
@@ -198,11 +150,7 @@ import { colors } from '@/theme/colors';
 
 | `white` | `#FFFFFF` | Cards, inputs, overlays |
 
-  
-
 ### 2.2 Primary Scale (Warm Grays)
-
-  
 
 | Step | Hex | Usage |
 
@@ -228,11 +176,7 @@ import { colors } from '@/theme/colors';
 
 | 900 | `#141414` | Primary (default) |
 
-  
-
 ### 2.3 Text Hierarchy
-
-  
 
 | Token | Hex | Usage |
 
@@ -248,11 +192,7 @@ import { colors } from '@/theme/colors';
 
 | `textInverse` | `#FFFFFF` | Text on dark backgrounds |
 
-  
-
 ### 2.4 Interactive / CTA Colors
-
-  
 
 | Token | Hex | Usage |
 
@@ -270,11 +210,7 @@ import { colors } from '@/theme/colors';
 
 | `ctaSecondaryBorder` | `#DCDCDC` | Secondary button border |
 
-  
-
 ### 2.5 Accent Colors
-
-  
 
 | Token | Hex | Usage |
 
@@ -286,11 +222,7 @@ import { colors } from '@/theme/colors';
 
 | `accentWarm` / `warm` | `#C4956B` | Premium badges, gold highlights (rare) |
 
-  
-
 **Accent scale (web Tailwind):**
-
-  
 
 | Step | Hex |
 
@@ -316,11 +248,7 @@ import { colors } from '@/theme/colors';
 
 | 900 | `#302A46` |
 
-  
-
 ### 2.6 Borders & Dividers
-
-  
 
 | Token | Hex | Usage |
 
@@ -336,11 +264,7 @@ import { colors } from '@/theme/colors';
 
 | `ring` | `#9B8EC4` | Focus ring color |
 
-  
-
 ### 2.7 Semantic / Status Colors
-
-  
 
 | Token | Hex | Light Bg | Usage |
 
@@ -354,11 +278,7 @@ import { colors } from '@/theme/colors';
 
 | `info` | `#0284C7` | `#E0F2FE` | Informational, neutral highlight |
 
-  
-
 ### 2.8 Chart Colors
-
-  
 
 | Slot | Hex | Semantic |
 
@@ -374,15 +294,9 @@ import { colors } from '@/theme/colors';
 
 | chart-5 | `#AD7E8E` | Dusty rose (PCOS) |
 
-  
-
 ### 2.9 CSS Custom Properties (Web)
 
-  
-
 Defined in `globals.css` using HSL format for shadcn compatibility:
-
-  
 
 ```css
 
@@ -418,19 +332,11 @@ Defined in `globals.css` using HSL format for shadcn compatibility:
 
 ```
 
-  
-
 ---
-
-  
 
 ## 3. Typography
 
-  
-
 ### 3.1 Font Families
-
-  
 
 | Role | Font | Weights | Usage |
 
@@ -440,19 +346,20 @@ Defined in `globals.css` using HSL format for shadcn compatibility:
 
 | **Sans** | Plus Jakarta Sans | Bold (700), SemiBold (600), Medium (500), Regular (400), Italic | Body text, UI elements, labels, buttons |
 
-  
-
 **Web CSS variables:**
 
 ```css
+font-family:
+  var(--font-plus-jakarta),
+  system-ui,
+  -apple-system,
+  BlinkMacSystemFont,
+  "Segoe UI",
+  Roboto,
+  sans-serif;
 
-font-family: var(--font-plus-jakarta), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-
-font-family: var(--font-playfair), Georgia, Cambria, 'Times New Roman', serif;
-
+font-family: var(--font-playfair), Georgia, Cambria, "Times New Roman", serif;
 ```
-
-  
 
 **Mobile font identifiers:**
 
@@ -464,11 +371,7 @@ PlusJakartaSans_700Bold, PlusJakartaSans_600SemiBold, PlusJakartaSans_500Medium,
 
 ```
 
-  
-
 ### 3.2 Font Size Scale
-
-  
 
 | Token | Size | Line Height | Platform |
 
@@ -492,11 +395,7 @@ PlusJakartaSans_700Bold, PlusJakartaSans_600SemiBold, PlusJakartaSans_500Medium,
 
 | `tiny` | 10px | 1.5 | Mobile |
 
-  
-
 ### 3.3 Letter Spacing
-
-  
 
 | Token | Value | Usage |
 
@@ -510,11 +409,7 @@ PlusJakartaSans_700Bold, PlusJakartaSans_600SemiBold, PlusJakartaSans_500Medium,
 
 | `extraWide` | 1.5px | Micro-headers, uppercase text like "GETTING STARTED" |
 
-  
-
 ### 3.4 Line Heights
-
-  
 
 | Token | Value | Usage |
 
@@ -526,15 +421,9 @@ PlusJakartaSans_700Bold, PlusJakartaSans_600SemiBold, PlusJakartaSans_500Medium,
 
 | `relaxed` | 1.7 | Long-form reading |
 
-  
-
 ### 3.5 Pre-composed Text Styles (Mobile)
 
-  
-
 These are ready-to-use style objects that combine font family, size, line height, and letter spacing:
-
-  
 
 | Style | Font | Size | Weight | Notes |
 
@@ -568,15 +457,9 @@ These are ready-to-use style objects that combine font family, size, line height
 
 | `microHeader` | Sans Medium | 12px | 500 | Uppercase, 1.5px spacing |
 
-  
-
 ### 3.6 Legacy Typography Scale (Mobile)
 
-  
-
 For backward compatibility, a second set of styles exists under `typography.*`:
-
-  
 
 | Style | Font | Size | Line Height |
 
@@ -604,19 +487,11 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `buttonSmall` | Sans SemiBold | 14px | 20px |
 
-  
-
 ---
-
-  
 
 ## 4. Spacing & Layout
 
-  
-
 ### 4.1 Base Spacing Scale (8px Grid)
-
-  
 
 | Token | Mobile (px) | Web (rem) | Usage |
 
@@ -644,11 +519,7 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `6xl` | 80 | 5 | Maximum spacing |
 
-  
-
 ### 4.2 Custom Web Spacing
-
-  
 
 | Token | Value | Usage |
 
@@ -660,11 +531,7 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `15` | 60px | Large fixed-height elements |
 
-  
-
 ### 4.3 Screen-Specific Spacing (Mobile)
-
-  
 
 | Token | Value | Usage |
 
@@ -680,11 +547,7 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `buttonMargin` | 24px | Bottom margin above the main CTA |
 
-  
-
 ### 4.4 Component Dimensions (Mobile)
-
-  
 
 | Token | Value | Usage |
 
@@ -706,11 +569,7 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `progressDotActiveWidth` | 24px | Active stepper dot width |
 
-  
-
 ### 4.5 Icon Sizes (Mobile)
-
-  
 
 | Token | Value |
 
@@ -726,19 +585,11 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `iconSize2xl` | 36px |
 
-  
-
 ---
-
-  
 
 ## 5. Border Radius
 
-  
-
 ### 5.1 Scale
-
-  
 
 | Token | Mobile (px) | Web (rem) | Usage |
 
@@ -762,11 +613,7 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `full` | 9999 | 9999px | Pills, circular icons, fully rounded buttons |
 
-  
-
 ### 5.2 Common Usage
-
-  
 
 - **Buttons (web):** `rounded-xl` (1rem / 16px)
 
@@ -782,19 +629,11 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 - **Status dots:** `rounded-full` (circular)
 
-  
-
 ---
-
-  
 
 ## 6. Shadows & Elevation
 
-  
-
 ### 6.1 Web Shadows (Tailwind)
-
-  
 
 | Token | CSS Value | Usage |
 
@@ -806,11 +645,7 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `soft-lg` | `0 4px 8px -2px rgb(0 0 0 / 0.08), 0 8px 24px -4px rgb(0 0 0 / 0.1)` | Modals, popovers, toasts |
 
-  
-
 ### 6.2 Mobile Shadows (React Native)
-
-  
 
 | Token | Offset | Opacity | Radius | Elevation (Android) | Usage |
 
@@ -826,11 +661,7 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `soft` | 0/2 | 0.04 | 12 | 3 | Most common — cards, treatment cards |
 
-  
-
 ### 6.3 Design Tokens File (Web) — Extended Shadows
-
-  
 
 | Token | CSS Value |
 
@@ -854,23 +685,13 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `inner` | `inset 0 2px 4px 0 rgb(0 0 0 / 0.05)` |
 
-  
-
 ---
-
-  
 
 ## 7. Animations & Transitions
 
-  
-
 ### 7.1 Web Animations (Tailwind + Framer Motion)
 
-  
-
 **Tailwind keyframe animations:**
-
-  
 
 | Class | Behavior | Duration |
 
@@ -888,8 +709,6 @@ For backward compatibility, a second set of styles exists under `typography.*`:
 
 | `animate-pulse-soft` | Opacity 1 to 0.7 and back | 2s infinite |
 
-  
-
 **Framer Motion (toast system):**
 
 ```js
@@ -903,8 +722,6 @@ exit:    { opacity: 0, x: 100, scale: 0.95 }
 transition: { type: 'spring', duration: 0.3 }
 
 ```
-
-  
 
 **CSS gradient animation:**
 
@@ -920,15 +737,9 @@ transition: { type: 'spring', duration: 0.3 }
 
 ```
 
-  
-
 ### 7.2 Mobile Animations (React Native Reanimated)
 
-  
-
 **Spring configurations:**
-
-  
 
 | Context | Scale | Damping | Stiffness |
 
@@ -940,19 +751,13 @@ transition: { type: 'spring', duration: 0.3 }
 
 | Release (both) | 1.0 | 10-15 | 200-300 |
 
-  
-
 **Haptic feedback:**
 
 - Button presses trigger `Haptics.impactAsync(ImpactFeedbackStyle.Light)`
 
 - Haptics are enabled by default but can be disabled per-component
 
-  
-
 ### 7.3 Duration Scale (Design Tokens)
-
-  
 
 | Token | Duration | Usage |
 
@@ -966,11 +771,7 @@ transition: { type: 'spring', duration: 0.3 }
 
 | `slower` | 500ms | Complex multi-element sequences |
 
-  
-
 ### 7.4 Easing Functions
-
-  
 
 | Token | Value | Usage |
 
@@ -986,27 +787,15 @@ transition: { type: 'spring', duration: 0.3 }
 
 | `bounce` | `cubic-bezier(0.68, -0.55, 0.265, 1.55)` | Playful emphasis |
 
-  
-
 ### 7.5 Interactive Feedback (Web)
-
-  
 
 All buttons apply `active:scale-[0.98]` with `transition-all duration-200` for press feedback. Primary buttons additionally transition shadow from `shadow-soft` to `shadow-soft-lg` on hover.
 
-  
-
 ---
-
-  
 
 ## 8. Iconography
 
-  
-
 ### 8.1 Library
-
-  
 
 | Platform | Library | Version |
 
@@ -1016,43 +805,23 @@ All buttons apply `active:scale-[0.98]` with `transition-all duration-200` for p
 
 | Mobile | `lucide-react-native` | 0.563.0 |
 
-  
-
 Lucide icons are stroke-based, 24x24 default, and pair well with the clean aesthetic.
-
-  
 
 ### 8.2 Common Icons Used
 
-  
-
 **Navigation:** Home, Users, FileText, MessageSquare, Settings, LogOut, Menu, X, ChevronLeft, ChevronRight
-
-  
 
 **Medical:** Stethoscope, Pill, TestTube, FlaskConical, Heart, Flower2
 
-  
-
 **Status:** CheckCircle, AlertCircle, AlertTriangle, Info, Clock, Loader2
-
-  
 
 **Actions:** Search, RefreshCw, Download, ArrowRightLeft, Truck
 
-  
-
 **Feature-specific:** Video, VideoOff, Mic, MicOff, WifiOff, Sparkles, Scale
-
-  
 
 **Mobile tab bar:** Home, Activity, ShoppingBag, MessageCircle, CircleUser
 
-  
-
 ### 8.3 Icon Sizing
-
-  
 
 | Context | Web | Mobile |
 
@@ -1068,31 +837,17 @@ Lucide icons are stroke-based, 24x24 default, and pair well with the clean aesth
 
 | Large decorative | — | `iconSize2xl` (36px) |
 
-  
-
 ---
-
-  
 
 ## 9. Component Library — Web
 
-  
-
 Built on **Radix UI** primitives + **class-variance-authority (CVA)** for variants + **Tailwind CSS** for styling + **Framer Motion** for animations.
-
-  
 
 Source: `web/src/components/ui/`
 
-  
-
 ### 9.1 Button
 
-  
-
 **Variants:**
-
-  
 
 | Variant | Appearance |
 
@@ -1112,11 +867,7 @@ Source: `web/src/components/ui/`
 
 | `accent` | Lavender bg (#9B8EC4), white text, soft shadow |
 
-  
-
 **Sizes:**
-
-  
 
 | Size | Height | Padding | Radius |
 
@@ -1132,19 +883,11 @@ Source: `web/src/components/ui/`
 
 | `icon` | 40px x 40px | — | — |
 
-  
-
 **Features:** Loading spinner state, `asChild` prop via Radix Slot, `active:scale-[0.98]` press effect.
-
-  
 
 ### 9.2 Badge
 
-  
-
 **Variants:**
-
-  
 
 | Variant | Style |
 
@@ -1164,59 +907,31 @@ Source: `web/src/components/ui/`
 
 | `muted` | Muted bg, muted text |
 
-  
-
 **Sizes:** `sm` (px-2, 10px text), `default` (px-2.5, 12px text), `lg` (px-3, 14px text)
-
-  
 
 **Features:** Optional `dot` prop adds a colored dot indicator before the label. Pre-built specialized badges for ConsultationStatus, OrderStatus, LabOrderStatus, Priority, and Vertical.
 
-  
-
 ### 9.3 Input
-
-  
 
 Height: 44px (h-11). Border: `border-input`. Radius: `rounded-xl`. Focus ring: lavender (`ring-ring`). Error state: red border + error message below. Placeholder color: `text-muted-foreground`.
 
-  
-
 ### 9.4 Toast
-
-  
 
 Positioned bottom-right with spring animation. Four types: success (green), error (red), warning (amber), info (primary). Each type has a matching icon and subtle tinted background (5% opacity). Auto-dismisses after 4s (6s for errors). Animated with Framer Motion (slide up on enter, slide right on exit).
 
-  
-
 ### 9.5 OTP Input
-
-  
 
 Six-digit input field for authentication flows.
 
-  
-
 ### 9.6 Switch
-
-  
 
 Toggle switch component (Radix UI primitive).
 
-  
-
 ### 9.7 Skeleton
-
-  
 
 Loading placeholder with shimmer animation.
 
-  
-
 ### 9.8 Empty State & Error State
-
-  
 
 `EmptyState` — centered icon + title + description + optional action button.
 
@@ -1230,11 +945,7 @@ Loading placeholder with shimmer animation.
 
 `ErrorBoundaryFallback` — fallback UI for React error boundaries.
 
-  
-
 ### 9.9 Custom CSS Components (globals.css)
-
-  
 
 | Class | Behavior |
 
@@ -1256,31 +967,17 @@ Loading placeholder with shimmer animation.
 
 | `.animate-gradient` | 8s infinite background position animation |
 
-  
-
 ---
-
-  
 
 ## 10. Component Library — Mobile
 
-  
-
 Built with **React Native StyleSheet** + **React Native Reanimated** for animations + **Expo Haptics** for feedback. Components import tokens from `@/theme/*`.
-
-  
 
 Source: `mobile/src/components/`
 
-  
-
 ### 10.1 PremiumButton
 
-  
-
 **Variants:**
-
-  
 
 | Variant | Background | Text | Border |
 
@@ -1292,59 +989,31 @@ Source: `mobile/src/components/`
 
 | `ghost` | Transparent | `#5C5C5C` | None |
 
-  
-
 **Dimensions:** Height 56px. Full width by default. Pill-shaped (`borderRadius.full`). Horizontal padding 32px.
-
-  
 
 **Interaction:** Scale 0.97 on press (spring: damping 10, stiffness 200). Haptic light impact. Loading state shows ActivityIndicator.
 
-  
-
 ### 10.2 PremiumInput
-
-  
 
 Text input with error state support. Height: 60px (`inputHeight`). Focus state changes border to lavender accent.
 
-  
-
 ### 10.3 ScreenWrapper
-
-  
 
 Common screen wrapper providing safe area insets, scroll support, and an optional sticky footer with gradient fade.
 
-  
-
 ### 10.4 ProgressIndicator
-
-  
 
 Step progress tracker. Dot-based: 8px dots, active dot expands to 24px width.
 
-  
-
 ### 10.5 SelectionCard
-
-  
 
 Tappable card for selection lists. Shows check icon when selected.
 
-  
-
 ### 10.6 BackButton
-
-  
 
 Navigation back button. 44px touch target. ChevronLeft icon.
 
-  
-
 ### 10.7 Feature Components
-
-  
 
 | Component | Usage |
 
@@ -1376,19 +1045,11 @@ Navigation back button. 44px touch target. ChevronLeft icon.
 
 | `UpcomingSessionBanner` | Banner for upcoming video consultation sessions |
 
-  
-
 ---
-
-  
 
 ## 11. Status Badges & Semantic Mapping
 
-  
-
 ### 11.1 Consultation Statuses
-
-  
 
 | Status | Label | Badge Variant | Color |
 
@@ -1406,11 +1067,7 @@ Navigation back button. 44px touch target. ChevronLeft icon.
 
 | `FLAGGED` | Flagged | `error` | Red |
 
-  
-
 ### 11.2 Order Statuses
-
-  
 
 | Status | Label | Badge Variant |
 
@@ -1436,11 +1093,7 @@ Navigation back button. 44px touch target. ChevronLeft icon.
 
 | `CANCELLED` | Cancelled | `muted` |
 
-  
-
 ### 11.3 Lab Order Statuses
-
-  
 
 | Status | Label | Badge Variant |
 
@@ -1470,11 +1123,7 @@ Navigation back button. 44px touch target. ChevronLeft icon.
 
 | `CANCELLED` | Cancelled | `muted` |
 
-  
-
 ### 11.4 Priority Levels
-
-  
 
 | Priority | Badge Variant | Size |
 
@@ -1488,15 +1137,9 @@ Navigation back button. 44px touch target. ChevronLeft icon.
 
 | `urgent` | `error` | `sm` |
 
-  
-
 ### 11.5 Design Tokens Status Colors (Extended)
 
-  
-
 Used in the dashboard UI for colored status backgrounds:
-
-  
 
 | Status | Background | Text | Border |
 
@@ -1518,19 +1161,11 @@ Used in the dashboard UI for colored status backgrounds:
 
 | Cancelled | `#FEE2E2` | `#991B1B` | `#FCA5A5` |
 
-  
-
 ---
-
-  
 
 ## 12. Treatment Vertical Theming
 
-  
-
 Each health condition vertical has a unique, extremely subtle color identity.
-
-  
 
 | Vertical | Background Tint | Icon Color | Icon Examples |
 
@@ -1544,47 +1179,27 @@ Each health condition vertical has a unique, extremely subtle color identity.
 
 | Weight Management | `#F2F7F4` (sage green) | `#6E9E7E` (muted sage) | Scale |
 
-  
-
 ### Web Tailwind Usage
 
-  
-
 ```html
-
 <div class="bg-vertical-hair-loss">
-
-  <icon class="text-vertical-hair-loss-icon" />
-
+    <icon class="text-vertical-hair-loss-icon" />
 </div>
-
 ```
-
-  
 
 ### Mobile Usage
 
-  
-
 ```typescript
+import { colors } from "@/theme/colors";
 
-import { colors } from '@/theme/colors';
+backgroundColor: colors.hairLossTint;
 
-backgroundColor: colors.hairLossTint
-
-iconColor: colors.hairLossIcon
-
+iconColor: colors.hairLossIcon;
 ```
-
-  
 
 ### Condition-Specific Colors (Design Tokens — Dashboard)
 
-  
-
 These are bolder colors used in dashboard contexts (not patient-facing):
-
-  
 
 | Condition | Primary | Light Background |
 
@@ -1598,23 +1213,13 @@ These are bolder colors used in dashboard contexts (not patient-facing):
 
 | `PCOS` | `#DB2777` | `#FDF2F8` |
 
-  
-
 ---
-
-  
 
 ## 13. Dashboard & Portal Layouts
 
-  
-
 ### 13.1 Applications
 
-  
-
 The web platform is a single Next.js 14 codebase with subdomain routing:
-
-  
 
 | Subdomain | Route Group | Role |
 
@@ -1630,15 +1235,9 @@ The web platform is a single Next.js 14 codebase with subdomain routing:
 
 | `pharmacy.onlyou.life` | `/pharmacy/` | Pharmacy partner portal |
 
-  
-
 ### 13.2 Doctor Dashboard Layout
 
-  
-
 **Sidebar navigation** (`web/src/app/doctor/components/sidebar.tsx`):
-
-  
 
 | Item | Icon | Route |
 
@@ -1660,59 +1259,37 @@ The web platform is a single Next.js 14 codebase with subdomain routing:
 
 | Templates | FileText | `/doctor/templates` |
 
-  
-
 **Key features with dedicated routes:**
 
 - Case detail with tabs: `/doctor/case/[id]/` (blood work, prescribe)
 
 - Video consultation: `/doctor/video/`
 
-  
-
 ### 13.3 Admin Dashboard Layout
-
-  
 
 Routes under `/admin/`:
 
 - Deliveries, Doctors (add/list/detail), Escalations, Lab Orders, Lab Partners (list/detail), Partners, Patients, Pharmacy Management, Pharmacy Orders
 
-  
-
 ### 13.4 Lab Portal Layout
-
-  
 
 Routes under `/lab/`:
 
 - Sample Processing, Lab Profile, Result Upload
 
-  
-
 ### 13.5 Collect Portal Layout
-
-  
 
 Routes under `/collect/`:
 
 - Phlebotomist Roster
 
-  
-
 ### 13.6 Pharmacy Portal Layout
-
-  
 
 Routes under `/pharmacy/`:
 
 - Order fulfillment, inventory
 
-  
-
 ### 13.7 Layout Patterns
-
-  
 
 All dashboard layouts follow the same pattern:
 
@@ -1726,27 +1303,15 @@ All dashboard layouts follow the same pattern:
 
 - PWA-installable via `pwa-provider.tsx`
 
-  
-
 ---
-
-  
 
 ## 14. Mobile App Structure
 
-  
-
 ### 14.1 Navigation Architecture
-
-  
 
 **Root:** Expo Router file-based routing (`mobile/app/`)
 
-  
-
 **Tab Navigation** (5 tabs):
-
-  
 
 | Tab | Label | Icon | Route |
 
@@ -1762,47 +1327,25 @@ All dashboard layouts follow the same pattern:
 
 | Profile | Profile | CircleUser | `/(tabs)/profile` |
 
-  
-
 Tab bar: 68px Android / 84px iOS (with safe area). Active color: `#141414`. Inactive color: `#8A8A8A`. Top border separator.
-
-  
 
 ### 14.2 Screen Groups
 
-  
-
 **Authentication** (`(auth)/`): Phone entry, OTP verification. Stack navigator with slide-from-right animation.
-
-  
 
 **Onboarding** (`onboarding/`): Welcome flow, feature introduction.
 
-  
-
 **Health Intake** (`intake/[vertical]/`): Multi-step assessment per treatment vertical (hair-loss, sexual-health, pcos, weight). Steps include: assessment questionnaire, payment, photo upload, review.
-
-  
 
 **Lab Orders** (`lab/`): Order status, result viewing, biomarker information.
 
-  
-
 **Chat** (`chat/[consultationId]`): Per-consultation messaging with doctor.
-
-  
 
 **Video** (`video/`): Video consultation sessions, slot booking.
 
-  
-
 **Pharmacy** (`pharmacy/`): Prescription refills, order tracking.
 
-  
-
 ### 14.3 State Management
-
-  
 
 - **Server state:** Apollo Client 3.14.0 (GraphQL)
 
@@ -1810,19 +1353,11 @@ Tab bar: 68px Android / 84px iOS (with safe area). Active color: `#141414`. Inac
 
 - **Persistent storage:** MMKV (fast key-value), Expo Secure Store (tokens), AsyncStorage (legacy)
 
-  
-
 ---
-
-  
 
 ## 15. Responsive Breakpoints
 
-  
-
 ### Web (Tailwind)
-
-  
 
 | Prefix | Min-width | Usage |
 
@@ -1838,47 +1373,27 @@ Tab bar: 68px Android / 84px iOS (with safe area). Active color: `#141414`. Inac
 
 | `2xl` | 1536px | Wide screens |
 
-  
-
 All dashboards are **mobile-first** — design for 375px width, then scale up.
-
-  
 
 ### Mobile
 
-  
-
 Single-column layout. Responsive padding scales with screen width. Safe area handling for notches and home indicators.
-
-  
 
 ---
 
-  
-
 ## 16. Utility Classes & Helpers
-
-  
 
 ### 16.1 Class Merging
 
-  
-
 ```typescript
-
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 // Merges Tailwind classes with proper precedence (clsx + tailwind-merge)
 
-cn('px-4 py-2', isActive && 'bg-primary', className)
-
+cn("px-4 py-2", isActive && "bg-primary", className);
 ```
 
-  
-
 ### 16.2 Formatting Helpers
-
-  
 
 | Function | Description |
 
@@ -1892,13 +1407,9 @@ cn('px-4 py-2', isActive && 'bg-primary', className)
 
 | `getInitials(name)` | Extracts up to 2 initials from a name |
 
-| `maskPhone(phone)` | Masks phone for privacy (e.g., "91******42") |
-
-  
+| `maskPhone(phone)` | Masks phone for privacy (e.g., "91**\*\***42") |
 
 ### 16.3 Display Name Maps
-
-  
 
 | Map | Keys | Example |
 
@@ -1910,15 +1421,9 @@ cn('px-4 py-2', isActive && 'bg-primary', className)
 
 | `CONSULTATION_STATUS` | PENDING_REVIEW, IN_REVIEW, AWAITING_PATIENT, etc. | { label: "New", color: "warning" } |
 
-  
-
 ---
 
-  
-
 ## 17. Z-Index Scale
-
-  
 
 | Token | Value | Usage |
 
@@ -1948,23 +1453,13 @@ cn('px-4 py-2', isActive && 'bg-primary', className)
 
 | `tooltip` | 1800 | Highest-priority tooltips |
 
-  
-
 ---
-
-  
 
 ## 18. Chart & Data Visualization
 
-  
-
 **Library:** Recharts 2.14.0 (web)
 
-  
-
 **Color assignments:**
-
-  
 
 | Slot | Color | Usage |
 
@@ -1980,19 +1475,11 @@ cn('px-4 py-2', isActive && 'bg-primary', className)
 
 | 5 | `#AD7E8E` (Dusty Rose) | Quaternary metric |
 
-  
-
 ---
-
-  
 
 ## 19. Libraries & Dependencies
 
-  
-
 ### Web
-
-  
 
 | Category | Library | Version |
 
@@ -2028,11 +1515,7 @@ cn('px-4 py-2', isActive && 'bg-primary', className)
 
 | Dates | date-fns | (latest) |
 
-  
-
 ### Mobile
-
-  
 
 | Category | Library | Version |
 
@@ -2078,19 +1561,11 @@ cn('px-4 py-2', isActive && 'bg-primary', className)
 
 | Safe Area | react-native-safe-area-context | 5.6.2 |
 
-  
-
 ---
-
-  
 
 ## 20. File Reference
 
-  
-
 ### Design Token Source Files
-
-  
 
 | File | What It Defines |
 
@@ -2114,11 +1589,7 @@ cn('px-4 py-2', isActive && 'bg-primary', className)
 
 | `mobile/src/theme/index.ts` | Theme barrel export |
 
-  
-
 ### Component Source Files
-
-  
 
 | File | Component |
 
@@ -2182,10 +1653,6 @@ cn('px-4 py-2', isActive && 'bg-primary', className)
 
 | `mobile/src/components/VerticalStepper.tsx` | Multi-step form stepper |
 
-  
-
 ---
-
-  
 
 > **Note:** When porting this design system to another project, start with the color palette and typography (Sections 2-3), then spacing and radius (Sections 4-5), then shadows and animations (Sections 6-7). The component implementations in Sections 9-10 show how these tokens are composed into real UI — adapt the patterns to your component framework.

@@ -140,22 +140,64 @@ Three cross-cutting additions were made to Phase 2 after the six core questions 
 
 ---
 
-## Phase 2.5 — Biomarker foundation (🆕 — slotted into build order 2026-04-14)
+## Phase 2.5 — Biomarker foundation (brainstorm 2026-04-17)
 
 Standalone mini-phase between Phase 2 (shell) and Phase 3 (Hair Loss). Its own approval gate. Builds the cross-vertical biomarker infrastructure once so every vertical afterward plugs in.
 
-**Scope:** **Adaptive** OCR / PDF parsing that works on any report regardless of which markers it contains, Claude-extraction action, `biomarker_reference_ranges` Convex table (extensible schema with aliases + citations, seeded with ~25 common markers as MVP starting inventory), `biomarker_curation_queue` for unknown-marker triage, fourth `unclassified` status variant for markers not in the DB, clinical-advisor sign-off, real upload → parse → visual report wiring, adaptive narrative generation, "Learn more" explainer content, retry/error UX.
+**Spec:** [[superpowers/specs/2026-04-17-phase-2.5-biomarker-foundation-design|Phase 2.5 design spec]]
+**Decisions:**
+[[decisions/2026-04-17-biomarker-design-register]] ·
+[[decisions/2026-04-17-phase-2.5-scope-boundary]] ·
+[[decisions/2026-04-17-pregnancy-safety-guard]] ·
+[[decisions/2026-04-17-claude-vision-native-parsing]] ·
+[[decisions/2026-04-17-biomarker-values-split]]
 
-**Core principle:** The biomarker system is **adaptive, not fixed**. It renders whatever markers the uploaded report contains — 3, 8, or 40 — and degrades gracefully on markers the DB doesn't yet know. Two different reports for the same patient can produce completely different Visual Biomarker Reports.
+**Core principle:** The biomarker system is **adaptive, not fixed**. Renders whatever markers the uploaded report contains — 3, 8, or 40 — and degrades gracefully on markers the DB doesn't yet know.
 
-**Deferred inside Phase 2.5 (to later phases):**
+### Phase 2.5 prerequisites (on critical path — blocking prod deploy, not blocking build)
 
-| Item                                                  | Deferred to                 | Why                                    |
-| ----------------------------------------------------- | --------------------------- | -------------------------------------- |
-| Multi-report long-term trend line chart               | Post-foundation (follow-up) | Ships with per-marker trend arrow only |
-| External lab-API integrations (Thyrocare, Metropolis) | Phase 8+                    | `CLAUDE.md` — no lab APIs for MVP      |
+| Item                                                          | Destination           | Why                                                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Clinical advisor sign-off on `biomarker-ranges.json` seed** | Phase 2.5 (pre-merge) | 12 of 32 markers are pregnancy-sensitive; incorrect thresholds = clinical harm. Development proceeds with `ALLOW_UNREVIEWED_RANGES=1` and `clinicalReviewer: "DRAFT — pending review"`. Seeder script hard-fails on prod without sign-off. Founder must name the clinical advisor before merge. |
 
-_(Full phase spec populated when Phase 2.5 brainstorm begins — after Phase 2 approval gate.)_
+### Deferred to later phases (destinations named)
+
+| Item                                                                                | Deferred to         | Why                                                                                                                                             |
+| ----------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lab portal web UI (diagnostic-center upload)                                        | Phase 6             | `LAB_PORTAL_ENABLED` env flag gates the `labUploadResult` mutation registration. Backend contract ships 2.5, UI is its own phase.               |
+| Doctor portal biomarker UI (Lab Results Tab)                                        | Phase 4             | `DOCTOR_PORTAL_ENABLED` env flag gates `biomarkerReportsForPatient` query registration. Query ships 2.5; doctor portal wires it.                |
+| Real push notifications (FCM / APNs)                                                | Phase 8             | In-app `notifications` table fires on all 4 biomarker events in 2.5. Phase 8 reads the same table when push infra lands.                        |
+| Dark mode wiring                                                                    | Post-foundation     | `biomarkerPalette` tokens include dark vars (commented); light mode only in 2.5 per founder decision 2026-04-17.                                |
+| Long-term line chart across >2 reports                                              | Post-foundation     | Per-marker trend arrow on cards + real-data-only area chart on marker deep-dive ships in 2.5. Long-term cross-marker chart is follow-up.        |
+| Narrative regeneration on curation backfill                                         | Post-foundation     | Narrative frozen at initial analysis in 2.5. Future rule: regenerate on any `unclassified → classified` flip affecting ≥1 marker in the report. |
+| PDF export / share-with-external-doctor                                             | Post-foundation     | `DownloadPDFButton` saves/shares the original uploaded PDF in 2.5. Branded export + share-link to another clinician is follow-up.               |
+| Patient-written notes on markers                                                    | Post-foundation     | Readonly in 2.5.                                                                                                                                |
+| External lab-API integrations (Thyrocare, Metropolis, SRL, Dr Lal PathLabs, Apollo) | Phase 8+            | `CLAUDE.md` — no lab APIs for MVP. Few-shot extraction prompt cites these labs but doesn't integrate.                                           |
+| Pregnant / post-menopausal reference-range DATA                                     | PCOS vertical phase | Phase 2.5 ships the **safety GUARD** (pregnancy-sensitive markers render unclassified when status is unknown/positive) without the range data.  |
+| Pediatric reference ranges                                                          | Post-foundation     | Adult-only seed in 2.5.                                                                                                                         |
+| Hormonal-birth-control-sensitive markers guard                                      | Post-foundation     | Same pattern as pregnancy guard; applies to LH/FSH/Estradiol. Not urgent for 2.5 seed.                                                          |
+| Full VoiceOver rotor labels + haptics                                               | Phase 8             | Basic screen-reader labels + Dynamic Type + reduceMotion support ship in 2.5.                                                                   |
+| Automated visual regression screenshot tests                                        | Post-foundation     | Founder walkthrough across 4 dev-scenario states in 2.5.                                                                                        |
+| Admin audit log UI for reference-range edits                                        | Post-foundation     | Append-only text field on each row ships in 2.5. Full UI is follow-up.                                                                          |
+| Admin bulk-import for reference ranges                                              | Post-foundation     | Single-row CRUD in 2.5.                                                                                                                         |
+| Admin role-scoped curation                                                          | Post-foundation     | All admins see all curation queue rows in 2.5.                                                                                                  |
+| Claude Opus escalation on extraction failures                                       | Post-foundation     | Retries stay on Sonnet with "fix the JSON" follow-up in 2.5. Opus carve-out requires explicit budget approval.                                  |
+| Client-side file hash (UI hints / instant dedupe)                                   | Deferred            | Server computes authoritatively in 2.5. Client-side hashing is a UI optimization with trust implications; not worth it in 2.5.                  |
+| `unit_conversions` table (runtime vs seed)                                          | Deferred            | Seed JSON in 2.5 (`packages/core/seeds/unit-conversions.json`). Move to DB when curation surface needs to edit conversions.                     |
+| Re-run narrative on unclassified-→-classified curation flips                        | Post-foundation     | Narrative frozen in 2.5.                                                                                                                        |
+
+### Architectural invariants that must survive
+
+(From [[superpowers/specs/2026-04-17-phase-2.5-biomarker-foundation-design|spec]] §8.) Any future phase that wants to violate one of these writes a decision record overriding this list.
+
+1. Variable-length markers — UI renders whatever is in the report.
+2. Source-agnostic pipeline past intake (enforced by `source-agnostic.test.ts`).
+3. Display-only aggregate counts on `biomarker_reports` — source of truth is `biomarker_values`.
+4. Real-data-only trends — never impute, never synthesize.
+5. Narrative frozen at analysis (in 2.5).
+6. Pregnancy-sensitive markers never misclassified when status is unknown/positive.
+7. Two registers by design (Clinical Luxe + Biomarker Editorial). Do not collapse.
+8. Seed additions are data changes, not code changes.
 
 ---
 

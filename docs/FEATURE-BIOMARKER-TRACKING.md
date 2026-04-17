@@ -191,18 +191,36 @@ The four status variants the UI must support:
 | Doctor-ordered labs populating biomarker reports automatically                                          | **Phase 2.5 or Phase 3 tail** | Depends on when the nurse flow lands                                                                                                                           |
 | Integration with external lab APIs (Thyrocare, Metropolis, Lal PathLabs)                                | **Phase 8+**                  | Listed as "no lab APIs for MVP" in `CLAUDE.md`                                                                                                                 |
 
-## Open questions (to resolve before the "new phase" begins)
+## Open questions — resolved at Phase 2.5 brainstorm (2026-04-17)
 
-1. **What do we call the new phase?** Options: "Phase 2.5 — Biomarker tracking foundation" (slot into the build order before Hair Loss), or fold into Phase 3 (risk: Hair Loss phase becomes large).
-2. **OCR service choice.** Tesseract (self-host, free, lower accuracy) vs Google Cloud Vision / AWS Textract (paid, higher accuracy, PII concerns). Medical PDFs are usually native text, so OCR may be a fallback for image uploads only.
-3. **Claude extraction prompt design.** Needs to be deterministic. Candidate: structured-output mode with a JSON schema, few-shot examples across the 25 seeded markers.
-4. **What does the "Learn More" screen look like?** Plain-English Markdown (fast to build, curator tone) vs AI-generated per-user explanation (expensive, risks).
-5. **Reference-range curation.** Who signs off on the ranges medically? We need a clinical advisor to approve the seed data before going to real patients.
-6. **Multi-report comparison UI.** Trend arrows compare to the previous report — but do we also show a long-term line chart across all reports? Decision deferred to the new phase's brainstorm.
-7. **Error state recovery.** If parsing fails, can the patient retry? Flag the marker as "couldn't read this one" or invalidate the whole report?
-8. **Privacy.** Lab reports are the most sensitive data in the app. Does Convex file storage meet our compliance bar, or do we need a dedicated secure-blob path with separate audit logs?
+Answers landed in [[superpowers/specs/2026-04-17-phase-2.5-biomarker-foundation-design|Phase 2.5 design spec]]. Summary here for quick reference.
+
+1. ~~**Phase name?**~~ → **Phase 2.5 — Biomarker foundation.** Standalone mini-phase between Phase 2 shell and Phase 3 Hair Loss. Own approval gate.
+2. ~~**OCR service?**~~ → **Claude vision-native.** No separate OCR. See [[decisions/2026-04-17-claude-vision-native-parsing]].
+3. ~~**Claude extraction prompt design?**~~ → Structured JSON output per strict schema + cached system prompt + cached few-shot examples for Thyrocare / Metropolis / SRL. Model IDs centralized in `convex/lib/claude.ts`. Retries stay on Sonnet with "fix the JSON" follow-up; no Opus escalation.
+4. ~~**"Learn More" format?**~~ → Plain-English Markdown in the `explainer` field of each `biomarker_reference_ranges` row. Curator-authored. AI-generated per-user explanations deferred.
+5. ~~**Who signs off on ranges?**~~ → Clinical advisor (not yet named) signs off on `biomarker-ranges.json` seed. Blocking prerequisite for prod deploy. Seeder script hard-fails on prod without `clinicalReviewer` populated. See [[DEFERRED]] Phase 2.5 prerequisites.
+6. ~~**Long-term line chart?**~~ → **Deferred post-foundation.** Phase 2.5 ships per-marker trend arrow on cards + real-data-only area chart on marker deep-dive (1 point = baseline dot, 2 = line between real points, ≥2 = auto-fit axis). No synthetic history.
+7. ~~**Parse-failure retry?**~~ → User-triggered via "Try again" CTA in the error state. `retryParseLabReport({ labReportId })` mutation re-schedules against same row; rate-limit counter NOT re-incremented. Error copy branches on PDF vs image mime. Auto-retry on `timeout` via cron.
+8. ~~**Privacy?**~~ → Convex file storage with signed, ownership-scoped URLs for reads. Telemetry never logs PDF content or extracted values. iOS screenshot prevention deferred to Phase 8 (Android `FLAG_SECURE` covered in Phase 2). Compliance (DPDP Act) review deferred to launch polish.
+
+## New decisions from Phase 2.5 brainstorm (2026-04-17)
+
+- **32-marker seed** (union of 5 verticals + CBC + lipid-separated), not "~25". See [[decisions/2026-04-17-phase-2.5-scope-boundary]].
+- **Pregnancy safety guard** — 12 pregnancy-sensitive markers render unclassified when female user's `pregnancyStatus` is `pregnant`, `unknown`, or `null`. See [[decisions/2026-04-17-pregnancy-safety-guard]].
+- **Two-register design system** — editorial palette for biomarker surfaces, Clinical Luxe elsewhere. See [[decisions/2026-04-17-biomarker-design-register]].
+- **`biomarker_values` as its own table** (not embedded). See [[decisions/2026-04-17-biomarker-values-split]].
+- **Three ingestion surfaces, one pipeline** — patient upload (full UI), lab upload (backend contract only, Phase 6 UI), doctor-ordered (backend contract only, Phase 4 UI). `LAB_PORTAL_ENABLED` and `DOCTOR_PORTAL_ENABLED` env flags gate mutation registration.
+- **Curation backfill** is a named deliverable, not an edge case — admin surface + reclassification job + `lab_report_updated` notification.
+- **Rate limits**: 5/day + 50/month per user. Kill-switch feature flag `biomarker_parsing_enabled`.
 
 ## Tracking
 
-- `docs/DEFERRED.md` — real parsing/OCR/reference-range seeding + real upload wiring deferred
-- `docs/decisions/2026-04-14-phase-2-additions.md` — decision record for this feature's introduction
+- `docs/DEFERRED.md` — full Phase 2.5 prerequisites + deferrals ledger
+- `docs/superpowers/specs/2026-04-17-phase-2.5-biomarker-foundation-design.md` — authoritative design spec
+- `docs/decisions/2026-04-17-biomarker-design-register.md` — two-register typographic system
+- `docs/decisions/2026-04-17-phase-2.5-scope-boundary.md` — 32-marker seed, ingestion surfaces, phase boundaries
+- `docs/decisions/2026-04-17-pregnancy-safety-guard.md` — clinical safety guard
+- `docs/decisions/2026-04-17-claude-vision-native-parsing.md` — parsing strategy
+- `docs/decisions/2026-04-17-biomarker-values-split.md` — per-marker row table
+- `docs/decisions/2026-04-14-phase-2-additions.md` — original decision record for this feature's introduction
