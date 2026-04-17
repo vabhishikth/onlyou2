@@ -61,19 +61,50 @@ export default function Welcome() {
             marginBottom: 16,
           }}
         >
-          Private healthcare,{"\n"}delivered.
+          Private care,{"\n"}delivered.
         </Text>
         <Text
           style={{
             fontSize: 16,
             color: colors.textSecondary,
             lineHeight: 24,
-            marginBottom: 32,
+            marginBottom: 24,
           }}
         >
-          Your free online visit starts here. A doctor reviews your case within
-          24 hours — completely free.
+          Start your free online visit. An Indian doctor reviews your case
+          within 24 hours — no clinic, no queues.
         </Text>
+
+        <View style={{ gap: 10, marginBottom: 8 }}>
+          {[
+            "Licensed Indian doctors",
+            "Discreet packaging, delivered home",
+            "Your details stay private",
+          ].map((line) => (
+            <View
+              key={line}
+              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+            >
+              <View
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: 999,
+                  backgroundColor: colors.accentWarm,
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: colors.textSecondary,
+                  lineHeight: 20,
+                }}
+              >
+                {line}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       <View style={{ gap: 12 }}>
@@ -81,6 +112,16 @@ export default function Welcome() {
           label="Continue with phone"
           onPress={() => router.push("/(auth)/phone-verify" as never)}
         />
+        <Text
+          style={{
+            fontSize: 11,
+            color: colors.textTertiary,
+            textAlign: "center",
+            letterSpacing: 0.3,
+          }}
+        >
+          Takes under a minute · No credit card
+        </Text>
         {__DEV__ ? (
           <Pressable
             onPress={() => setQuickLoginOpen(true)}

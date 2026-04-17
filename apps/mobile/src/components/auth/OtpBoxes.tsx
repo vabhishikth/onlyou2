@@ -1,14 +1,35 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Text, TextInput, View } from "react-native";
 
 import { colors } from "../../theme/colors";
 
 interface Props {
   onComplete: (otp: string) => void;
+  /**
+   * Parent-controlled reset signal. When `resetSignal` changes to a new
+   * numeric value, the component clears the 6 digits and refocuses the
+   * hidden input so the user can immediately retype — handy after a
+   * failed verify attempt.
+   */
+  resetSignal?: number;
 }
 
-export function OtpBoxes({ onComplete }: Props) {
+export function OtpBoxes({ onComplete, resetSignal }: Props) {
   const [value, setValue] = useState("");
+  const inputRef = useRef<TextInput>(null);
+
+  // Reset + refocus whenever the parent bumps `resetSignal`. We skip the
+  // initial mount so the field isn't wiped on first render.
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    if (resetSignal === undefined) return;
+    setValue("");
+    inputRef.current?.focus();
+  }, [resetSignal]);
 
   const handleChange = (text: string) => {
     const digits = text.replace(/\D/g, "").slice(0, 6);
@@ -59,6 +80,7 @@ export function OtpBoxes({ onComplete }: Props) {
         })}
       </View>
       <TextInput
+        ref={inputRef}
         testID="otp-input"
         value={value}
         onChangeText={handleChange}

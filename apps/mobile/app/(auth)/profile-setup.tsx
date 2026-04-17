@@ -1,7 +1,10 @@
+import { computeAgeYears, MIN_AGE_YEARS } from "@onlyou/core/validators/age";
 import { useMutation } from "convex/react";
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useFocusEffect, useNavigation } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  BackHandler,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -19,13 +22,23 @@ import { PremiumInput } from "@/components/ui/PremiumInput";
 import { useAuthStore } from "@/stores/auth-store";
 import { colors } from "@/theme/colors";
 
-type Step = "name" | "gender" | "dob" | "address";
+const STEPS = ["name", "gender", "dob", "address"] as const;
+type Step = (typeof STEPS)[number];
 
 function formatDob(input: string): string {
   const digits = input.replace(/\D/g, "").slice(0, 8);
   if (digits.length <= 2) return digits;
   if (digits.length <= 4) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
   return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
+}
+
+/** Convert the UI's `DD-MM-YYYY` representation to the ISO `YYYY-MM-DD`
+ *  form expected by the server + `computeAgeYears`. Returns `""` for
+ *  incomplete input so callers can short-circuit. */
+function dobToIso(dob: string): string {
+  if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) return "";
+  const [dd, mm, yyyy] = dob.split("-");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 const TITLE_STYLE = {
@@ -36,12 +49,67 @@ const TITLE_STYLE = {
   letterSpacing: -0.6,
 };
 
+const STAKES_STYLE = {
+  fontSize: 14,
+  color: colors.textSecondary,
+  lineHeight: 20,
+  marginTop: 8,
+  marginBottom: 24,
+};
+
 export default function ProfileSetup() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const token = useAuthStore((s) => s.token);
   const completeProfile = useMutation(api.users.completeProfile);
 
   const [step, setStep] = useState<Step>("name");
+  // Ref shadow of `step` so the navigation listeners (which close over a
+  // stale value otherwise) always see the current step.
+  const stepRef = useRef<Step>("name");
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
+  // Set while `onFinish` is navigating to home, so the `beforeRemove`
+  // listener lets the navigation through instead of decrementing the step.
+  const finishingRef = useRef(false);
+
+  const goBackStep = useCallback(() => {
+    const idx = STEPS.indexOf(stepRef.current);
+    if (idx > 0) {
+      setStep(STEPS[idx - 1]);
+      return true;
+    }
+    return false;
+  }, []);
+
+  // Android hardware-back: decrement step, or let the OS exit on step 1.
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        return goBackStep();
+      });
+      return () => sub.remove();
+    }, [goBackStep]),
+  );
+
+  // iOS swipe-back + navigation pop: intercept so back decrements the step
+  // instead of dismissing the whole profile flow. When we're already on
+  // step 1 we let navigation proceed normally.
+  useEffect(() => {
+    const unsub = navigation.addListener(
+      "beforeRemove" as never,
+      ((e: { preventDefault: () => void }) => {
+        if (finishingRef.current) return;
+        if (STEPS.indexOf(stepRef.current) > 0) {
+          e.preventDefault();
+          goBackStep();
+        }
+      }) as never,
+    );
+    return unsub;
+  }, [navigation, goBackStep]);
+
   const [name, setName] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | null>(
     null,
@@ -52,24 +120,28 @@ export default function ProfileSetup() {
   const [stateName, setStateName] = useState("");
   const [address, setAddress] = useState("");
 
+  const dobIso = dobToIso(dob);
+  const dobFormatValid = dobIso.length > 0;
+  const dobAge = dobFormatValid ? computeAgeYears(dobIso) : Number.NaN;
+  const dobUnderAge = dobFormatValid && dobAge < MIN_AGE_YEARS;
+
   async function onFinish() {
     if (!token) return;
-    const [dd, mm, yyyy] = dob.split("-");
-    const isoDob = `${yyyy}-${mm}-${dd}`;
     await completeProfile({
       token,
       name,
-      dob: isoDob,
+      dob: dobIso,
       gender: gender ?? "other",
       pincode,
       city,
       state: stateName,
       address,
     });
+    finishingRef.current = true;
     router.replace("/(tabs)/home" as never);
   }
 
-  const stepNumber = ["name", "gender", "dob", "address"].indexOf(step) + 1;
+  const stepNumber = STEPS.indexOf(step) + 1;
 
   return (
     <KeyboardAvoidingView
@@ -85,6 +157,39 @@ export default function ProfileSetup() {
             paddingHorizontal: 24,
           }}
         >
+          {step !== "name" ? (
+            <Pressable
+              testID="profile-setup-back"
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={goBackStep}
+              style={{
+                width: 44,
+                height: 44,
+                justifyContent: "center",
+                marginBottom: 4,
+                marginLeft: -8,
+                paddingLeft: 8,
+              }}
+            >
+              <ChevronLeft size={24} color={colors.textPrimary} />
+            </Pressable>
+          ) : (
+            <View style={{ height: 44, marginBottom: 4 }} />
+          )}
+
+          <Text
+            style={{
+              fontFamily: "PlayfairDisplay_900Black",
+              fontSize: 18,
+              color: colors.textPrimary,
+              marginBottom: 24,
+            }}
+            testID="wordmark"
+          >
+            onlyou
+          </Text>
+
           <Text
             style={{
               fontSize: 10,
@@ -92,18 +197,42 @@ export default function ProfileSetup() {
               letterSpacing: 1.5,
               fontWeight: "700",
               textTransform: "uppercase",
-              marginBottom: 16,
+              marginBottom: 10,
             }}
           >
             About you · {stepNumber} of 4
           </Text>
 
+          <View
+            testID="profile-setup-progress"
+            style={{
+              flexDirection: "row",
+              gap: 6,
+              marginBottom: 20,
+            }}
+          >
+            {STEPS.map((s, i) => (
+              <View
+                key={s}
+                style={{
+                  flex: 1,
+                  height: 3,
+                  borderRadius: 999,
+                  backgroundColor:
+                    i < stepNumber ? colors.accentWarm : colors.border,
+                }}
+              />
+            ))}
+          </View>
+
           {step === "name" && (
             <>
-              <Text style={[TITLE_STYLE, { marginBottom: 24 }]}>
-                {"What's your name?"}
+              <Text style={TITLE_STYLE}>{"What's your name?"}</Text>
+              <Text style={STAKES_STYLE}>
+                So your doctor knows who they&apos;re treating.
               </Text>
               <PremiumInput
+                testID="profile-name-input"
                 label="Full name"
                 value={name}
                 onChangeText={setName}
@@ -120,8 +249,9 @@ export default function ProfileSetup() {
 
           {step === "gender" && (
             <>
-              <Text style={[TITLE_STYLE, { marginBottom: 24 }]}>
-                Your gender
+              <Text style={TITLE_STYLE}>Your gender</Text>
+              <Text style={STAKES_STYLE}>
+                Helps us show you the right treatments and dosing.
               </Text>
               <View style={{ gap: 12 }}>
                 {(["male", "female", "other"] as const).map((g) => (
@@ -161,8 +291,9 @@ export default function ProfileSetup() {
 
           {step === "dob" && (
             <>
-              <Text style={[TITLE_STYLE, { marginBottom: 24 }]}>
-                Date of birth
+              <Text style={TITLE_STYLE}>Date of birth</Text>
+              <Text style={STAKES_STYLE}>
+                Required on every prescription in India.
               </Text>
               <PremiumInput
                 label="DD-MM-YYYY"
@@ -172,19 +303,32 @@ export default function ProfileSetup() {
                 keyboardType="number-pad"
                 maxLength={10}
               />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: colors.textTertiary,
-                  marginTop: 8,
-                }}
-              >
-                Must be 18+ to use onlyou.
-              </Text>
+              {dobUnderAge ? (
+                <Text
+                  testID="dob-under-age-error"
+                  style={{
+                    fontSize: 12,
+                    color: colors.error,
+                    marginTop: 8,
+                  }}
+                >
+                  You must be 18 or older to use ONLYOU.
+                </Text>
+              ) : (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: colors.textTertiary,
+                    marginTop: 8,
+                  }}
+                >
+                  Must be 18+ to use onlyou.
+                </Text>
+              )}
               <View style={{ flex: 1 }} />
               <PremiumButton
                 label="Next"
-                disabled={!/^\d{2}-\d{2}-\d{4}$/.test(dob)}
+                disabled={!dobFormatValid || dobUnderAge}
                 onPress={() => setStep("address")}
               />
             </>
@@ -192,8 +336,10 @@ export default function ProfileSetup() {
 
           {step === "address" && (
             <>
-              <Text style={[TITLE_STYLE, { marginBottom: 24 }]}>
-                Where do we deliver?
+              <Text style={TITLE_STYLE}>Where do we deliver?</Text>
+              <Text style={STAKES_STYLE}>
+                We ship your medication in discreet packaging — nothing on the
+                outside hints at what&apos;s inside.
               </Text>
               <View style={{ gap: 16 }}>
                 <PremiumInput

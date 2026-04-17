@@ -29,3 +29,29 @@ describe("patient-states fixtures", () => {
     }
   });
 });
+
+describe("FixtureUser state-appropriate slices", () => {
+  it("new user has no consultations", () => {
+    expect(FIXTURES.new.consultations).toHaveLength(0);
+  });
+
+  it("reviewing user has one under-review consultation", () => {
+    expect(FIXTURES.reviewing.consultations).toHaveLength(1);
+    expect(FIXTURES.reviewing.consultations[0]?.status).toBe("under-review");
+  });
+
+  it("ready user has a plan-ready consultation + matching prescription", () => {
+    expect(FIXTURES.ready.consultations[0]?.status).toBe("plan-ready");
+    expect(FIXTURES.ready.prescriptions).toHaveLength(1);
+    expect(FIXTURES.ready.prescriptions[0]?.items).toHaveLength(3);
+  });
+
+  it("active user has subscription + order + delivery + messages", () => {
+    expect(FIXTURES.active.subscriptions).toHaveLength(1);
+    expect(FIXTURES.active.orders).toHaveLength(1);
+    expect(FIXTURES.active.deliveries).toHaveLength(1);
+    expect(FIXTURES.active.conversations[0]?.messages.length).toBeGreaterThan(
+      1,
+    );
+  });
+});

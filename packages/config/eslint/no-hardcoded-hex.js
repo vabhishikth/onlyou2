@@ -15,7 +15,8 @@ module.exports = {
     schema: [],
   },
   create(context) {
-    const filename = context.filename || context.getFilename();
+    const rawFilename = context.filename || context.getFilename();
+    const filename = rawFilename.replace(/\\/g, "/");
     if (filename.includes("packages/core/src/tokens/")) return {};
     if (filename.includes("/__tests__/") && filename.endsWith(".test.js")) return {};
 

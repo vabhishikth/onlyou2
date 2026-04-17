@@ -3,13 +3,13 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PremiumButton } from "@/components/ui/PremiumButton";
-import { useCurrentUser } from "@/hooks/use-current-user";
+import { useDisplayUser } from "@/hooks/use-display-user";
 import { useSignIn } from "@/hooks/use-signin";
 import { colors } from "@/theme/colors";
 
 export default function ProfileIndex() {
   const insets = useSafeAreaInsets();
-  const user = useCurrentUser();
+  const user = useDisplayUser();
   const { signOut } = useSignIn();
 
   async function onSignOut() {

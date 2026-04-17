@@ -96,10 +96,13 @@ export default function PhoneVerify() {
             style={{
               fontSize: 16,
               color: colors.textSecondary,
-              marginBottom: 32,
+              lineHeight: 22,
+              marginBottom: 20,
             }}
           >
-            {"We'll text you a verification code."}
+            {
+              "We'll text you a 6-digit code on WhatsApp or SMS to confirm it's you."
+            }
           </Text>
 
           <PhoneInput
@@ -108,10 +111,21 @@ export default function PhoneVerify() {
             testID="phone-input"
           />
 
+          <Text
+            style={{
+              fontSize: 12,
+              color: colors.textTertiary,
+              lineHeight: 18,
+              marginTop: 12,
+            }}
+          >
+            {"We'll never share your number. No spam, no marketing calls."}
+          </Text>
+
           <View style={{ flex: 1 }} />
 
           <PremiumButton
-            label={submitting ? "Sending..." : "Continue"}
+            label={submitting ? "Sending..." : "Send code"}
             disabled={!valid || submitting}
             onPress={onSubmit}
           />
@@ -123,7 +137,7 @@ export default function PhoneVerify() {
               marginTop: 12,
             }}
           >
-            {"We'll send a one-time code by SMS."}
+            Next: enter the 6-digit code we send you.
           </Text>
         </View>
       </TouchableWithoutFeedback>

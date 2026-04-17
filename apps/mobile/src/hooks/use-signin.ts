@@ -2,6 +2,7 @@ import { useAction, useMutation } from "convex/react";
 
 import { api } from "../../../../convex/_generated/api";
 import { useAuthStore } from "../stores/auth-store";
+import { useDevScenarioStore } from "../stores/dev-scenario-store";
 
 export function useSignIn() {
   const sendOtpAction = useAction(api.auth.otp.sendOtp);
@@ -17,6 +18,9 @@ export function useSignIn() {
   async function verifyOtp(phone: string, otp: string) {
     const result = await verifyOtpAction({ phone, otp });
     await setToken(result.token);
+    // Scope the dev scenario to this user. Fresh users land on "new";
+    // returning users get whatever scenario they last persisted.
+    useDevScenarioStore.getState().setActiveUser(result.userId);
     return result;
   }
 
@@ -30,6 +34,9 @@ export function useSignIn() {
       }
     }
     await clearToken();
+    // Keep the per-user scenario map intact so a returning user re-login
+    // restores their previous state — just drop the active pointer.
+    useDevScenarioStore.getState().setActiveUser(null);
   }
 
   return { sendOtp, verifyOtp, signOut };
