@@ -25,8 +25,13 @@ export function useDisplayUser(): DisplayUser | null | undefined {
   const currentUser = useCurrentUser();
   const patient = usePatientState();
   const lastSource = useDevScenarioStore((s) => s.lastSource);
+  const activeUserId = useDevScenarioStore((s) => s.activeUserId);
 
-  if (lastSource === "dev") {
+  // Only swap to the fixture identity when the dev switcher flipped the
+  // scenario for a signed-in user. `setActiveUser(null)` resets
+  // `lastSource` today, so this activeUserId guard is defensive against
+  // any future drift where the two drift apart.
+  if (lastSource === "dev" && activeUserId) {
     return {
       name: patient.name,
       phone: patient.phone,

@@ -29,6 +29,7 @@ describe("Treatment subscription-confirmed screen", () => {
     fireEvent.press(getByText("Go to home"));
 
     expect(useDevScenarioStore.getState().activeScenario).toBe("active");
+    expect(useDevScenarioStore.getState().lastSource).toBe("flow");
     expect(router.replace).toHaveBeenCalledWith("/(tabs)/home");
   });
 });
