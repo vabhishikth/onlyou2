@@ -1,8 +1,22 @@
 # Checkpoint
 
-**Current phase:** Phase 2.5A — Biomarker foundation **COMPLETE**. Plan 2.5B (parse pipeline) queued.
-**Status:** 🟢 READY TO MERGE on `feature/phase-2.5a-foundation` at `D:/onlyou2-phase-2.5a`.
-**22 commits ahead of master.** First-pass code review **APPROVE-WITH-FIXES** — 1 Important + 3 Minor applied in `434a5a5`. Founder visually approved the playground (removed in `69f30a7`).
+**Current phase:** Phase 2.5B — Parse pipeline **IN PROGRESS** on `feature/phase-2.5b-parse-pipeline` at `D:/onlyou2-phase-2.5b`. (2.5A merged to master `042f660` on 2026-04-18.)
+**Status:** 🟡 Subagent-driven execution underway. Task 2/22 complete (schema widen + deps). Dispatching Task 3 (telemetry helpers) next.
+
+**2.5B artifacts on master:**
+
+- Plan: `docs/superpowers/plans/2026-04-18-phase-2.5b-parse-pipeline.md` (commit `a9fe4f2`)
+- Spec: `docs/superpowers/specs/2026-04-18-phase-2.5b-parse-pipeline-design.md` (commit `5642dab`)
+
+**2.5B commits on branch so far:**
+
+| #   | Task                                                                                                 | Commit    |
+| --- | ---------------------------------------------------------------------------------------------------- | --------- |
+| 0   | Worktree scaffold                                                                                    | `ddc7e3f` |
+| 1   | Schema widen (retry fields + `not_a_lab_report` status + `by_next_retry` index)                      | `bbb00f5` |
+| 2   | Deps: `@anthropic-ai/sdk ^0.90.0`, `zod ^4.3.6`, `pdf-lib ^1.17.1` (dev), `puppeteer ^24.41.0` (dev) | `ba8eba7` |
+
+**2.5A completion (prior context):**
 
 - As-built retro: `docs/decisions/2026-04-18-phase-2.5a-as-built.md`
 - Plan: `docs/superpowers/plans/2026-04-18-phase-2.5a-foundation.md`
