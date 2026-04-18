@@ -22,7 +22,9 @@ Human-readable; the clinical advisor reviews this file directly.
 ## Editing rules
 
 - **Threshold invariant** (enforced by `seed-validation.test.ts`):
-  `actionBelow < subOptimalBelowMin < optimalMin ≤ optimalMax < subOptimalAboveMax < actionAbove`
+  `actionBelow ≤ subOptimalBelowMin < optimalMin ≤ optimalMax < subOptimalAboveMax ≤ actionAbove`
+  (Action bounds use `≤` because the seed collapses action and sub-optimal thresholds
+  on the lower/upper edge — both values may be equal. The inner comparisons remain strict.)
   for bounds that exist on the row.
 - **`pregnancySensitive` is mandatory** on every row.
 - **`source` is mandatory** — cite the specific guideline or reference.
