@@ -1,7 +1,7 @@
 # Checkpoint
 
 **Current phase:** Phase 2.5B — Parse pipeline **IN PROGRESS** on `feature/phase-2.5b-parse-pipeline` at `D:/onlyou2-phase-2.5b`. (2.5A merged to master `042f660` on 2026-04-18.)
-**Status:** 🟡 Subagent-driven execution underway. **Tasks 1–8 of 22 complete** (schema + deps + telemetry + real Claude SDK + 4 pure-fn helpers + retry scheduler). Dispatching Task 9 (upsertCurationRow internal mutation) next. All tests green on branch; 47 new unit tests since 2.5A baseline (6 normalizeUnit + 6 matchPatientName + 12 classifyRow + 7 retryScheduler + 4 claude + 4 telemetry + 8 from existing).
+**Status:** 🟡 Subagent-driven execution underway. **Tasks 1–10 of 22 complete** (schema + deps + helpers + real Claude SDK + classification engine + retry scheduler + curation upsert + 8 synthetic fixture PDFs). Dispatching Task 11 (extractMarkersWithRetry wrapper) next. 47+ new unit tests on branch; all green.
 
 **2.5B artifacts on master:**
 
@@ -21,10 +21,13 @@
 | 6   | `matchPatientName` — honorifics + initials + reversed order                                          | `871f53d` |
 | 7   | `classifyRow` — pregnancy-first guard → profile → range → unit → status                              | `d130a8a` |
 | 8   | `retryScheduler` — per-class backoff (30s/2m/5m/15m + 429 `retry-after`), 30-min cap                 | `5dd7ddc` |
+| 9   | `upsertCurationRow` internal mutation — normalizedKey dedup + occurrence counter                     | `fe68948` |
+| 10  | 8 synthetic fixture PDFs + generator script + 3 golden JSONs                                         | `c6fb337` |
 
 **Decisions logged mid-execution:**
 
 - `docs/decisions/2026-04-18-cache-breakpoint-on-system-block.md` — `cache_control` placement rationale (`3bbfe40` on master)
+- `docs/decisions/2026-04-18-telemetry-hash-pure-js.md` — Convex V8 bundler forced pure-JS FNV-1a hash over `node:crypto` SHA-256 (`d088a4b` on master)
 
 **2.5A completion (prior context):**
 
