@@ -25,11 +25,13 @@ export default [
     },
   },
   // Allow biomarker imports within biomarker-surface paths only
+  // (includes the temporary Task-8 playground screen — removed in Task 17)
   {
     files: [
       "app/lab-results/**/*.{ts,tsx}",
       "app/lab-booking/upload-results*.{ts,tsx}",
       "src/components/biomarker/**/*.{ts,tsx}",
+      "app/design-biomarker-preview.tsx",
     ],
     rules: {
       "no-restricted-imports": [
