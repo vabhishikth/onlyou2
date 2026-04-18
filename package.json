@@ -17,6 +17,8 @@
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "prepare": "husky",
     "test:convex": "vitest run --config ./vitest.config.ts",
+    "test:seed": "vitest run convex/__tests__/biomarker/seed-validation.test.ts",
+    "test": "pnpm test:convex && pnpm test:seed",
     "seed:biomarker-ranges": "tsx scripts/seed-biomarker-ranges.ts"
   },
   "lint-staged": {
