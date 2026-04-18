@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 
+import type { Id } from "../_generated/dataModel";
 import { internalMutation } from "../_generated/server";
 
 export const markAnalyzing = internalMutation({
@@ -147,4 +148,36 @@ export const updateLabReportNameMatch = internalMutation({
         | "mismatch"
         | "unknown",
     }),
+});
+
+// I-1 fix: claim retry candidates atomically inside a mutation so the cron
+// cannot double-fire the same row. Stamps lockedAt: now on every candidate
+// in the same DB transaction that reads them — the next cron tick will see
+// lockedAt >= staleLockCutoff and skip the row until the 90 s window expires.
+export const claimRetryCandidates = internalMutation({
+  args: { now: v.number(), staleLockCutoff: v.number() },
+  handler: async (
+    ctx,
+    { now, staleLockCutoff },
+  ): Promise<Id<"lab_reports">[]> => {
+    const candidates = await ctx.db
+      .query("lab_reports")
+      .withIndex("by_next_retry", (q) => q.lte("nextRetryAt", now))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("status"), "analyzing"),
+          q.or(
+            q.eq(q.field("lockedAt"), undefined),
+            q.lt(q.field("lockedAt"), staleLockCutoff),
+          ),
+        ),
+      )
+      .take(25);
+    const claimed: Id<"lab_reports">[] = [];
+    for (const row of candidates) {
+      await ctx.db.patch(row._id, { lockedAt: now });
+      claimed.push(row._id);
+    }
+    return claimed;
+  },
 });

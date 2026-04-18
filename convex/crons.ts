@@ -11,24 +11,24 @@ export const retryStuckParses = internalAction({
     const now = Date.now();
     const staleLockCutoff = now - 90_000; // 90s lock timeout
 
-    // Find rows where status=analyzing AND nextRetryAt<=now
-    // AND (lockedAt is null OR lockedAt < staleLockCutoff)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const candidates: any[] = await ctx.runQuery(
-      internal.biomarker.internalQueries.findRetryCandidates,
+    // I-1 fix: claim candidates atomically inside a mutation so the cron
+    // cannot double-fire a row. claimRetryCandidates stamps lockedAt:now on
+    // each candidate in the same DB transaction that reads them — a concurrent
+    // cron tick will see lockedAt >= staleLockCutoff and skip the row.
+    const claimedIds: Id<"lab_reports">[] = await ctx.runMutation(
+      internal.biomarker.internalMutations.claimRetryCandidates,
       { now, staleLockCutoff },
     );
 
-    for (const row of candidates) {
+    for (const labReportId of claimedIds) {
       // Fire parseLabReport, don't await — cron should not hold the lock tail
       await ctx.scheduler.runAfter(
         0,
         api.biomarker.parseLabReport.parseLabReport,
-
-        { labReportId: row._id as Id<"lab_reports"> },
+        { labReportId },
       );
     }
-    return { picked: candidates.length };
+    return { picked: claimedIds.length };
   },
 });
 

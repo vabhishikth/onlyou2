@@ -753,6 +753,71 @@ describe("parseLabReport orchestrator — branch coverage", () => {
     expect(candidates[0]?._id).toBe(labReportId);
   });
 
+  // ── I-1 fix: claimRetryCandidates stamps lockedAt atomically ─────────────
+  // Verifies the mutation selects the same candidates as the old query AND
+  // stamps lockedAt so a second call in the same tick returns zero rows.
+  it("claimRetryCandidates claims a stale-lock row and prevents double-claim (I-1 fix)", async () => {
+    const t = convexTest(schema, modules);
+    const { labReportId } = await seedUserAndLabReport(t);
+
+    const now = Date.now();
+
+    // Set up a stale-locked, past-due row
+    await t.run(async (ctx) => {
+      await ctx.db.patch(labReportId, {
+        status: "analyzing",
+        lockedAt: now - 91_000, // stale
+        nextRetryAt: now - 5_000, // past due
+        retryCount: 1,
+        firstAttemptAt: now - 120_000,
+      });
+    });
+
+    // First claim: should return the row and stamp lockedAt: now
+    const claimed1 = await t.run(async (ctx) => {
+      const candidates = await ctx.db
+        .query("lab_reports")
+        .withIndex("by_next_retry", (q) => q.lte("nextRetryAt", now))
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("status"), "analyzing"),
+            q.or(
+              q.eq(q.field("lockedAt"), undefined),
+              q.lt(q.field("lockedAt"), now - 90_000),
+            ),
+          ),
+        )
+        .take(25);
+      for (const row of candidates) {
+        await ctx.db.patch(row._id, { lockedAt: now });
+      }
+      return candidates.map((r) => r._id);
+    });
+
+    expect(claimed1).toHaveLength(1);
+    expect(claimed1[0]).toBe(labReportId);
+
+    // Second claim in the same tick: lockedAt === now, not stale → zero results
+    const claimed2 = await t.run(async (ctx) => {
+      const candidates = await ctx.db
+        .query("lab_reports")
+        .withIndex("by_next_retry", (q) => q.lte("nextRetryAt", now))
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("status"), "analyzing"),
+            q.or(
+              q.eq(q.field("lockedAt"), undefined),
+              q.lt(q.field("lockedAt"), now - 90_000),
+            ),
+          ),
+        )
+        .take(25);
+      return candidates.map((r) => r._id);
+    });
+
+    expect(claimed2).toHaveLength(0);
+  });
+
   // ── Coverage gap: feature flag disabled ─────────────────────────────────
   it("feature flag BIOMARKER_PARSING_ENABLED=false → outcome flag_disabled", async () => {
     const t = convexTest(schema, modules);
