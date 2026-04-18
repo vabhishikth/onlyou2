@@ -1,0 +1,92 @@
+[
+  {
+    "canonicalId": "fasting_glucose",
+    "rawUnitPattern": "mmol/L",
+    "canonicalUnit": "mg/dL",
+    "factor": 18.0182
+  },
+  {
+    "canonicalId": "total_cholesterol",
+    "rawUnitPattern": "mmol/L",
+    "canonicalUnit": "mg/dL",
+    "factor": 38.67
+  },
+  {
+    "canonicalId": "hdl_cholesterol",
+    "rawUnitPattern": "mmol/L",
+    "canonicalUnit": "mg/dL",
+    "factor": 38.67
+  },
+  {
+    "canonicalId": "ldl_cholesterol",
+    "rawUnitPattern": "mmol/L",
+    "canonicalUnit": "mg/dL",
+    "factor": 38.67
+  },
+  {
+    "canonicalId": "triglycerides",
+    "rawUnitPattern": "mmol/L",
+    "canonicalUnit": "mg/dL",
+    "factor": 88.57
+  },
+  {
+    "canonicalId": "hemoglobin",
+    "rawUnitPattern": "g/L",
+    "canonicalUnit": "g/dL",
+    "factor": 0.1
+  },
+  {
+    "canonicalId": "total_testosterone",
+    "rawUnitPattern": "nmol/L",
+    "canonicalUnit": "ng/dL",
+    "factor": 28.84
+  },
+  {
+    "canonicalId": "free_testosterone",
+    "rawUnitPattern": "pmol/L",
+    "canonicalUnit": "pg/mL",
+    "factor": 0.288
+  },
+  {
+    "canonicalId": "estradiol",
+    "rawUnitPattern": "pmol/L",
+    "canonicalUnit": "pg/mL",
+    "factor": 0.272
+  },
+  {
+    "canonicalId": "tsh",
+    "rawUnitPattern": "mIU/L",
+    "canonicalUnit": "µIU/mL",
+    "factor": 1
+  },
+  {
+    "canonicalId": "prolactin",
+    "rawUnitPattern": "µg/L",
+    "canonicalUnit": "ng/mL",
+    "factor": 1
+  },
+  {
+    "canonicalId": "ferritin",
+    "rawUnitPattern": "µg/L",
+    "canonicalUnit": "ng/mL",
+    "factor": 1
+  },
+  {
+    "canonicalId": "vitamin_d",
+    "rawUnitPattern": "nmol/L",
+    "canonicalUnit": "ng/mL",
+    "factor": 0.4
+  },
+  {
+    "canonicalId": "vitamin_b12",
+    "rawUnitPattern": "pmol/L",
+    "canonicalUnit": "pg/mL",
+    "factor": 1.355
+  },
+  {
+    "canonicalId": "creatinine",
+    "rawUnitPattern": "µmol/L",
+    "canonicalUnit": "mg/dL",
+    "factor": 0.0113
+  }
+]
