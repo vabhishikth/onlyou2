@@ -160,9 +160,10 @@ export async function extractMarkersWithRetry(
     );
   } catch (err) {
     if (err instanceof ExtractionError) throw err;
-    throw new ExtractionError(
-      "zod_validation",
-      `Zod failed twice: ${parsed.error.message}`,
-    );
+    // M-1 fix: re-throw network/5xx errors as-is so the orchestrator's
+    // scheduleRetry can classify them correctly. Previously any non-ExtractionError
+    // thrown by the JSON-only follow-up call (e.g. a 503 during the retry) was
+    // silently wrapped as zod_validation terminal — losing the retryable signal.
+    throw err;
   }
 }

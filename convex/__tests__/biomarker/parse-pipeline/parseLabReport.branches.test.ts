@@ -1099,9 +1099,10 @@ describe("parseLabReport orchestrator — branch coverage", () => {
   });
 
   // ── Coverage gap: zod retry doCall throws (network error) ────────────────
-  // extractMarkers.ts line 155: when the JSON-only follow-up call throws a
-  // non-ExtractionError, the catch wraps it into zod_validation (not re-thrown).
-  it("first call zod-fails, json-only retry throws 503 → parse_failed zod_validation (catch wraps error)", async () => {
+  // M-1 fix: non-ExtractionError from the JSON-only follow-up is now re-thrown
+  // as-is so the orchestrator's scheduleRetry can classify it correctly.
+  // Previously a 503 here was silently wrapped as zod_validation terminal.
+  it("first call zod-fails, json-only retry throws 503 → retry_scheduled (M-1 fix)", async () => {
     const t = convexTest(schema, modules);
     const { labReportId } = await seedUserAndLabReport(t);
 
@@ -1114,10 +1115,8 @@ describe("parseLabReport orchestrator — branch coverage", () => {
       internal.biomarker.parseLabReport.parseLabReport,
       { labReportId },
     );
-    // The catch block at extractMarkers.ts:153-158 wraps the thrown error as
-    // zod_validation (not re-thrown as a retryable error). This documents the
-    // current code behavior — the 503 is lost inside the zod retry wrapper.
-    expect(result.outcome).toBe("failed:zod_validation");
+    // 503 is now re-thrown → orchestrator scheduleRetry classifies as network_or_5xx
+    expect(result.outcome).toBe("retry_scheduled");
   });
 
   // ── Coverage gap: refusal reprompt call throws non-ExtractionError ────────
