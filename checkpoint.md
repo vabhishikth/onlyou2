@@ -57,25 +57,22 @@
 
 - `pnpm test:convex` — **135 passed** (29 original 2.5A + 28 new mocked-pipeline + existing convex tests)
 - `pnpm test:seed` — **19 passed**
-- `pnpm test:claude` (live, Task 19 sanity run) — **8/8 passed** on synthetic fixture PDFs
+- `pnpm test:claude` (live Anthropic API) — **NOT YET RUN** against a real `ANTHROPIC_API_KEY`; suite is built and `beforeAll` correctly throws without the env var. Test scaffolding verified on 8 synthetic fixtures via mocked suite (Task 16, 28 scenarios). First real-API run happens when the key is wired (prerequisite for prod).
 - `pnpm --filter @onlyou/mobile test` — **149/150 passed** (1 pre-existing flake, not introduced by 2.5B; 44 suites)
 - `pnpm -w typecheck` — clean across 6 packages
 - `pnpm -w lint` — only pre-existing Next.js app failures in admin/doctor/landing (unchanged from master)
 
 ## Next steps
 
-1. **Run Convex dashboard E2E manually** — trigger `triggerParseForLabReport` on a fixture PDF from the dashboard; verify `biomarker_reports` + `biomarker_values` rows appear.
-2. **Rebase** `feature/phase-2.5b-parse-pipeline` onto master.
-3. **Push** `feature/phase-2.5b-parse-pipeline` to remote.
-4. **Merge** `feature/phase-2.5b-parse-pipeline` → `master` (title: `Merge phase 2.5b — parse pipeline`).
-5. **Brainstorm Plan 2.5C** (ingestion + curation + portal contracts).
+1. **Manual Convex dashboard E2E** (carry-forward from Task 19 Step 2) — trigger `triggerParseForLabReport` on a fixture PDF from the dashboard; verify `biomarker_reports` + `biomarker_values` rows appear. Best done with an `ANTHROPIC_API_KEY` configured on dev Convex deployment env.
+2. **Wire `ANTHROPIC_API_KEY` and run `pnpm test:claude`** at least once before the 2.5 approval gate to catch prompt drift / model-ID regressions.
+3. **Brainstorm Plan 2.5C** (ingestion + curation + portal contracts).
 
 ## Branch + worktree
 
-- Master tip: `042f660` (2.5A merge) + plan/spec/decision commits
-- Phase 2.5B branch: `feature/phase-2.5b-parse-pipeline`
-- Worktree: `D:/onlyou2-phase-2.5b`
-- Commits ahead of master: **27**
+- Master tip: `eaea3b7` (2.5B merge) + post-merge checkpoint commit
+- Phase 2.5B branch: merged and deleted (both remote + local branch removed)
+- Worktree: `D:/onlyou2-phase-2.5b` kept locally for reference; safe to remove once 2.5C is underway
 
 ## Untracked / gitignored files (leave alone)
 
