@@ -1,0 +1,247 @@
+{
+  "is_lab_report": true,
+  "patient_name_on_report": "TEST PATIENT WELLNESS",
+  "collection_date": "2026-03-15",
+  "markers": [
+    {
+      "name_on_report": "Fasting Blood Glucose",
+      "canonical_id_guess": "glucose_fasting",
+      "raw_value": "98",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "70 - 100",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "HbA1c",
+      "canonical_id_guess": "hba1c",
+      "raw_value": "6.2",
+      "raw_unit": "%",
+      "lab_printed_range": "< 5.7",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Serum Creatinine",
+      "canonical_id_guess": "creatinine",
+      "raw_value": "0.9",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "0.7 - 1.3",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "eGFR",
+      "canonical_id_guess": "egfr",
+      "raw_value": "92",
+      "raw_unit": "mL/min/1.73m²",
+      "lab_printed_range": "> 90",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Blood Urea Nitrogen",
+      "canonical_id_guess": "bun",
+      "raw_value": "14",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "7 - 20",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Uric Acid",
+      "canonical_id_guess": "uric_acid",
+      "raw_value": "7.8",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "3.5 - 7.2",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Sodium",
+      "canonical_id_guess": "sodium",
+      "raw_value": "139",
+      "raw_unit": "mEq/L",
+      "lab_printed_range": "136 - 145",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Potassium",
+      "canonical_id_guess": "potassium",
+      "raw_value": "4.1",
+      "raw_unit": "mEq/L",
+      "lab_printed_range": "3.5 - 5.0",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Chloride",
+      "canonical_id_guess": "chloride",
+      "raw_value": "101",
+      "raw_unit": "mEq/L",
+      "lab_printed_range": "98 - 107",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Bicarbonate",
+      "canonical_id_guess": "bicarbonate",
+      "raw_value": "24",
+      "raw_unit": "mEq/L",
+      "lab_printed_range": "22 - 29",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Total Cholesterol",
+      "canonical_id_guess": "total_cholesterol",
+      "raw_value": "218",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "< 200",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "HDL Cholesterol",
+      "canonical_id_guess": "hdl",
+      "raw_value": "48",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "> 40",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "LDL Cholesterol",
+      "canonical_id_guess": "ldl",
+      "raw_value": "142",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "< 130",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Triglycerides",
+      "canonical_id_guess": "triglycerides",
+      "raw_value": "162",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "< 150",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Hemoglobin",
+      "canonical_id_guess": "hemoglobin",
+      "raw_value": "13.8",
+      "raw_unit": "g/dL",
+      "lab_printed_range": "13.5 - 17.5",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Total WBC Count",
+      "canonical_id_guess": "wbc",
+      "raw_value": "8200",
+      "raw_unit": "/cumm",
+      "lab_printed_range": "4000 - 11000",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Platelet Count",
+      "canonical_id_guess": "platelets",
+      "raw_value": "210000",
+      "raw_unit": "/cumm",
+      "lab_printed_range": "150000 - 410000",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Total Bilirubin",
+      "canonical_id_guess": "bilirubin_total",
+      "raw_value": "0.8",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "0.3 - 1.2",
+      "page_number": 2
+    },
+    {
+      "name_on_report": "SGOT (AST)",
+      "canonical_id_guess": "ast",
+      "raw_value": "28",
+      "raw_unit": "U/L",
+      "lab_printed_range": "10 - 40",
+      "page_number": 2
+    },
+    {
+      "name_on_report": "SGPT (ALT)",
+      "canonical_id_guess": "alt",
+      "raw_value": "52",
+      "raw_unit": "U/L",
+      "lab_printed_range": "7 - 40",
+      "page_number": 2
+    },
+    {
+      "name_on_report": "Alkaline Phosphatase",
+      "canonical_id_guess": "alp",
+      "raw_value": "75",
+      "raw_unit": "U/L",
+      "lab_printed_range": "40 - 130",
+      "page_number": 2
+    },
+    {
+      "name_on_report": "Albumin",
+      "canonical_id_guess": "albumin",
+      "raw_value": "4.1",
+      "raw_unit": "g/dL",
+      "lab_printed_range": "3.5 - 5.0",
+      "page_number": 2
+    },
+    {
+      "name_on_report": "Blood Urea",
+      "canonical_id_guess": "bun",
+      "raw_value": "26",
+      "raw_unit": "mg/dL",
+      "lab_printed_range": "15 - 40",
+      "page_number": 2
+    },
+    {
+      "name_on_report": "TSH",
+      "canonical_id_guess": "tsh",
+      "raw_value": "2.40",
+      "raw_unit": "mIU/L",
+      "lab_printed_range": "0.27 - 4.20",
+      "page_number": 3
+    },
+    {
+      "name_on_report": "Free T4",
+      "canonical_id_guess": "ft4",
+      "raw_value": "15.0",
+      "raw_unit": "pmol/L",
+      "lab_printed_range": "12.0 - 22.0",
+      "page_number": 3
+    },
+    {
+      "name_on_report": "Free T3",
+      "canonical_id_guess": "ft3",
+      "raw_value": "4.8",
+      "raw_unit": "pmol/L",
+      "lab_printed_range": "3.1 - 6.8",
+      "page_number": 3
+    },
+    {
+      "name_on_report": "Vitamin D (25-OH)",
+      "canonical_id_guess": "vitamin_d",
+      "raw_value": "18.5",
+      "raw_unit": "ng/mL",
+      "lab_printed_range": "30.0 - 100.0",
+      "page_number": 3
+    },
+    {
+      "name_on_report": "Vitamin B12",
+      "canonical_id_guess": "vitamin_b12",
+      "raw_value": "195",
+      "raw_unit": "pg/mL",
+      "lab_printed_range": "211 - 911",
+      "page_number": 3
+    },
+    {
+      "name_on_report": "Iron",
+      "canonical_id_guess": "iron_serum",
+      "raw_value": "88",
+      "raw_unit": "µg/dL",
+      "lab_printed_range": "60 - 170",
+      "page_number": 3
+    },
+    {
+      "name_on_report": "Ferritin",
+      "canonical_id_guess": "ferritin",
+      "raw_value": "42",
+      "raw_unit": "ng/mL",
+      "lab_printed_range": "12 - 300",
+      "page_number": 3
+    }
+  ]
+}

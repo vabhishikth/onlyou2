@@ -1,0 +1,265 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        margin: 0;
+      }
+      .hdr {
+        border-bottom: 3px solid #00539b;
+        padding: 10px 20px 8px;
+        color: #00539b;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .hdr h1 {
+        margin: 0;
+        font-size: 18px;
+      }
+      .hdr .tagline {
+        font-size: 9px;
+        color: #888;
+      }
+      .patient {
+        margin: 10px 20px;
+        font-size: 9px;
+        background: #eef4fb;
+        padding: 6px 10px;
+        border-left: 3px solid #00539b;
+      }
+      section {
+        padding: 8px 20px;
+        page-break-after: always;
+      }
+      section:last-child {
+        page-break-after: auto;
+      }
+      h3 {
+        color: #00539b;
+        margin: 8px 0 4px;
+        font-size: 12px;
+        border-bottom: 1px solid #00539b;
+        padding-bottom: 2px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 3px 6px;
+        text-align: left;
+      }
+      th {
+        background: #d6e8f8;
+        color: #00539b;
+        font-size: 9px;
+      }
+      .flag-high { color: #cc0000; font-weight: bold; }
+      .flag-low  { color: #0055aa; font-weight: bold; }
+      .ftr {
+        font-size: 8px;
+        color: #aaa;
+        text-align: center;
+        padding: 6px 20px;
+        border-top: 1px solid #ddd;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- PAGE 1 — Metabolic + Lipids + CBC -->
+    <section>
+      <div class="hdr">
+        <div>
+          <h1>Metropolis Healthcare Ltd</h1>
+          <div class="tagline">250-D, Hind Rajasthan Building, Dadar (W), Mumbai — 400028</div>
+        </div>
+        <div style="font-size:9px; text-align:right; color:#555;">
+          NABL | CAP | ISO 15189<br/>Page 1 of 3
+        </div>
+      </div>
+      <div class="patient">
+        <strong>Patient:</strong> TEST PATIENT WELLNESS &nbsp;
+        <strong>Age/Sex:</strong> 42 / M &nbsp;
+        <strong>PID:</strong> MET20260315999 &nbsp;
+        <strong>Collection:</strong> 15/03/2026 &nbsp;
+        <strong>Report:</strong> 16/03/2026
+      </div>
+
+      <h3>Metabolic Panel</h3>
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Result</th><th>Unit</th><th>Reference Range</th><th>Flag</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Fasting Blood Glucose</td><td>98</td><td>mg/dL</td><td>70 - 100</td><td></td></tr>
+          <tr><td>HbA1c</td><td class="flag-high">6.2</td><td>%</td><td>&lt; 5.7</td><td class="flag-high">H</td></tr>
+          <tr><td>Serum Creatinine</td><td>0.9</td><td>mg/dL</td><td>0.7 - 1.3</td><td></td></tr>
+          <tr><td>eGFR</td><td>92</td><td>mL/min/1.73m²</td><td>&gt; 90</td><td></td></tr>
+          <tr><td>Blood Urea Nitrogen</td><td>14</td><td>mg/dL</td><td>7 - 20</td><td></td></tr>
+          <tr><td>Uric Acid</td><td class="flag-high">7.8</td><td>mg/dL</td><td>3.5 - 7.2</td><td class="flag-high">H</td></tr>
+          <tr><td>Sodium</td><td>139</td><td>mEq/L</td><td>136 - 145</td><td></td></tr>
+          <tr><td>Potassium</td><td>4.1</td><td>mEq/L</td><td>3.5 - 5.0</td><td></td></tr>
+          <tr><td>Chloride</td><td>101</td><td>mEq/L</td><td>98 - 107</td><td></td></tr>
+          <tr><td>Bicarbonate</td><td>24</td><td>mEq/L</td><td>22 - 29</td><td></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Lipid Profile</h3>
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Result</th><th>Unit</th><th>Desirable</th><th>Flag</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Total Cholesterol</td><td class="flag-high">218</td><td>mg/dL</td><td>&lt; 200</td><td class="flag-high">H</td></tr>
+          <tr><td>HDL Cholesterol</td><td>48</td><td>mg/dL</td><td>&gt; 40</td><td></td></tr>
+          <tr><td>LDL Cholesterol</td><td class="flag-high">142</td><td>mg/dL</td><td>&lt; 130</td><td class="flag-high">H</td></tr>
+          <tr><td>VLDL Cholesterol</td><td>28</td><td>mg/dL</td><td>5 - 40</td><td></td></tr>
+          <tr><td>Triglycerides</td><td class="flag-high">162</td><td>mg/dL</td><td>&lt; 150</td><td class="flag-high">H</td></tr>
+          <tr><td>LDL/HDL Ratio</td><td class="flag-high">2.96</td><td></td><td>&lt; 2.5</td><td class="flag-high">H</td></tr>
+          <tr><td>Non-HDL Cholesterol</td><td class="flag-high">170</td><td>mg/dL</td><td>&lt; 160</td><td class="flag-high">H</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Complete Blood Count</h3>
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Result</th><th>Unit</th><th>Reference Range</th><th>Flag</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Hemoglobin</td><td>13.8</td><td>g/dL</td><td>13.5 - 17.5</td><td></td></tr>
+          <tr><td>RBC Count</td><td>4.6</td><td>million/µL</td><td>4.5 - 5.5</td><td></td></tr>
+          <tr><td>Total WBC Count</td><td>8200</td><td>/cumm</td><td>4000 - 11000</td><td></td></tr>
+          <tr><td>Neutrophils</td><td>62</td><td>%</td><td>40 - 75</td><td></td></tr>
+          <tr><td>Lymphocytes</td><td>30</td><td>%</td><td>20 - 45</td><td></td></tr>
+          <tr><td>Eosinophils</td><td>4</td><td>%</td><td>1 - 6</td><td></td></tr>
+          <tr><td>Platelet Count</td><td>210000</td><td>/cumm</td><td>150000 - 410000</td><td></td></tr>
+          <tr><td>PCV (Hematocrit)</td><td>41.5</td><td>%</td><td>40.0 - 50.0</td><td></td></tr>
+          <tr><td>MCV</td><td>90</td><td>fL</td><td>78 - 98</td><td></td></tr>
+          <tr><td>MCH</td><td>30</td><td>pg</td><td>27 - 32</td><td></td></tr>
+        </tbody>
+      </table>
+      <div class="ftr">Metropolis Healthcare — Report continues on next page</div>
+    </section>
+
+    <!-- PAGE 2 — LFT + KFT -->
+    <section>
+      <div class="hdr">
+        <div>
+          <h1>Metropolis Healthcare Ltd</h1>
+          <div class="tagline">250-D, Hind Rajasthan Building, Dadar (W), Mumbai — 400028</div>
+        </div>
+        <div style="font-size:9px; text-align:right; color:#555;">
+          NABL | CAP | ISO 15189<br/>Page 2 of 3
+        </div>
+      </div>
+      <div class="patient">
+        <strong>Patient:</strong> TEST PATIENT WELLNESS &nbsp;
+        <strong>Age/Sex:</strong> 42 / M &nbsp;
+        <strong>PID:</strong> MET20260315999 &nbsp;
+        <strong>Collection:</strong> 15/03/2026
+      </div>
+
+      <h3>Liver Function Tests (LFT)</h3>
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Result</th><th>Unit</th><th>Reference Range</th><th>Flag</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Total Bilirubin</td><td>0.8</td><td>mg/dL</td><td>0.3 - 1.2</td><td></td></tr>
+          <tr><td>Direct Bilirubin</td><td>0.2</td><td>mg/dL</td><td>0.0 - 0.3</td><td></td></tr>
+          <tr><td>Indirect Bilirubin</td><td>0.6</td><td>mg/dL</td><td>0.2 - 0.8</td><td></td></tr>
+          <tr><td>SGOT (AST)</td><td>28</td><td>U/L</td><td>10 - 40</td><td></td></tr>
+          <tr><td>SGPT (ALT)</td><td class="flag-high">52</td><td>U/L</td><td>7 - 40</td><td class="flag-high">H</td></tr>
+          <tr><td>Alkaline Phosphatase</td><td>75</td><td>U/L</td><td>40 - 130</td><td></td></tr>
+          <tr><td>GGT</td><td>32</td><td>U/L</td><td>10 - 71</td><td></td></tr>
+          <tr><td>Total Protein</td><td>7.2</td><td>g/dL</td><td>6.4 - 8.3</td><td></td></tr>
+          <tr><td>Albumin</td><td>4.1</td><td>g/dL</td><td>3.5 - 5.0</td><td></td></tr>
+          <tr><td>Globulin</td><td>3.1</td><td>g/dL</td><td>2.0 - 3.5</td><td></td></tr>
+          <tr><td>A/G Ratio</td><td>1.3</td><td></td><td>1.2 - 2.2</td><td></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kidney Function Tests (KFT)</h3>
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Result</th><th>Unit</th><th>Reference Range</th><th>Flag</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Serum Creatinine</td><td>0.9</td><td>mg/dL</td><td>0.7 - 1.2</td><td></td></tr>
+          <tr><td>Blood Urea</td><td>26</td><td>mg/dL</td><td>15 - 40</td><td></td></tr>
+          <tr><td>Uric Acid</td><td class="flag-high">7.8</td><td>mg/dL</td><td>3.5 - 7.2</td><td class="flag-high">H</td></tr>
+          <tr><td>Calcium</td><td>9.2</td><td>mg/dL</td><td>8.5 - 10.5</td><td></td></tr>
+          <tr><td>Phosphorus</td><td>3.4</td><td>mg/dL</td><td>2.5 - 4.5</td><td></td></tr>
+        </tbody>
+      </table>
+      <div class="ftr">Metropolis Healthcare — Report continues on next page</div>
+    </section>
+
+    <!-- PAGE 3 — Thyroid + Vitamins -->
+    <section>
+      <div class="hdr">
+        <div>
+          <h1>Metropolis Healthcare Ltd</h1>
+          <div class="tagline">250-D, Hind Rajasthan Building, Dadar (W), Mumbai — 400028</div>
+        </div>
+        <div style="font-size:9px; text-align:right; color:#555;">
+          NABL | CAP | ISO 15189<br/>Page 3 of 3
+        </div>
+      </div>
+      <div class="patient">
+        <strong>Patient:</strong> TEST PATIENT WELLNESS &nbsp;
+        <strong>Age/Sex:</strong> 42 / M &nbsp;
+        <strong>PID:</strong> MET20260315999 &nbsp;
+        <strong>Collection:</strong> 15/03/2026
+      </div>
+
+      <h3>Thyroid Function</h3>
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Result</th><th>Unit</th><th>Reference Range</th><th>Flag</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>TSH</td><td>2.40</td><td>mIU/L</td><td>0.27 - 4.20</td><td></td></tr>
+          <tr><td>Free T4</td><td>15.0</td><td>pmol/L</td><td>12.0 - 22.0</td><td></td></tr>
+          <tr><td>Free T3</td><td>4.8</td><td>pmol/L</td><td>3.1 - 6.8</td><td></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Vitamins &amp; Minerals</h3>
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Result</th><th>Unit</th><th>Reference Range</th><th>Flag</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Vitamin D (25-OH)</td><td class="flag-low">18.5</td><td>ng/mL</td><td>30.0 - 100.0</td><td class="flag-low">L</td></tr>
+          <tr><td>Vitamin B12</td><td class="flag-low">195</td><td>pg/mL</td><td>211 - 911</td><td class="flag-low">L</td></tr>
+          <tr><td>Folate (Serum)</td><td>8.2</td><td>ng/mL</td><td>3.1 - 17.5</td><td></td></tr>
+          <tr><td>Iron</td><td>88</td><td>µg/dL</td><td>60 - 170</td><td></td></tr>
+          <tr><td>TIBC</td><td>320</td><td>µg/dL</td><td>250 - 370</td><td></td></tr>
+          <tr><td>Ferritin</td><td>42</td><td>ng/mL</td><td>12 - 300</td><td></td></tr>
+          <tr><td>Transferrin Saturation</td><td>27.5</td><td>%</td><td>20 - 50</td><td></td></tr>
+          <tr><td>Magnesium</td><td>1.9</td><td>mg/dL</td><td>1.7 - 2.2</td><td></td></tr>
+          <tr><td>Zinc</td><td>82</td><td>µg/dL</td><td>70 - 120</td><td></td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:16px; font-size:9px; color:#444;">
+        <strong>Interpretation Summary:</strong> Mildly elevated LDL and total cholesterol. Vitamin D and B12 insufficiency noted.
+        Elevated uric acid. SGPT borderline high — clinical correlation recommended.
+      </p>
+      <div style="margin-top:20px; font-size:9px;">
+        <strong>Authorised By:</strong> Dr. TEST PATHOLOGIST — MD Pathology / Reg. No. MH/12345<br/>
+        Electronically signed. This report is valid without physical signature if generated via NABL accredited system.
+      </div>
+      <div class="ftr">Metropolis Healthcare — End of Report | Total markers: 46</div>
+    </section>
+
+  </body>
+</html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        margin: 20px;
+      }
+      .hdr {
+        border-bottom: 2px solid #2e7d32;
+        padding-bottom: 8px;
+        color: #2e7d32;
+      }
+      .hdr h1 { margin: 0; font-size: 18px; }
+      .patient {
+        margin: 10px 0;
+        font-size: 10px;
+        background: #f1f8e9;
+        padding: 6px 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      th, td {
+        border: 1px solid #aaa;
+        padding: 5px 8px;
+        text-align: left;
+      }
+      th {
+        background: #c8e6c9;
+        color: #1b5e20;
+      }
+      .result-nr {
+        color: #2e7d32;
+        font-weight: bold;
+      }
+      .method-col {
+        color: #555;
+        font-size: 9px;
+      }
+      .disclaimer {
+        margin-top: 14px;
+        font-size: 9px;
+        color: #666;
+        border-top: 1px dashed #aaa;
+        padding-top: 8px;
+      }
+      .ftr {
+        margin-top: 20px;
+        font-size: 9px;
+        color: #888;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hdr">
+      <h1>SRL Diagnostics — Serology Department</h1>
+      <div>Fortis Tower, Sector 62, Noida — 201301 | NABL Accredited</div>
+    </div>
+    <div class="patient">
+      <strong>Patient:</strong> TEST PATIENT SEROLOGY &nbsp;&nbsp;
+      <strong>Age/Sex:</strong> 29 / M &nbsp;&nbsp;
+      <strong>Ref. No.:</strong> SRL20260315002<br/>
+      <strong>Collection Date:</strong> 15/03/2026 &nbsp;&nbsp;
+      <strong>Report Date:</strong> 16/03/2026 &nbsp;&nbsp;
+      <strong>Referred By:</strong> Dr. TEST PHYSICIAN
+    </div>
+
+    <h3>Serology — Infectious Disease Markers</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Investigation</th>
+          <th>Result</th>
+          <th>Interpretation</th>
+          <th>Method</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>HIV 1 &amp; 2 Antibody (Anti-HIV)</td>
+          <td class="result-nr">Non-reactive</td>
+          <td>Negative</td>
+          <td class="method-col">CMIA (Abbott Architect)</td>
+        </tr>
+        <tr>
+          <td>HCV Antibody (Anti-HCV)</td>
+          <td class="result-nr">Non-reactive</td>
+          <td>Negative</td>
+          <td class="method-col">CMIA (Abbott Architect)</td>
+        </tr>
+        <tr>
+          <td>HBsAg (Hepatitis B Surface Antigen)</td>
+          <td class="result-nr">Non-reactive</td>
+          <td>Negative</td>
+          <td class="method-col">CMIA (Abbott Architect)</td>
+        </tr>
+        <tr>
+          <td>VDRL (Syphilis Screening)</td>
+          <td class="result-nr">Non-reactive</td>
+          <td>Negative</td>
+          <td class="method-col">RPR Card Test</td>
+        </tr>
+        <tr>
+          <td>HBcAb (Hepatitis B Core Antibody, Total)</td>
+          <td class="result-nr">Non-reactive</td>
+          <td>Negative</td>
+          <td class="method-col">CMIA</td>
+        </tr>
+        <tr>
+          <td>HBeAg (Hepatitis B e-Antigen)</td>
+          <td class="result-nr">Non-reactive</td>
+          <td>Negative</td>
+          <td class="method-col">CMIA</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> A non-reactive result does not exclude infection in the window period.
+      Results are valid for the sample tested. Confirm with clinical presentation.
+      HIV testing is done as per NACO guidelines. Confirmatory testing (Western Blot / NAAT)
+      required if clinical suspicion remains high.
+    </div>
+    <div class="ftr">
+      Authorised By: Dr. TEST MICROBIOLOGIST — MD Microbiology | Reg. No. UP/56789
+    </div>
+  </body>
+</html>

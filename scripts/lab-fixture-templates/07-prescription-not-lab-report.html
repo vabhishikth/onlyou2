@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        margin: 20px;
+      }
+      .doctor-hdr {
+        border-bottom: 2px solid #1a237e;
+        padding-bottom: 10px;
+        color: #1a237e;
+        margin-bottom: 12px;
+      }
+      .doctor-hdr h1 { margin: 0; font-size: 18px; }
+      .doctor-hdr .quals { font-size: 10px; color: #333; margin-top: 2px; }
+      .doctor-hdr .clinic { font-size: 10px; color: #666; margin-top: 2px; }
+      .rx-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 10px;
+      }
+      .rx-symbol {
+        font-size: 40px;
+        color: #1a237e;
+        font-weight: bold;
+        float: left;
+        margin-right: 10px;
+        line-height: 1;
+      }
+      .patient-info {
+        font-size: 10px;
+        margin-bottom: 12px;
+        padding: 6px;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+      }
+      ol {
+        padding-left: 20px;
+        margin: 0;
+      }
+      ol li {
+        margin-bottom: 14px;
+        line-height: 1.6;
+      }
+      .medicine-name {
+        font-weight: bold;
+        font-size: 12px;
+        color: #1a237e;
+      }
+      .dose-info {
+        font-size: 10px;
+        color: #333;
+        margin-left: 4px;
+      }
+      .instructions {
+        font-size: 9px;
+        color: #666;
+        font-style: italic;
+        display: block;
+        margin-top: 2px;
+      }
+      .follow-up {
+        margin-top: 20px;
+        font-size: 10px;
+        padding: 6px;
+        border: 1px solid #ccc;
+        background: #fffde7;
+      }
+      .signature-block {
+        margin-top: 40px;
+        text-align: right;
+        font-size: 10px;
+      }
+      .signature-line {
+        border-top: 1px solid #333;
+        width: 180px;
+        margin-left: auto;
+        margin-bottom: 4px;
+      }
+      .stamp-area {
+        display: inline-block;
+        border: 1px solid #aaa;
+        padding: 6px 12px;
+        font-size: 9px;
+        color: #555;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="doctor-hdr">
+      <h1>Dr. TEST PHYSICIAN</h1>
+      <div class="quals">MBBS, MD (General Medicine) | Reg. No. DL/MED/45678</div>
+      <div class="clinic">
+        Apollo Clinic, 12-A, Connaught Place, New Delhi — 110001<br/>
+        Tel: +91-11-2345-6789 | Timing: Mon–Sat, 10 AM – 7 PM
+      </div>
+    </div>
+
+    <div class="rx-header">
+      <div>
+        <strong>Date:</strong> 15/03/2026
+      </div>
+      <div>
+        <strong>Prescription No.:</strong> RX/2026/03/1234
+      </div>
+    </div>
+
+    <div class="patient-info">
+      <strong>Patient Name:</strong> TEST PATIENT PRESCRIPTION &nbsp;&nbsp;
+      <strong>Age/Sex:</strong> 32 / M &nbsp;&nbsp;
+      <strong>Weight:</strong> 72 kg<br/>
+      <strong>Diagnosis:</strong> Acute Pharyngitis with mild Allergic Rhinitis
+    </div>
+
+    <div>
+      <span class="rx-symbol">℞</span>
+      <ol>
+        <li>
+          <span class="medicine-name">Tab. Amoxicillin + Clavulanate 625 mg</span>
+          <span class="dose-info">— 1 tablet</span>
+          <span class="instructions">Twice daily (morning &amp; night) × 5 days. Take with food. Complete full course.</span>
+        </li>
+        <li>
+          <span class="medicine-name">Tab. Cetirizine 10 mg</span>
+          <span class="dose-info">— 1 tablet</span>
+          <span class="instructions">Once daily at bedtime × 7 days. May cause drowsiness — avoid driving.</span>
+        </li>
+        <li>
+          <span class="medicine-name">Syp. Benadryl Cough Formula</span>
+          <span class="dose-info">— 10 mL (2 teaspoons)</span>
+          <span class="instructions">Three times daily after meals × 5 days. Shake well before use.</span>
+        </li>
+        <li>
+          <span class="medicine-name">Tab. Paracetamol 500 mg</span>
+          <span class="dose-info">— 1 tablet</span>
+          <span class="instructions">SOS (as needed for fever/pain). Max 4 tablets in 24 hours. Do not exceed dose.</span>
+        </li>
+        <li>
+          <span class="medicine-name">Nasal Spray — Fluticasone Furoate (Avamys) 27.5 mcg</span>
+          <span class="dose-info">— 2 puffs each nostril</span>
+          <span class="instructions">Once daily in the morning × 14 days. Prime before first use.</span>
+        </li>
+      </ol>
+    </div>
+
+    <div class="follow-up">
+      <strong>Follow-up:</strong> Review after 5 days if no improvement. Return immediately if rash, breathlessness, or high fever develops.
+    </div>
+
+    <div class="signature-block">
+      <div class="signature-line"></div>
+      Dr. TEST PHYSICIAN<br/>
+      MBBS, MD (General Medicine)<br/>
+      <div class="stamp-area">
+        Apollo Clinic<br/>
+        Connaught Place, New Delhi<br/>
+        Reg. No. DL/MED/45678
+      </div>
+    </div>
+  </body>
+</html>
