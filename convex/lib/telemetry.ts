@@ -7,16 +7,28 @@
 //   - ERROR-level logs with `alert: "p1"` tag surface on grep; hosted pager
 //     integration is Phase 8 polish.
 
-import { createHash } from "node:crypto";
-
+// Pure-JS hash — avoids node:crypto so this file runs in the Convex runtime.
+// Uses a salted FNV-1a (64-bit via two 32-bit halves) expanded to 12 hex chars.
 const USER_HASH_SALT = "onlyou-biomarker-telemetry-v1";
 
 export function hashUserId(userId: string): string {
-  return createHash("sha256")
-    .update(USER_HASH_SALT)
-    .update(userId)
-    .digest("hex")
-    .slice(0, 12);
+  const input = USER_HASH_SALT + "\0" + userId;
+  // FNV-1a constants (32-bit)
+  const FNV_PRIME = 0x01000193;
+  let h0 = 0x811c9dc5; // FNV offset basis
+  let h1 = 0x84222325; // second independent hash for 64-bit width
+
+  for (let i = 0; i < input.length; i++) {
+    const byte = input.charCodeAt(i) & 0xff;
+    h0 ^= byte;
+    h0 = Math.imul(h0, FNV_PRIME) >>> 0;
+    h1 ^= byte ^ (i & 0xff);
+    h1 = Math.imul(h1, FNV_PRIME) >>> 0;
+  }
+
+  const hex0 = h0.toString(16).padStart(8, "0");
+  const hex1 = h1.toString(16).padStart(8, "0");
+  return (hex0 + hex1).slice(0, 12);
 }
 
 export type ParseLogLevel = "info" | "warn" | "error";
