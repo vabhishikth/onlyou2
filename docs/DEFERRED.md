@@ -287,6 +287,14 @@ _(populated when Phase 3 brainstorm begins)_
 
 ---
 
+## Phase 5 — Admin portal
+
+**Open design decisions surfaced pre-brainstorm (2026-04-18):**
+
+| Item                                                   | Destination        | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Doctor onboarding placement — Settings vs Partners** | Phase 5 brainstorm | `PORTAL-ADMIN.md` / `WORKFLOW-ADMIN.md §20B` put doctor onboarding under Settings → User Management, while Nurses/Labs/Pharmacies/Clinics live under Partners. This buries the highest-value onboarding action 3 levels deep. Options: (1) promote Doctors into the Partners tab as a 5th section so all onboarding shares one mental model; (2) redefine Partners = "anyone who gets work assigned" (includes doctors), Settings = pure config; (3) keep spec as-is but surface a prominent "Add Doctor" CTA on Overview. Founder to weigh in at Phase 5 brainstorm. |
+
 ## Phase 4+ — later phases
 
 _(populated when each phase's brainstorm begins)_
