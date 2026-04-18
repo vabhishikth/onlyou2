@@ -197,7 +197,7 @@ function findRange(
   );
 }
 
-function computeAge(dobIso: string): number {
+export function computeAge(dobIso: string): number {
   const dob = new Date(dobIso);
   const now = new Date();
   let age = now.getFullYear() - dob.getFullYear();

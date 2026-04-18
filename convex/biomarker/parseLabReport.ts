@@ -23,7 +23,11 @@ import type { ActionCtx } from "../_generated/server";
 import { MODEL_EXTRACTION } from "../lib/claude";
 import { logParseEvent } from "../lib/telemetry";
 
-import { classifyRow, type ReferenceRange } from "./internal/classifyRow";
+import {
+  classifyRow,
+  computeAge,
+  type ReferenceRange,
+} from "./internal/classifyRow";
 import {
   extractMarkersWithRetry,
   ExtractionError,
@@ -191,7 +195,7 @@ export const parseLabReport = action({
           {
             canonicalId: result.canonicalId,
             sex: user.sex,
-            age: user.dob ? computeAgeForQuery(user.dob) : 0,
+            age: user.dob ? computeAge(user.dob) : 0,
           },
         );
       }
@@ -383,13 +387,4 @@ function classifyError(
     return { kind: "network_or_5xx" };
   }
   return { kind: "network_or_5xx" };
-}
-
-function computeAgeForQuery(dobIso: string): number {
-  const dob = new Date(dobIso);
-  const now = new Date();
-  let age = now.getFullYear() - dob.getFullYear();
-  const m = now.getMonth() - dob.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
-  return age;
 }
