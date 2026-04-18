@@ -684,12 +684,14 @@ describe("parseLabReport orchestrator — branch coverage", () => {
     );
     expect(first.outcome).toBe("ready");
 
-    // Second call — idempotency check should short-circuit
+    // Second call — status guard fires first (status:ready → already_terminal),
+    // which is a cheaper short-circuit than the biomarker_reports idempotency
+    // check. Both prevent re-processing; the status guard just fires earlier.
     const second = await t.action(
       internal.biomarker.parseLabReport.parseLabReport,
       { labReportId },
     );
-    expect(second.outcome).toBe("idempotent_noop");
+    expect(second.outcome).toBe("already_terminal:ready");
 
     // Verify no duplicate biomarker_reports rows
     await t.run(async (ctx) => {
@@ -810,6 +812,42 @@ describe("parseLabReport orchestrator — branch coverage", () => {
     });
 
     expect(claimed2).toHaveLength(0);
+  });
+
+  // ── M-4 fix: status guard on entry ───────────────────────────────────────
+  it("status:ready → already_terminal:ready, no Claude calls (M-4 fix)", async () => {
+    const t = convexTest(schema, modules);
+    const { labReportId } = await seedUserAndLabReport(t);
+
+    await t.run(async (ctx) => {
+      await ctx.db.patch(labReportId, { status: "ready" });
+    });
+
+    const result = await t.action(
+      internal.biomarker.parseLabReport.parseLabReport,
+      { labReportId },
+    );
+    expect(result.outcome).toBe("already_terminal:ready");
+    expect(mockExtraction).not.toHaveBeenCalled();
+  });
+
+  it("status:parse_failed → already_terminal:parse_failed, no Claude calls (M-4 fix)", async () => {
+    const t = convexTest(schema, modules);
+    const { labReportId } = await seedUserAndLabReport(t);
+
+    await t.run(async (ctx) => {
+      await ctx.db.patch(labReportId, {
+        status: "parse_failed",
+        errorCode: "zod_validation",
+      });
+    });
+
+    const result = await t.action(
+      internal.biomarker.parseLabReport.parseLabReport,
+      { labReportId },
+    );
+    expect(result.outcome).toBe("already_terminal:parse_failed");
+    expect(mockExtraction).not.toHaveBeenCalled();
   });
 
   // ── Coverage gap: feature flag disabled ─────────────────────────────────

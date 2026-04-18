@@ -46,7 +46,21 @@ export const parseLabReport = action({
     );
     if (!labReport) throw new Error(`Lab report ${labReportId} not found`);
 
-    // 0a. Feature flag
+    // 0a. Status guard — only process rows in an actionable state.
+    // M-4 fix: prevent re-running on terminal states (ready, not_a_lab_report,
+    // parse_failed, rejected) which would silently overwrite errorCode / counts
+    // and waste tokens. The cron already filters by status:analyzing, but the
+    // dev-only triggerParseForLabReport admin action has no such filter.
+    if (
+      labReport.status === "ready" ||
+      labReport.status === "not_a_lab_report" ||
+      labReport.status === "parse_failed" ||
+      labReport.status === "rejected"
+    ) {
+      return { outcome: `already_terminal:${labReport.status}` };
+    }
+
+    // 0b. Feature flag
     const enabled = await ctx.runQuery(
       internal.biomarker.internalQueries.isBiomarkerParsingEnabled,
       {},
