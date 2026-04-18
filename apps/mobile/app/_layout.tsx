@@ -28,6 +28,10 @@ export default function RootLayout() {
     PlusJakartaSans_400Regular,
     PlusJakartaSans_600SemiBold,
     PlusJakartaSans_700Bold,
+    InstrumentSerif_400Regular: require("../assets/fonts/InstrumentSerif-Regular.ttf"),
+    InstrumentSerif_400Regular_Italic: require("../assets/fonts/InstrumentSerif-Italic.ttf"),
+    JetBrainsMono_400Regular: require("../assets/fonts/JetBrainsMono-Regular.ttf"),
+    JetBrainsMono_500Medium: require("../assets/fonts/JetBrainsMono-Medium.ttf"),
   });
 
   useEffect(() => {
