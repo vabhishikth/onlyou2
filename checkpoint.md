@@ -1,7 +1,7 @@
 # Checkpoint
 
 **Current phase:** Phase 2.5B — Parse pipeline **IN PROGRESS** on `feature/phase-2.5b-parse-pipeline` at `D:/onlyou2-phase-2.5b`. (2.5A merged to master `042f660` on 2026-04-18.)
-**Status:** 🟡 Subagent-driven execution underway. **Tasks 1–10 of 22 complete** (schema + deps + helpers + real Claude SDK + classification engine + retry scheduler + curation upsert + 8 synthetic fixture PDFs). Dispatching Task 11 (extractMarkersWithRetry wrapper) next. 47+ new unit tests on branch; all green.
+**Status:** 🟡 Subagent-driven execution underway. **Tasks 1–12 of 22 complete** (schema + deps + helpers + real Claude SDK + classification engine + retry scheduler + curation upsert + 8 fixtures + extractMarkersWithRetry + generateNarrativeWithGuard). Dispatching Task 13 (parseLabReport orchestrator — the biggest task) next. 55+ new unit tests on branch; all green.
 
 **2.5B artifacts on master:**
 
@@ -23,6 +23,8 @@
 | 8   | `retryScheduler` — per-class backoff (30s/2m/5m/15m + 429 `retry-after`), 30-min cap                 | `5dd7ddc` |
 | 9   | `upsertCurationRow` internal mutation — normalizedKey dedup + occurrence counter                     | `fe68948` |
 | 10  | 8 synthetic fixture PDFs + generator script + 3 golden JSONs                                         | `c6fb337` |
+| 11  | `extractMarkersWithRetry` — zod + max_tokens + refusal in-process retries                            | `4c9f009` |
+| 12  | `generateNarrativeWithGuard` — empty-markers fallback                                                | `a866308` |
 
 **Decisions logged mid-execution:**
 
