@@ -564,7 +564,14 @@ describe("parseLabReport orchestrator — branch coverage", () => {
   });
 
   // ── Scenario 11: 400 bad request ─────────────────────────────────────────
-  it("400 bad request → parse_failed, errorCode api_bad_request", async () => {
+  // Fix C-1: 400 is structurally terminal — intercept BEFORE scheduleRetry,
+  // route directly to terminalFail with errorCode "api_bad_request".
+  // The alert:"p1" emission is in terminalFail → logParseEvent(level:"error")
+  // but convex-test runs actions in a sandboxed runtime whose console does not
+  // route back through the test process, so we assert the DB outcome only.
+  // The alert:"p1" code path is covered by code-inspection: terminalFail()
+  // passes alert:"p1" when errorCode === "api_bad_request" (parseLabReport.ts).
+  it("400 bad request → single outcome failed:api_bad_request, status parse_failed (C-1 fix)", async () => {
     const t = convexTest(schema, modules);
     const { labReportId } = await seedUserAndLabReport(t);
 
@@ -574,21 +581,15 @@ describe("parseLabReport orchestrator — branch coverage", () => {
       internal.biomarker.parseLabReport.parseLabReport,
       { labReportId },
     );
-    // 400 bubbles up to orchestrator → scheduleRetry → classifyError returns
-    // network_or_5xx (400 is treated the same as 5xx in classifyError), but the
-    // plan says api_bad_request terminal. The orchestrator does NOT treat 400 as
-    // terminal via classifyError — it schedules a retry. However the plan calls
-    // for a terminal error. Let's verify the actual behavior: the classifyError
-    // function returns network_or_5xx for status 400, so it will schedule a retry
-    // on attempt 1. We test the actual code behavior.
-    // Based on the source: status 400 → classifyError returns {kind:"network_or_5xx"}
-    // → scheduleRetry → computeNextRetry attempt 1, slot 0 → not terminal → retry_scheduled
-    // The plan says "parse_failed, errorCode: api_bad_request" for 400,
-    // but the code routes 400 through scheduleRetry not terminalFail directly.
-    // We document the actual behavior here.
-    expect(["failed:api_bad_request", "retry_scheduled"]).toContain(
-      result.outcome,
-    );
+
+    // Single outcome: always terminal, never retry_scheduled
+    expect(result.outcome).toBe("failed:api_bad_request");
+
+    await t.run(async (ctx) => {
+      const lr = await ctx.db.get(labReportId);
+      expect(lr?.status).toBe("parse_failed");
+      expect(lr?.errorCode).toBe("api_bad_request");
+    });
   });
 
   // ── Scenario 12: 429 with retry-after: 10 ───────────────────────────────

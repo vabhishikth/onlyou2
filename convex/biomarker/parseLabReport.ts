@@ -123,6 +123,18 @@ export const parseLabReport = action({
           now,
         );
       }
+      // 400 bad-request is structurally terminal — our request is malformed.
+      // Never retry: the same request will produce the same 400.
+      // Route straight to terminalFail so alert:p1 fires immediately.
+      if ((err as { status?: number }).status === 400) {
+        return await terminalFail(
+          ctx,
+          labReportId,
+          labReport,
+          "api_bad_request",
+          now,
+        );
+      }
       // Retryable: 5xx / network / 429
       return await scheduleRetry(ctx, labReportId, labReport, err, now);
     }
