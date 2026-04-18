@@ -19,6 +19,12 @@ export default [
               message:
                 "biomarkerPalette/biomarkerFonts are only allowed in biomarker-surface files: apps/mobile/app/lab-results/**, apps/mobile/app/lab-booking/upload-results*, apps/mobile/src/components/biomarker/**. See docs/decisions/2026-04-17-biomarker-design-register.md.",
             },
+            {
+              name: "@onlyou/core",
+              importNames: ["biomarkerPalette", "biomarkerFonts"],
+              message:
+                "biomarkerPalette/biomarkerFonts are only allowed in biomarker-surface files (barrel import path). See docs/decisions/2026-04-17-biomarker-design-register.md.",
+            },
           ],
         },
       ],
@@ -41,6 +47,12 @@ export default [
               importNames: ["colors"],
               message:
                 "Clinical Luxe `colors` is not allowed in biomarker-surface files; use `biomarkerPalette` instead. See docs/decisions/2026-04-17-biomarker-design-register.md.",
+            },
+            {
+              name: "@onlyou/core",
+              importNames: ["colors"],
+              message:
+                "Clinical Luxe `colors` is not allowed in biomarker-surface files; use `biomarkerPalette` instead (barrel import path). See docs/decisions/2026-04-17-biomarker-design-register.md.",
             },
           ],
         },

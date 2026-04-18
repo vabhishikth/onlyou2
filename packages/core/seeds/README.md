@@ -24,8 +24,11 @@ Human-readable; the clinical advisor reviews this file directly.
 - **Threshold invariant** (enforced by `seed-validation.test.ts`):
   `actionBelow ≤ subOptimalBelowMin < optimalMin ≤ optimalMax < subOptimalAboveMax ≤ actionAbove`
   (Action bounds use `≤` because the seed collapses action and sub-optimal thresholds
-  on the lower/upper edge — both values may be equal. The inner comparisons remain strict.)
-  for bounds that exist on the row.
+  on the lower/upper edge — both values may be equal. Most clinical guidelines we
+  consulted define a single "abnormal / requires action" cutoff without an
+  intermediate "sub-optimal" band at the extreme edge, so the two tiers coincide
+  by design; the inner comparisons `subOptimalBelowMin < optimalMin` and
+  `optimalMax < subOptimalAboveMax` remain strict.)
 - **`pregnancySensitive` is mandatory** on every row.
 - **`source` is mandatory** — cite the specific guideline or reference.
 - **Aliases are case-preserving** but matched case-insensitive at parse time;

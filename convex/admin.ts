@@ -6,15 +6,16 @@
 // operations (simulateLabUpload etc.).
 //
 // Guard pattern:
-//   assertNotProd(ctx);
+//   assertNotProd();
 // Throws "admin operations are disabled in production" if the current
 // Convex deployment name matches a production pattern.
 
-import type { MutationCtx, ActionCtx } from "./_generated/server";
+const PROD_DEPLOYMENT_PATTERNS = [
+  /^(prod|production)$/i,
+  /-(prod|production)$/i,
+];
 
-const PROD_DEPLOYMENT_PATTERNS = [/^prod$/i, /prod$/i, /^production$/i];
-
-export function assertNotProd(_ctx: MutationCtx | ActionCtx): void {
+export function assertNotProd(): void {
   const deployment = process.env.CONVEX_DEPLOYMENT ?? "";
   const isProd = PROD_DEPLOYMENT_PATTERNS.some((p) => p.test(deployment));
   if (isProd) {
