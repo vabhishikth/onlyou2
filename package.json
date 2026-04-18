@@ -16,7 +16,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\" --ignore-path .gitignore",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "prepare": "husky",
-    "test:convex": "vitest run --config ./vitest.config.ts"
+    "test:convex": "vitest run --config ./vitest.config.ts",
+    "seed:biomarker-ranges": "tsx scripts/seed-biomarker-ranges.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -36,6 +37,7 @@
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
     "prettier": "3.8.2",
+    "tsx": "^4.21.0",
     "turbo": "2.9.6",
     "typescript": "6.0.2",
     "vitest": "^4.1.4"
