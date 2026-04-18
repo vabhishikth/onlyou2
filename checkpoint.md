@@ -1,7 +1,7 @@
 # Checkpoint
 
 **Current phase:** Phase 2.5B — Parse pipeline **IN PROGRESS** on `feature/phase-2.5b-parse-pipeline` at `D:/onlyou2-phase-2.5b`. (2.5A merged to master `042f660` on 2026-04-18.)
-**Status:** 🟡 Subagent-driven execution underway. **Tasks 1–12 of 22 complete** (schema + deps + helpers + real Claude SDK + classification engine + retry scheduler + curation upsert + 8 fixtures + extractMarkersWithRetry + generateNarrativeWithGuard). Dispatching Task 13 (parseLabReport orchestrator — the biggest task) next. 55+ new unit tests on branch; all green.
+**Status:** 🟡 Subagent-driven execution underway. **Tasks 1–15 of 22 complete** — all production code for the parse pipeline is written. Dispatching Task 16 (branch-coverage tests with mocked Claude, 16 scenarios, 100% coverage target) next. 55+ new unit tests on branch; all green; `parseLabReport`, `retryStuckParses`, and `triggerParseForLabReport` all registered on dev Convex.
 
 **2.5B artifacts on master:**
 
@@ -25,6 +25,9 @@
 | 10  | 8 synthetic fixture PDFs + generator script + 3 golden JSONs                                         | `c6fb337` |
 | 11  | `extractMarkersWithRetry` — zod + max_tokens + refusal in-process retries                            | `4c9f009` |
 | 12  | `generateNarrativeWithGuard` — empty-markers fallback                                                | `a866308` |
+| 13  | `parseLabReport` orchestrator action + 7 internal queries + 9 internal mutations                     | `2c748bb` |
+| 14  | `crons.ts` — 2-min retry cron with stale-lock release                                                | `7785dbc` |
+| 15  | `convex/admin.ts` — `triggerParseForLabReport` dev-only mutation                                     | `32561fe` |
 
 **Decisions logged mid-execution:**
 
