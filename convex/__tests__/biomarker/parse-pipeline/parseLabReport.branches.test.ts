@@ -505,6 +505,9 @@ describe("parseLabReport orchestrator — branch coverage", () => {
   });
 
   // ── Scenario 9: Refused once, reprompt succeeds ──────────────────────────
+  // I-2 fix: refusal is detected only on non-JSON responses (plain prose strings
+  // or objects without is_lab_report). A full valid-shape JSON object is never a
+  // refusal even if its fields contain clinical boilerplate text.
   it("refusal on first attempt, reprompt succeeds → status ready", async () => {
     const t = convexTest(schema, modules);
     const { labReportId } = await seedUserAndLabReport(t);
@@ -512,13 +515,8 @@ describe("parseLabReport orchestrator — branch coverage", () => {
       await seedDefaultRanges(ctx);
     });
 
-    // First call returns text that looks like a refusal
-    const refusalResponse = {
-      is_lab_report: false,
-      patient_name_on_report: "I can't help with medical advice",
-      collection_date: null,
-      markers: [],
-    };
+    // Real Claude refusals come back as plain prose strings, not JSON objects
+    const refusalResponse = "I can't help with medical advice requests.";
     mockExtraction.mockResolvedValueOnce(refusalResponse);
     // Reprompt call returns good data
     mockExtraction.mockResolvedValueOnce(VALID_EXTRACTION);
@@ -541,12 +539,8 @@ describe("parseLabReport orchestrator — branch coverage", () => {
     const t = convexTest(schema, modules);
     const { labReportId } = await seedUserAndLabReport(t);
 
-    const refusalResponse = {
-      is_lab_report: false,
-      patient_name_on_report: "I'm not able to interpret medical results",
-      collection_date: null,
-      markers: [],
-    };
+    // Plain string refusals — not JSON objects with is_lab_report
+    const refusalResponse = "I'm not able to interpret medical results.";
     mockExtraction.mockResolvedValueOnce(refusalResponse);
     mockExtraction.mockResolvedValueOnce(refusalResponse);
 
@@ -1127,17 +1121,13 @@ describe("parseLabReport orchestrator — branch coverage", () => {
   });
 
   // ── Coverage gap: refusal reprompt call throws non-ExtractionError ────────
+  // I-2 fix: use a plain string refusal so looksRefused() actually fires
   it("refusal detected, reprompt call throws 503 → retry_scheduled", async () => {
     const t = convexTest(schema, modules);
     const { labReportId } = await seedUserAndLabReport(t);
 
-    const refusalResponse = {
-      is_lab_report: false,
-      patient_name_on_report: "I can't help with medical advice",
-      collection_date: null,
-      markers: [],
-    };
-    mockExtraction.mockResolvedValueOnce(refusalResponse);
+    // Plain string — looksRefused() fires (no is_lab_report field)
+    mockExtraction.mockResolvedValueOnce("I can't help with medical advice.");
     // Reprompt call throws a network error
     mockExtraction.mockRejectedValueOnce(makeHttpError(503));
 

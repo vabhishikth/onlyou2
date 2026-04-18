@@ -64,7 +64,15 @@ const REFUSAL_PATTERNS = [
 ];
 
 function looksRefused(raw: unknown): boolean {
-  const text = JSON.stringify(raw);
+  // I-2 fix: a valid-shape response (object with is_lab_report field) is never
+  // a refusal, even if clinical text in fields like lab_printed_range or
+  // patient_name_on_report happens to match a refusal pattern.
+  // Only check refusal patterns on non-JSON text responses (the shape Claude
+  // produces when it refuses: a plain prose string, not a structured object).
+  if (typeof raw === "object" && raw !== null && "is_lab_report" in raw) {
+    return false;
+  }
+  const text = typeof raw === "string" ? raw : JSON.stringify(raw);
   return REFUSAL_PATTERNS.some((p) => p.test(text));
 }
 

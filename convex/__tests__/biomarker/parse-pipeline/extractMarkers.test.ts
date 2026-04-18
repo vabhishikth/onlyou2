@@ -107,4 +107,50 @@ describe("extractMarkersWithRetry", () => {
     expect(mockCall).toHaveBeenCalledTimes(2);
     expect(result.extractAttempts).toBe(2);
   });
+
+  // I-2 fix: valid-shape responses must NOT trigger refusal detection even
+  // when clinical text in their fields matches a refusal pattern.
+  it("valid-shape response with 'medical advice' in lab_printed_range is NOT a refusal (I-2 fix)", async () => {
+    const responseWithClinicalText = {
+      is_lab_report: true,
+      patient_name_on_report: "Test Patient",
+      collection_date: "2026-03-15",
+      markers: [
+        {
+          name_on_report: "Glucose",
+          canonical_id_guess: "glucose",
+          raw_value: "95",
+          raw_unit: "mg/dL",
+          // lab footer text that used to trigger looksRefused()
+          lab_printed_range: "Consult physician for medical advice: 70-99",
+          page_number: 1,
+          confidence: 0.95,
+        },
+      ],
+    };
+    mockCall.mockResolvedValueOnce(responseWithClinicalText);
+    const result = await extractMarkersWithRetry({
+      pdfBase64: "xxx",
+      pdfMimeType: "application/pdf",
+    });
+    // Must succeed in a single call — no refusal reprompt fired
+    expect(mockCall).toHaveBeenCalledTimes(1);
+    expect(result.response.markers[0]?.lab_printed_range).toContain(
+      "medical advice",
+    );
+  });
+
+  it("plain string refusal is still detected", async () => {
+    mockCall.mockResolvedValueOnce(
+      "I can't help with medical advice requests.",
+    );
+    mockCall.mockResolvedValueOnce(validResponse);
+    const result = await extractMarkersWithRetry({
+      pdfBase64: "xxx",
+      pdfMimeType: "application/pdf",
+    });
+    // Reprompt fired because the response was a plain string, not JSON
+    expect(mockCall).toHaveBeenCalledTimes(2);
+    expect(result.extractAttempts).toBe(2);
+  });
 });
