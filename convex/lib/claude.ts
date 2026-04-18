@@ -31,6 +31,8 @@ export const BETA_HEADER_EXTENDED_CACHE = "extended-cache-ttl-2025-04-11";
 export interface ExtractionInput {
   pdfBase64: string; // no data: prefix
   pdfMimeType: "application/pdf" | "image/jpeg" | "image/png";
+  maxTokens?: number;
+  followUpMessage?: string;
 }
 
 export interface ExtractedMarker {
@@ -124,27 +126,37 @@ export async function callExtraction(
     ],
   }));
 
+  const parseMessageContent: Array<{
+    type: string;
+    text?: string;
+    source?: { type: string; media_type: string; data: string };
+  }> = [
+    {
+      type: "text",
+      text: "Extract all biomarkers from this report. Return ONLY the JSON object.",
+    },
+    {
+      type: "document",
+      source: {
+        type: "base64",
+        media_type: input.pdfMimeType,
+        data: input.pdfBase64,
+      },
+    },
+  ];
+
+  if (input.followUpMessage) {
+    parseMessageContent.push({ type: "text", text: input.followUpMessage });
+  }
+
   const parseMessage = {
     role: "user" as const,
-    content: [
-      {
-        type: "text" as const,
-        text: "Extract all biomarkers from this report. Return ONLY the JSON object.",
-      },
-      {
-        type: "document" as const,
-        source: {
-          type: "base64" as const,
-          media_type: input.pdfMimeType,
-          data: input.pdfBase64,
-        },
-      },
-    ],
+    content: parseMessageContent,
   };
 
   const response = (await client.messages.create({
     model: MODEL_EXTRACTION,
-    max_tokens: 4096,
+    max_tokens: input.maxTokens ?? 4096,
     system: [
       {
         type: "text",
