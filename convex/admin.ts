@@ -10,6 +10,11 @@
 // Throws "admin operations are disabled in production" if the current
 // Convex deployment name matches a production pattern.
 
+import { v } from "convex/values";
+
+import { api } from "./_generated/api";
+import { internalMutation } from "./_generated/server";
+
 const PROD_DEPLOYMENT_PATTERNS = [
   /^(prod|production)$/i,
   /-(prod|production)$/i,
@@ -24,3 +29,16 @@ export function assertNotProd(): void {
     );
   }
 }
+
+export const triggerParseForLabReport = internalMutation({
+  args: { labReportId: v.id("lab_reports") },
+  handler: async (ctx, { labReportId }) => {
+    assertNotProd();
+    await ctx.scheduler.runAfter(
+      0,
+      api.biomarker.parseLabReport.parseLabReport,
+      { labReportId },
+    );
+    return { scheduled: true };
+  },
+});

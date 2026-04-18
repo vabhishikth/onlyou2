@@ -1,0 +1,47 @@
+{
+  "is_lab_report": true,
+  "patient_name_on_report": "TEST PATIENT FEMALE",
+  "collection_date": "2026-03-15",
+  "markers": [
+    {
+      "name_on_report": "TSH (Thyroid Stimulating Hormone)",
+      "canonical_id_guess": "tsh",
+      "raw_value": "6.80",
+      "raw_unit": "mIU/L",
+      "lab_printed_range": "0.27 - 4.20",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "T3 (Triiodothyronine)",
+      "canonical_id_guess": "t3_total",
+      "raw_value": "1.12",
+      "raw_unit": "nmol/L",
+      "lab_printed_range": "1.08 - 3.14",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "T4 (Thyroxine)",
+      "canonical_id_guess": "t4_total",
+      "raw_value": "82.5",
+      "raw_unit": "nmol/L",
+      "lab_printed_range": "66.0 - 181.0",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Free T3 (FT3)",
+      "canonical_id_guess": "ft3",
+      "raw_value": "4.10",
+      "raw_unit": "pmol/L",
+      "lab_printed_range": "3.10 - 6.80",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Free T4 (FT4)",
+      "canonical_id_guess": "ft4",
+      "raw_value": "11.5",
+      "raw_unit": "pmol/L",
+      "lab_printed_range": "12.0 - 22.0",
+      "page_number": 1
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        margin: 20px;
+      }
+      .hdr {
+        border-bottom: 2px solid #6a1b9a;
+        padding-bottom: 8px;
+        color: #6a1b9a;
+      }
+      .hdr h1 { margin: 0; font-size: 18px; }
+      .patient {
+        margin: 10px 0;
+        font-size: 10px;
+        background: #f3e5f5;
+        padding: 6px 10px;
+        border-left: 3px solid #6a1b9a;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 4px 8px;
+        text-align: left;
+      }
+      th {
+        background: #e1bee7;
+        color: #4a148c;
+      }
+      .abnormal { color: #c62828; font-weight: bold; }
+      .normal   { color: #2e7d32; }
+      .ftr {
+        margin-top: 20px;
+        font-size: 9px;
+        color: #888;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hdr">
+      <h1>Neuberg Anand Diagnostics</h1>
+      <div>Dr. Anand Diagnostics Centre, Ahmedabad — 380015 | ISO 15189</div>
+    </div>
+    <div class="patient">
+      <strong>Patient:</strong> TEST PATIENT URINE &nbsp;&nbsp;
+      <strong>Age/Sex:</strong> 38 / F &nbsp;&nbsp;
+      <strong>Lab No.:</strong> NAD20260315003<br/>
+      <strong>Collection Date:</strong> 15/03/2026 &nbsp;&nbsp;
+      <strong>Report Date:</strong> 15/03/2026
+    </div>
+
+    <h3>Routine Urine Examination (Urinalysis)</h3>
+
+    <h4 style="margin:8px 0 4px; color:#555;">Physical Examination</h4>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Result</th><th>Normal Values</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Colour</td><td class="normal">Pale Yellow</td><td>Pale Yellow to Yellow</td></tr>
+        <tr><td>Appearance</td><td class="normal">Slightly Hazy</td><td>Clear</td></tr>
+        <tr><td>Specific Gravity</td><td>1.018</td><td>1.003 - 1.030</td></tr>
+        <tr><td>pH</td><td>6.0</td><td>4.5 - 8.5</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="margin:10px 0 4px; color:#555;">Biochemical Examination (Dipstick)</h4>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Result</th><th>Reference</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Protein</td><td class="abnormal">1+</td><td>Negative</td></tr>
+        <tr><td>Glucose</td><td class="normal">Negative</td><td>Negative</td></tr>
+        <tr><td>Ketones</td><td class="abnormal">Trace</td><td>Negative</td></tr>
+        <tr><td>Blood</td><td class="abnormal">2+</td><td>Negative</td></tr>
+        <tr><td>Bilirubin</td><td class="normal">Negative</td><td>Negative</td></tr>
+        <tr><td>Urobilinogen</td><td class="normal">Normal</td><td>0.1 - 1.0 EU/dL</td></tr>
+        <tr><td>Nitrites</td><td class="abnormal">Positive</td><td>Negative</td></tr>
+        <tr><td>Leukocyte Esterase</td><td class="abnormal">2+</td><td>Negative</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="margin:10px 0 4px; color:#555;">Microscopic Examination</h4>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Result</th><th>Reference Range</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Pus Cells (WBC)</td><td class="abnormal">15-20 /hpf</td><td>0 - 5 /hpf</td></tr>
+        <tr><td>Red Blood Cells</td><td class="abnormal">8-10 /hpf</td><td>0 - 2 /hpf</td></tr>
+        <tr><td>Epithelial Cells</td><td>3-5 /hpf</td><td>Occasional</td></tr>
+        <tr><td>Casts</td><td class="abnormal">Granular 1+</td><td>Nil / Hyaline occasional</td></tr>
+        <tr><td>Crystals</td><td class="normal">Nil</td><td>Nil</td></tr>
+        <tr><td>Bacteria</td><td class="abnormal">Many</td><td>Nil</td></tr>
+        <tr><td>Yeast Cells</td><td class="normal">Nil</td><td>Nil</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:9px; color:#c62828; margin-top:8px;">
+      * Findings suggest urinary tract infection. Culture &amp; Sensitivity recommended.
+    </p>
+    <div class="ftr">
+      Verified By: Dr. TEST PATHOLOGIST — MD Path | Reg. No. GJ/34567
+    </div>
+  </body>
+</html>

@@ -29,6 +29,7 @@ const labReportStatusValidator = v.union(
   v.literal("ready"),
   v.literal("parse_failed"),
   v.literal("rejected"),
+  v.literal("not_a_lab_report"),
 );
 
 const patientNameMatchValidator = v.union(
@@ -154,6 +155,10 @@ export default defineSchema({
     status: labReportStatusValidator,
     errorCode: v.optional(v.string()),
     errorMessage: v.optional(v.string()),
+    retryCount: v.optional(v.number()),
+    nextRetryAt: v.optional(v.number()),
+    lockedAt: v.optional(v.number()),
+    firstAttemptAt: v.optional(v.number()),
     createdAt: v.number(),
     deletedAt: v.optional(v.number()),
   })
@@ -161,7 +166,8 @@ export default defineSchema({
     .index("by_user_hash", ["userId", "contentHash"])
     .index("by_lab_order", ["labOrderId"])
     .index("by_status", ["status"])
-    .index("by_deleted", ["deletedAt"]),
+    .index("by_deleted", ["deletedAt"])
+    .index("by_next_retry", ["nextRetryAt"]),
 
   biomarker_reports: defineTable({
     labReportId: v.id("lab_reports"),

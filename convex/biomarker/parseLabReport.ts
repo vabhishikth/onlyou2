@@ -1,0 +1,404 @@
+// convex/biomarker/parseLabReport.ts
+//
+// The parse pipeline orchestrator. Non-retryable: one invocation, one
+// outcome. Retries are scheduled on lab_reports via cron (see convex/crons.ts).
+//
+// High-level flow:
+//   1. Load lab_reports row, feature-flag check, idempotency check
+//   2. Mark status: analyzing, lockedAt: now
+//   3. Download PDF from Convex storage
+//   4. extractMarkersWithRetry → ExtractionResponse
+//   5. For each marker: classifyRow + persist biomarker_values row
+//   6. matchPatientName → patch lab_reports
+//   7. Unknowns → upsertCurationRow
+//   8. generateNarrativeWithGuard → persist biomarker_reports row
+//   9. Mark status: ready (or not_a_lab_report / parse_failed on failure paths)
+
+import { v } from "convex/values";
+
+import { internal } from "../_generated/api";
+import type { Doc, Id } from "../_generated/dataModel";
+import { action } from "../_generated/server";
+import type { ActionCtx } from "../_generated/server";
+import { MODEL_EXTRACTION } from "../lib/claude";
+import { logParseEvent } from "../lib/telemetry";
+
+import {
+  classifyRow,
+  computeAge,
+  type ReferenceRange,
+} from "./internal/classifyRow";
+import {
+  extractMarkersWithRetry,
+  ExtractionError,
+} from "./internal/extractMarkers";
+import { generateNarrativeWithGuard } from "./internal/generateNarrative";
+import { matchPatientName } from "./internal/matchPatientName";
+import { computeNextRetry } from "./internal/retryScheduler";
+
+export const parseLabReport = action({
+  args: { labReportId: v.id("lab_reports") },
+  handler: async (ctx, { labReportId }): Promise<{ outcome: string }> => {
+    const now = Date.now();
+    const labReport: Doc<"lab_reports"> | null = await ctx.runQuery(
+      internal.biomarker.internalQueries.getLabReportById,
+      { labReportId },
+    );
+    if (!labReport) throw new Error(`Lab report ${labReportId} not found`);
+
+    // 0a. Status guard — only process rows in an actionable state.
+    // M-4 fix: prevent re-running on terminal states (ready, not_a_lab_report,
+    // parse_failed, rejected) which would silently overwrite errorCode / counts
+    // and waste tokens. The cron already filters by status:analyzing, but the
+    // dev-only triggerParseForLabReport admin action has no such filter.
+    if (
+      labReport.status === "ready" ||
+      labReport.status === "not_a_lab_report" ||
+      labReport.status === "parse_failed" ||
+      labReport.status === "rejected"
+    ) {
+      return { outcome: `already_terminal:${labReport.status}` };
+    }
+
+    // 0b. Feature flag
+    const enabled = await ctx.runQuery(
+      internal.biomarker.internalQueries.isBiomarkerParsingEnabled,
+      {},
+    );
+    if (!enabled) {
+      logParseEvent({
+        level: "warn",
+        labReportId,
+        userId: labReport.userId,
+        event: "parse_started",
+        retryCount: labReport.retryCount ?? 0,
+      });
+      return { outcome: "flag_disabled" };
+    }
+
+    // 0b. Idempotency
+    const existingReport = await ctx.runQuery(
+      internal.biomarker.internalQueries.getBiomarkerReportByLabReport,
+      { labReportId },
+    );
+    if (existingReport) {
+      return { outcome: "idempotent_noop" };
+    }
+
+    // 1. Mark analyzing + lockedAt
+    await ctx.runMutation(internal.biomarker.internalMutations.markAnalyzing, {
+      labReportId,
+      now,
+    });
+
+    logParseEvent({
+      level: "info",
+      labReportId,
+      userId: labReport.userId,
+      event: "parse_started",
+      modelId: MODEL_EXTRACTION,
+      retryCount: labReport.retryCount ?? 0,
+      contentHashPrefix: labReport.contentHash.slice(0, 8),
+    });
+
+    // 2. Load user + ranges + conversions
+    const user = await ctx.runQuery(
+      internal.biomarker.internalQueries.getUserProfile,
+      { userId: labReport.userId },
+    );
+    const ranges: ReferenceRange[] = await ctx.runQuery(
+      internal.biomarker.internalQueries.getActiveRanges,
+      {},
+    );
+    const conversions = await ctx.runQuery(
+      internal.biomarker.internalQueries.getUnitConversions,
+      {},
+    );
+
+    // 3. Fetch PDF
+    const pdfBlob = await ctx.storage.get(labReport.fileId);
+    if (!pdfBlob) {
+      return await terminalFail(ctx, labReportId, labReport, "pdf_decode", now);
+    }
+    const pdfBase64 = Buffer.from(await pdfBlob.arrayBuffer()).toString(
+      "base64",
+    );
+
+    // 4. Extraction
+    let extract;
+    try {
+      extract = await extractMarkersWithRetry({
+        pdfBase64,
+        pdfMimeType: labReport.mimeType as "application/pdf",
+      });
+    } catch (err) {
+      if (err instanceof ExtractionError) {
+        return await terminalFail(
+          ctx,
+          labReportId,
+          labReport,
+          err.errorCode,
+          now,
+        );
+      }
+      // 400 bad-request is structurally terminal — our request is malformed.
+      // Never retry: the same request will produce the same 400.
+      // Route straight to terminalFail so alert:p1 fires immediately.
+      if ((err as { status?: number }).status === 400) {
+        return await terminalFail(
+          ctx,
+          labReportId,
+          labReport,
+          "api_bad_request",
+          now,
+        );
+      }
+      // Retryable: 5xx / network / 429
+      return await scheduleRetry(ctx, labReportId, labReport, err, now);
+    }
+
+    // 5. Not-a-lab-report short-circuit
+    if (!extract.response.is_lab_report) {
+      await ctx.runMutation(
+        internal.biomarker.internalMutations.markNotLabReport,
+        {
+          labReportId,
+          now,
+        },
+      );
+      logParseEvent({
+        level: "info",
+        labReportId,
+        userId: labReport.userId,
+        event: "parse_complete",
+        markerCount: 0,
+        durationMs: Date.now() - now,
+      });
+      return { outcome: "not_a_lab_report" };
+    }
+
+    // 6. Create biomarker_reports envelope (so biomarker_values can FK to it)
+    const biomarkerReportId = await ctx.runMutation(
+      internal.biomarker.internalMutations.createBiomarkerReport,
+      {
+        labReportId,
+        userId: labReport.userId,
+        collectionDate:
+          extract.response.collection_date ?? labReport.collectionDate,
+        analyzedAt: now,
+      },
+    );
+
+    // 7. Classify + persist each marker
+    let optimalCount = 0,
+      subOptimalCount = 0,
+      actionRequiredCount = 0,
+      unclassifiedCount = 0;
+    const classifiedForNarrative: Array<{
+      name: string;
+      status: "optimal" | "sub_optimal" | "action_required" | "unclassified";
+      value: number | string;
+    }> = [];
+    for (const marker of extract.response.markers) {
+      const result = classifyRow({ marker, user, ranges, conversions });
+      // Lookup reference-range id if classified
+      let refId: Id<"biomarker_reference_ranges"> | null = null;
+      if (result.canonicalId && result.status !== "unclassified") {
+        refId = await ctx.runQuery(
+          internal.biomarker.internalQueries.findReferenceRangeId,
+          {
+            canonicalId: result.canonicalId,
+            sex: user.sex,
+            age: user.dob ? computeAge(user.dob) : 0,
+          },
+        );
+      }
+      await ctx.runMutation(
+        internal.biomarker.internalMutations.insertBiomarkerValue,
+        {
+          biomarkerReportId,
+          userId: labReport.userId,
+          collectionDate: extract.response.collection_date ?? undefined,
+          canonicalId: result.canonicalId ?? undefined,
+          nameOnReport: marker.name_on_report,
+          valueType: result.valueType,
+          rawValue: marker.raw_value,
+          numericValue: result.numericValue ?? undefined,
+          rawUnit: marker.raw_unit ?? undefined,
+          canonicalUnit: result.canonicalUnit ?? undefined,
+          convertedValue: result.convertedValue ?? undefined,
+          labPrintedRange: marker.lab_printed_range ?? undefined,
+          status: result.status,
+          unclassifiedReason: result.unclassifiedReason ?? undefined,
+          category: result.category ?? undefined,
+          referenceRangeId: refId ?? undefined,
+          pageNumber: marker.page_number,
+          confidence: marker.confidence,
+          classifiedAt: now,
+        },
+      );
+      switch (result.status) {
+        case "optimal":
+          optimalCount++;
+          break;
+        case "sub_optimal":
+          subOptimalCount++;
+          break;
+        case "action_required":
+          actionRequiredCount++;
+          break;
+        case "unclassified":
+          unclassifiedCount++;
+          break;
+      }
+      classifiedForNarrative.push({
+        name: marker.name_on_report,
+        status: result.status,
+        value: result.numericValue ?? marker.raw_value,
+      });
+      // Curation queue for not-in-reference unknowns
+      if (result.unclassifiedReason === "not_in_reference_db") {
+        await ctx.runMutation(
+          internal.biomarker.internal.upsertCurationRow.upsertCurationRow,
+          {
+            nameOnReport: marker.name_on_report,
+            rawUnit: marker.raw_unit ?? undefined,
+            sampleLabPrintedRange: marker.lab_printed_range ?? undefined,
+            firstSeenBiomarkerReportId: biomarkerReportId,
+            now,
+          },
+        );
+      }
+    }
+
+    // 8. Patient-name match
+    const nameMatch = matchPatientName(
+      extract.response.patient_name_on_report,
+      user.name ?? null,
+    );
+    await ctx.runMutation(
+      internal.biomarker.internalMutations.updateLabReportNameMatch,
+      {
+        labReportId,
+        patientNameOnReport: extract.response.patient_name_on_report,
+        patientNameMatch: nameMatch,
+      },
+    );
+
+    // 9. Narrative
+    const narrative = await generateNarrativeWithGuard({
+      classifiedMarkers: classifiedForNarrative,
+    });
+    await ctx.runMutation(
+      internal.biomarker.internalMutations.patchBiomarkerReport,
+      {
+        biomarkerReportId,
+        narrative: narrative.narrative,
+        narrativeModel: narrative.modelUsed,
+        optimalCount,
+        subOptimalCount,
+        actionRequiredCount,
+        unclassifiedCount,
+      },
+    );
+
+    // 10. Mark ready
+    await ctx.runMutation(internal.biomarker.internalMutations.markReady, {
+      labReportId,
+      now,
+    });
+
+    logParseEvent({
+      level: "info",
+      labReportId,
+      userId: labReport.userId,
+      event: "parse_complete",
+      modelId: MODEL_EXTRACTION,
+      markerCount: extract.response.markers.length,
+      durationMs: Date.now() - now,
+    });
+    return { outcome: "ready" };
+  },
+});
+
+// ---- helpers ----
+
+async function terminalFail(
+  ctx: ActionCtx,
+  labReportId: Id<"lab_reports">,
+  labReport: Doc<"lab_reports">,
+  errorCode: string,
+  now: number,
+) {
+  await ctx.runMutation(internal.biomarker.internalMutations.markParseFailed, {
+    labReportId,
+    errorCode,
+    now,
+  });
+  logParseEvent({
+    level: errorCode === "api_bad_request" ? "error" : "info",
+    labReportId,
+    userId: labReport.userId,
+    event: "parse_failed",
+    errorCode,
+    durationMs: Date.now() - now,
+    ...(errorCode === "api_bad_request" ? { alert: "p1" as const } : {}),
+  });
+  return { outcome: `failed:${errorCode}` };
+}
+
+async function scheduleRetry(
+  ctx: ActionCtx,
+  labReportId: Id<"lab_reports">,
+  labReport: Doc<"lab_reports">,
+  err: unknown,
+  now: number,
+) {
+  const cls = classifyError(err);
+  const firstAttemptAt = labReport.firstAttemptAt ?? now;
+  const attempt = (labReport.retryCount ?? 0) + 1;
+  const decision = computeNextRetry({ cls, attempt, firstAttemptAt, now });
+
+  if (decision.terminal) {
+    return await terminalFail(
+      ctx,
+      labReportId,
+      labReport,
+      decision.errorCode ?? "max_retries_exceeded",
+      now,
+    );
+  }
+
+  await ctx.runMutation(internal.biomarker.internalMutations.scheduleRetry, {
+    labReportId,
+    nextRetryAt: decision.nextRetryAt,
+    retryCount: attempt,
+    firstAttemptAt,
+  });
+  logParseEvent({
+    level: "info",
+    labReportId,
+    userId: labReport.userId,
+    event: "parse_retry_scheduled",
+    retryCount: attempt,
+  });
+  return { outcome: "retry_scheduled" };
+}
+
+function classifyError(
+  err: unknown,
+): import("./internal/retryScheduler").RetryClass {
+  const status = (err as { status?: number }).status;
+  if (status === 429) {
+    const header = (err as { headers?: { "retry-after"?: string } }).headers?.[
+      "retry-after"
+    ];
+    const retryAfterSeconds = header ? parseInt(header, 10) : null;
+    return { kind: "rate_limit", retryAfterSeconds };
+  }
+  if (status === 400) {
+    // Not retryable — surfaced by caller as terminal; shouldn't reach here
+    return { kind: "network_or_5xx" };
+  }
+  return { kind: "network_or_5xx" };
+}

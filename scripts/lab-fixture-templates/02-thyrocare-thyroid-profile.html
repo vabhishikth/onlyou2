@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        margin: 20px;
+        background: #fff;
+      }
+      .hdr {
+        background: #cc0000;
+        color: #fff;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+      }
+      .hdr h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 2px;
+      }
+      .hdr .sub {
+        font-size: 10px;
+        margin-top: 2px;
+        opacity: 0.9;
+      }
+      .patient {
+        margin: 10px 0;
+        font-size: 10px;
+        background: #f9f9f9;
+        padding: 8px;
+        border-left: 3px solid #cc0000;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 4px 8px;
+        text-align: left;
+      }
+      th {
+        background: #cc0000;
+        color: #fff;
+      }
+      tr:nth-child(even) td {
+        background: #fff5f5;
+      }
+      .flag-high {
+        color: #cc0000;
+        font-weight: bold;
+      }
+      .ftr {
+        margin-top: 20px;
+        font-size: 9px;
+        color: #999;
+        text-align: center;
+        border-top: 1px solid #ccc;
+        padding-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hdr">
+      <h1>THYROCARE TECHNOLOGIES</h1>
+      <div class="sub">D-37/1, TTC Industrial Area, Turbhe, Navi Mumbai — 400705</div>
+    </div>
+    <div class="patient">
+      <strong>Patient:</strong> TEST PATIENT FEMALE &nbsp;&nbsp;
+      <strong>Age/Sex:</strong> 28 / F<br />
+      <strong>Sample ID:</strong> TCR20260315001 &nbsp;&nbsp;
+      <strong>Collection Date:</strong> 15/03/2026 &nbsp;&nbsp;
+      <strong>Report Date:</strong> 16/03/2026
+    </div>
+    <h3>Thyroid Profile (T3, T4, TSH)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Investigation</th>
+          <th>Result</th>
+          <th>Unit</th>
+          <th>Biological Reference Interval</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>TSH (Thyroid Stimulating Hormone)</td>
+          <td class="flag-high">6.80</td>
+          <td>mIU/L</td>
+          <td>0.27 - 4.20</td>
+        </tr>
+        <tr>
+          <td>T3 (Triiodothyronine)</td>
+          <td>1.12</td>
+          <td>nmol/L</td>
+          <td>1.08 - 3.14</td>
+        </tr>
+        <tr>
+          <td>T4 (Thyroxine)</td>
+          <td>82.5</td>
+          <td>nmol/L</td>
+          <td>66.0 - 181.0</td>
+        </tr>
+        <tr>
+          <td>Free T3 (FT3)</td>
+          <td>4.10</td>
+          <td>pmol/L</td>
+          <td>3.10 - 6.80</td>
+        </tr>
+        <tr>
+          <td>Free T4 (FT4)</td>
+          <td>11.5</td>
+          <td>pmol/L</td>
+          <td>12.0 - 22.0</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:9px; color:#666; margin-top:8px;">
+      * TSH value above reference range. Clinical correlation advised.<br />
+      * mIU/L = milli-international units per litre (equivalent to µIU/mL)
+    </p>
+    <div class="ftr">
+      Authorised Signatory: Dr. TEST ENDOCRINOLOGIST — MD/Path/67890 | NABL Accredited Lab
+    </div>
+  </body>
+</html>

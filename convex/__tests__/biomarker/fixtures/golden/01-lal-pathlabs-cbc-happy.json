@@ -1,0 +1,39 @@
+{
+  "is_lab_report": true,
+  "patient_name_on_report": "TEST PATIENT MALE",
+  "collection_date": "2026-03-15",
+  "markers": [
+    {
+      "name_on_report": "Hemoglobin",
+      "canonical_id_guess": "hemoglobin",
+      "raw_value": "14.2",
+      "raw_unit": "g/dL",
+      "lab_printed_range": "13.5 - 17.0",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Total WBC Count",
+      "canonical_id_guess": "wbc",
+      "raw_value": "7500",
+      "raw_unit": "/cumm",
+      "lab_printed_range": "4000 - 10000",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "Platelet Count",
+      "canonical_id_guess": "platelets",
+      "raw_value": "250000",
+      "raw_unit": "/cumm",
+      "lab_printed_range": "150000 - 410000",
+      "page_number": 1
+    },
+    {
+      "name_on_report": "MCV",
+      "canonical_id_guess": "mcv",
+      "raw_value": "88",
+      "raw_unit": "fL",
+      "lab_printed_range": "78 - 98",
+      "page_number": 1
+    }
+  ]
+}

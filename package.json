@@ -18,8 +18,10 @@
     "prepare": "husky",
     "test:convex": "vitest run --config ./vitest.config.ts",
     "test:seed": "vitest run convex/__tests__/biomarker/seed-validation.test.ts",
-    "test": "pnpm test:convex && pnpm test:seed",
-    "seed:biomarker-ranges": "tsx scripts/seed-biomarker-ranges.ts"
+    "test:claude:conditional": "tsx scripts/run-test-claude-if-key.ts",
+    "test": "pnpm test:convex && pnpm test:seed && pnpm test:claude:conditional",
+    "seed:biomarker-ranges": "tsx scripts/seed-biomarker-ranges.ts",
+    "test:claude": "vitest run --config convex/__tests__/biomarker/vitest.claude.config.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -34,17 +36,22 @@
     "@edge-runtime/vm": "^5.0.0",
     "@onlyou/config": "workspace:*",
     "@types/bcryptjs": "^2.4.6",
+    "@vitest/coverage-v8": "^4.1.4",
     "convex": "1.35.1",
     "convex-test": "^0.0.48",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
+    "pdf-lib": "^1.17.1",
     "prettier": "3.8.2",
+    "puppeteer": "^24.41.0",
     "tsx": "^4.21.0",
     "turbo": "2.9.6",
     "typescript": "6.0.2",
     "vitest": "^4.1.4"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3"
+    "@anthropic-ai/sdk": "^0.90.0",
+    "bcryptjs": "^2.4.3",
+    "zod": "^4.3.6"
   }
 }

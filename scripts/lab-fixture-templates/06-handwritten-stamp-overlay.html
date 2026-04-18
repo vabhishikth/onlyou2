@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        margin: 20px;
+        position: relative;
+      }
+      .hdr {
+        border-bottom: 2px solid #003366;
+        padding-bottom: 8px;
+        color: #003366;
+      }
+      .hdr h1 { margin: 0; font-size: 20px; }
+      .patient {
+        margin: 12px 0;
+        font-size: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+        position: relative;
+      }
+      th, td {
+        border: 1px solid #888;
+        padding: 4px 6px;
+        text-align: left;
+      }
+      th { background: #e6eef5; }
+
+      /* Stamp overlay — rotated "VERIFIED" stamp overlapping the table */
+      .stamp {
+        position: absolute;
+        top: 30px;
+        left: 60px;
+        transform: rotate(-15deg);
+        border: 3px solid red;
+        color: red;
+        padding: 10px 14px;
+        font-weight: bold;
+        font-size: 16px;
+        opacity: 0.75;
+        letter-spacing: 2px;
+        pointer-events: none;
+        z-index: 10;
+        background: rgba(255,255,255,0.1);
+      }
+
+      .ftr {
+        margin-top: 24px;
+        font-size: 9px;
+        color: #666;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hdr">
+      <h1>Healthians Diagnostics</h1>
+      <div>Unit 8, Sector 19, Dwarka, New Delhi — 110075</div>
+    </div>
+    <div class="patient">
+      <strong>Patient:</strong> TEST PATIENT STAMP &nbsp;&nbsp;
+      <strong>Age/Sex:</strong> 45 / M &nbsp;&nbsp;
+      <strong>Lab ID:</strong> HL20260315004<br/>
+      <strong>Collection Date:</strong> 15/03/2026 &nbsp;&nbsp;
+      <strong>Report Date:</strong> 16/03/2026
+    </div>
+
+    <h3>Complete Blood Count (CBC) — with Stamp Overlay</h3>
+
+    <!-- Stamp positioned to overlap the result cells -->
+    <div style="position: relative; display: inline-block; width: 100%;">
+      <div class="stamp">VERIFIED BY DR TEST</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>Result</th>
+            <th>Unit</th>
+            <th>Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hemoglobin</td>
+            <td>15.0</td>
+            <td>g/dL</td>
+            <td>13.5 - 17.0</td>
+          </tr>
+          <tr>
+            <td>Total WBC Count</td>
+            <td>6800</td>
+            <td>/cumm</td>
+            <td>4000 - 10000</td>
+          </tr>
+          <tr>
+            <td>Platelet Count</td>
+            <td>230000</td>
+            <td>/cumm</td>
+            <td>150000 - 410000</td>
+          </tr>
+          <tr>
+            <td>MCV</td>
+            <td>85</td>
+            <td>fL</td>
+            <td>78 - 98</td>
+          </tr>
+          <tr>
+            <td>MCH</td>
+            <td>28.5</td>
+            <td>pg</td>
+            <td>27 - 32</td>
+          </tr>
+          <tr>
+            <td>MCHC</td>
+            <td>33.5</td>
+            <td>g/dL</td>
+            <td>31.5 - 34.5</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ftr">Lab Tech: Dr. TEST SIGNATURE — DMP/99887</div>
+  </body>
+</html>

@@ -13,7 +13,20 @@
 - ✅ `biomarkerPalette` + `biomarkerFonts` editorial register + ESLint two-register guards
 - ✅ Seeder script + `ALLOW_UNREVIEWED_RANGES` dev guard + prod hard-fail
 - ✅ `seed-validation.test.ts` CI guard (19 assertions)
-- ⏳ Parse pipeline (`parseLabReport`, Claude Vision) → **Plan 2.5B**
+
+**Phase 2.5B shipped 2026-04-18** (see [[decisions/2026-04-18-phase-2.5b-as-built]]):
+
+- ✅ `parseLabReport` Convex action end-to-end on fixture PDFs
+- ✅ Claude Vision SDK integration (Sonnet 4.6) with 1h prompt caching
+- ✅ Classification engine (pregnancy-first guard + profile + range + unit + status)
+- ✅ Per-class retry cron with atomic lock (30s/2m/5m/15m + 429 retry-after, 30-min wall-clock cap)
+- ✅ 8 synthetic fixture PDFs + generator (pdf-lib + puppeteer)
+- ✅ 28 mocked branch-coverage tests + live `pnpm test:claude` suite
+- ⏳ Patient-facing upload UI → **2.5D**
+- ⏳ intakeUpload + rate limits + notifications emission → **2.5C**
+
+_(2.5A/2.5B combined outstanding)_
+
 - ⏳ Intake mutation, notifications, curation admin, portal contracts → **Plan 2.5C**
 - ⏳ Mobile biomarker screens (Dashboard, Detail, Report, Upload) + fourth `unclassified` `StatusBadge` variant → **Plan 2.5D**
 - ⏳ Clinical advisor sign-off on 45 DRAFT rows → prerequisite before prod merge
@@ -196,11 +209,11 @@ The four status variants the UI must support:
 | ~~`biomarker_reference_ranges` Convex table + schema (with `aliases` field + `source` citation)~~ **✓ Shipped 2.5A — `78f9439`**                       | ~~**Phase 2.5**~~             | Live on dev Convex with `by_canonical_id` + `by_active` indexes. Extensible as promised.                                                                       |
 | ~~Seed data for ~25 common markers (MVP starting inventory, **not a ceiling**)~~ **✓ Shipped 2.5A — tranches `481cce5` `bd79b41` `f8b7196` `e679b63`** | ~~**Phase 2.5**~~             | 45 DRAFT rows across 32 canonical markers. Clinical advisor sign-off outstanding.                                                                              |
 | ~~`biomarker_curation_queue` table (captures unclassified markers flagged by the parser)~~ **✓ Table shipped 2.5A — `78f9439`** (caller logic → 2.5C)  | ~~**Phase 2.5**~~             | Schema + `by_normalized_key` + `by_status_prevalence` indexes live. 2.5C wires mutations that insert into it.                                                  |
-| **Adaptive `parseLabReport` Convex action** (OCR + Claude extraction + per-marker classify + narrative)                                                | **Phase 2.5**                 | **Marker-agnostic.** Extracts every marker in the report, attempts classification against the DB, renders unknowns as `unclassified` instead of dropping them. |
-| **Fourth `StatusBadge` variant: `unclassified`** (grey rail, raw value + lab's own printed range)                                                      | **Phase 2.5**                 | Required because real reports always contain markers the DB doesn't know yet. Plan 2D ships only 3 variants; this is the addition.                             |
-| `MarkerCard` unclassified render state (no gradient range bar; shows lab's printed range as text)                                                      | **Phase 2.5**                 | Graceful degradation when the DB has no matching row                                                                                                           |
-| Real upload → parse → visual report wiring                                                                                                             | **Phase 2.5**                 | Replaces the Phase 2 simulated state. **Works on any report, any marker set.**                                                                                 |
-| Narrative generation that adapts to whatever markers are present                                                                                       | **Phase 2.5**                 | Claude-generated "In summary" must reference only the markers in _this_ report — no template strings keyed to a fixed list                                     |
+| ~~**Adaptive `parseLabReport` Convex action** (OCR + Claude extraction + per-marker classify + narrative)~~ **✓ Shipped 2.5B — `2c748bb`**             | ~~**Phase 2.5**~~             | **Marker-agnostic.** Extracts every marker in the report, attempts classification against the DB, renders unknowns as `unclassified` instead of dropping them. |
+| **Fourth `StatusBadge` variant: `unclassified`** (grey rail, raw value + lab's own printed range)                                                      | **Phase 2.5D**                | Required because real reports always contain markers the DB doesn't know yet. Plan 2D ships only 3 variants; this is the addition.                             |
+| `MarkerCard` unclassified render state (no gradient range bar; shows lab's printed range as text)                                                      | **Phase 2.5D**                | Graceful degradation when the DB has no matching row                                                                                                           |
+| Real upload → parse → visual report wiring                                                                                                             | **Phase 2.5C/D**              | Backend wiring (intakeUpload) → 2.5C; patient-facing upload UI → 2.5D. Replaces Phase 2 simulated state.                                                       |
+| ~~Narrative generation that adapts to whatever markers are present~~ **✓ Shipped 2.5B — `b34489d`**                                                    | ~~**Phase 2.5**~~             | Claude-generated "In summary" references only the markers in _this_ report — no template strings keyed to a fixed list                                         |
 | Doctor-ordered labs populating biomarker reports automatically                                                                                         | **Phase 2.5 or Phase 3 tail** | Depends on when the nurse flow lands                                                                                                                           |
 | Integration with external lab APIs (Thyrocare, Metropolis, Lal PathLabs)                                                                               | **Phase 8+**                  | Listed as "no lab APIs for MVP" in `CLAUDE.md`                                                                                                                 |
 
