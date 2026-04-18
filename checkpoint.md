@@ -1,7 +1,13 @@
 # Checkpoint
 
-**Current phase:** Phase 2.5B — Parse pipeline **🟢 READY TO MERGE on `feature/phase-2.5b-parse-pipeline`** at `D:/onlyou2-phase-2.5b`. (2.5A merged to master `042f660` on 2026-04-18.)
-**Status:** 🟢 All 22 tasks complete. Code review done (7 findings, all resolved). As-built retro committed. **Next steps: manual Convex dashboard E2E + push + merge.**
+**Current phase:** Phase 2.5B — Parse pipeline **✅ MERGED to master `eaea3b7` on 2026-04-18**. 2.5A merged earlier same day (`042f660`). **Plan 2.5C (ingestion + curation + portal contracts) queued next.**
+**Status:** Both 2.5A and 2.5B shipped to master. Remote `feature/phase-2.5b-parse-pipeline` branch deleted; local worktree at `D:/onlyou2-phase-2.5b` kept for reference until 2.5C is underway.
+
+**⚠️ Carry-forward items before prod:**
+
+- Manual Convex dashboard E2E (Task 19 Step 2) — user has not yet run `admin:triggerParseForLabReport` against a fixture PDF.
+- `pnpm test:claude` live suite has never been run with a real `ANTHROPIC_API_KEY` — prompt drift / model-ID regressions would only surface there.
+- 45 reference-range rows remain `DRAFT — pending review`. Clinical advisor sign-off is a prerequisite before any prod seed.
 
 **2.5B artifacts on master:**
 
