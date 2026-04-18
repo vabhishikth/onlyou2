@@ -5,6 +5,19 @@
 **Visual reference:** `docs/biomarker-reference.png`
 **Patient-app integration:** [[APP-PATIENT-ADDITIONS|APP-PATIENT-ADDITIONS.md]] Addition 2
 
+**Phase 2.5A shipped 2026-04-18** (see [[decisions/2026-04-18-phase-2.5a-as-built]]):
+
+- ✅ `biomarker_reference_ranges` table + 45 DRAFT seed rows across 32 canonical markers
+- ✅ `biomarker_curation_queue` table (schema only; caller wiring → 2.5C)
+- ✅ `unit-conversions.json` with 15 factors
+- ✅ `biomarkerPalette` + `biomarkerFonts` editorial register + ESLint two-register guards
+- ✅ Seeder script + `ALLOW_UNREVIEWED_RANGES` dev guard + prod hard-fail
+- ✅ `seed-validation.test.ts` CI guard (19 assertions)
+- ⏳ Parse pipeline (`parseLabReport`, Claude Vision) → **Plan 2.5B**
+- ⏳ Intake mutation, notifications, curation admin, portal contracts → **Plan 2.5C**
+- ⏳ Mobile biomarker screens (Dashboard, Detail, Report, Upload) + fourth `unclassified` `StatusBadge` variant → **Plan 2.5D**
+- ⏳ Clinical advisor sign-off on 45 DRAFT rows → prerequisite before prod merge
+
 ## ⚠️ Core principle — adaptive, not fixed
 
 **The biomarker system renders whatever markers are in the report, not a pre-chosen list.**
@@ -175,21 +188,21 @@ The four status variants the UI must support:
 
 ## Phase mapping
 
-| Deliverable                                                                                             | Phase                         | Notes                                                                                                                                                          |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Visual Biomarker Report UI component (range bars, status badges, trend, narrative card)                 | **Phase 2**                   | Built against 8-marker fixture. **The component already renders a variable-length `markers[]` array — 3, 8, 40 markers all render correctly.**                 |
-| `profile/lab-results/[id].tsx` renders the visual report (not raw PDF)                                  | **Phase 2**                   | Connected to fixture                                                                                                                                           |
-| Upload flow (`lab-booking/upload-results.tsx`) with 3-second simulated `analyzing` state                | **Phase 2**                   | No real parsing — flips to the fixture report                                                                                                                  |
-| `biomarker_reference_ranges` Convex table + schema (with `aliases` field + `source` citation)           | **Phase 2.5**                 | Must precede real parsing. **Schema is extensible — adding a new marker is an insert, not a code change.**                                                     |
-| Seed data for ~25 common markers (MVP starting inventory, **not a ceiling**)                            | **Phase 2.5**                 | Medical review, source citations, seeder script. Grows over time as new markers are curated.                                                                   |
-| `biomarker_curation_queue` table (captures unclassified markers flagged by the parser)                  | **Phase 2.5**                 | Every parse run that hits an unknown marker writes a row here, driving the curator's backlog.                                                                  |
-| **Adaptive `parseLabReport` Convex action** (OCR + Claude extraction + per-marker classify + narrative) | **Phase 2.5**                 | **Marker-agnostic.** Extracts every marker in the report, attempts classification against the DB, renders unknowns as `unclassified` instead of dropping them. |
-| **Fourth `StatusBadge` variant: `unclassified`** (grey rail, raw value + lab's own printed range)       | **Phase 2.5**                 | Required because real reports always contain markers the DB doesn't know yet. Plan 2D ships only 3 variants; this is the addition.                             |
-| `MarkerCard` unclassified render state (no gradient range bar; shows lab's printed range as text)       | **Phase 2.5**                 | Graceful degradation when the DB has no matching row                                                                                                           |
-| Real upload → parse → visual report wiring                                                              | **Phase 2.5**                 | Replaces the Phase 2 simulated state. **Works on any report, any marker set.**                                                                                 |
-| Narrative generation that adapts to whatever markers are present                                        | **Phase 2.5**                 | Claude-generated "In summary" must reference only the markers in _this_ report — no template strings keyed to a fixed list                                     |
-| Doctor-ordered labs populating biomarker reports automatically                                          | **Phase 2.5 or Phase 3 tail** | Depends on when the nurse flow lands                                                                                                                           |
-| Integration with external lab APIs (Thyrocare, Metropolis, Lal PathLabs)                                | **Phase 8+**                  | Listed as "no lab APIs for MVP" in `CLAUDE.md`                                                                                                                 |
+| Deliverable                                                                                                                                            | Phase                         | Notes                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Visual Biomarker Report UI component (range bars, status badges, trend, narrative card)                                                                | **Phase 2**                   | Built against 8-marker fixture. **The component already renders a variable-length `markers[]` array — 3, 8, 40 markers all render correctly.**                 |
+| `profile/lab-results/[id].tsx` renders the visual report (not raw PDF)                                                                                 | **Phase 2**                   | Connected to fixture                                                                                                                                           |
+| Upload flow (`lab-booking/upload-results.tsx`) with 3-second simulated `analyzing` state                                                               | **Phase 2**                   | No real parsing — flips to the fixture report                                                                                                                  |
+| ~~`biomarker_reference_ranges` Convex table + schema (with `aliases` field + `source` citation)~~ **✓ Shipped 2.5A — `78f9439`**                       | ~~**Phase 2.5**~~             | Live on dev Convex with `by_canonical_id` + `by_active` indexes. Extensible as promised.                                                                       |
+| ~~Seed data for ~25 common markers (MVP starting inventory, **not a ceiling**)~~ **✓ Shipped 2.5A — tranches `481cce5` `bd79b41` `f8b7196` `e679b63`** | ~~**Phase 2.5**~~             | 45 DRAFT rows across 32 canonical markers. Clinical advisor sign-off outstanding.                                                                              |
+| ~~`biomarker_curation_queue` table (captures unclassified markers flagged by the parser)~~ **✓ Table shipped 2.5A — `78f9439`** (caller logic → 2.5C)  | ~~**Phase 2.5**~~             | Schema + `by_normalized_key` + `by_status_prevalence` indexes live. 2.5C wires mutations that insert into it.                                                  |
+| **Adaptive `parseLabReport` Convex action** (OCR + Claude extraction + per-marker classify + narrative)                                                | **Phase 2.5**                 | **Marker-agnostic.** Extracts every marker in the report, attempts classification against the DB, renders unknowns as `unclassified` instead of dropping them. |
+| **Fourth `StatusBadge` variant: `unclassified`** (grey rail, raw value + lab's own printed range)                                                      | **Phase 2.5**                 | Required because real reports always contain markers the DB doesn't know yet. Plan 2D ships only 3 variants; this is the addition.                             |
+| `MarkerCard` unclassified render state (no gradient range bar; shows lab's printed range as text)                                                      | **Phase 2.5**                 | Graceful degradation when the DB has no matching row                                                                                                           |
+| Real upload → parse → visual report wiring                                                                                                             | **Phase 2.5**                 | Replaces the Phase 2 simulated state. **Works on any report, any marker set.**                                                                                 |
+| Narrative generation that adapts to whatever markers are present                                                                                       | **Phase 2.5**                 | Claude-generated "In summary" must reference only the markers in _this_ report — no template strings keyed to a fixed list                                     |
+| Doctor-ordered labs populating biomarker reports automatically                                                                                         | **Phase 2.5 or Phase 3 tail** | Depends on when the nurse flow lands                                                                                                                           |
+| Integration with external lab APIs (Thyrocare, Metropolis, Lal PathLabs)                                                                               | **Phase 8+**                  | Listed as "no lab APIs for MVP" in `CLAUDE.md`                                                                                                                 |
 
 ## Open questions — resolved at Phase 2.5 brainstorm (2026-04-17)
 
