@@ -1,7 +1,7 @@
 # Checkpoint
 
 **Current phase:** Phase 2.5B — Parse pipeline **IN PROGRESS** on `feature/phase-2.5b-parse-pipeline` at `D:/onlyou2-phase-2.5b`. (2.5A merged to master `042f660` on 2026-04-18.)
-**Status:** 🟡 Subagent-driven execution underway. Task 2/22 complete (schema widen + deps). Dispatching Task 3 (telemetry helpers) next.
+**Status:** 🟡 Subagent-driven execution underway. **Tasks 1–8 of 22 complete** (schema + deps + telemetry + real Claude SDK + 4 pure-fn helpers + retry scheduler). Dispatching Task 9 (upsertCurationRow internal mutation) next. All tests green on branch; 47 new unit tests since 2.5A baseline (6 normalizeUnit + 6 matchPatientName + 12 classifyRow + 7 retryScheduler + 4 claude + 4 telemetry + 8 from existing).
 
 **2.5B artifacts on master:**
 
@@ -15,6 +15,16 @@
 | 0   | Worktree scaffold                                                                                    | `ddc7e3f` |
 | 1   | Schema widen (retry fields + `not_a_lab_report` status + `by_next_retry` index)                      | `bbb00f5` |
 | 2   | Deps: `@anthropic-ai/sdk ^0.90.0`, `zod ^4.3.6`, `pdf-lib ^1.17.1` (dev), `puppeteer ^24.41.0` (dev) | `ba8eba7` |
+| 3   | `convex/lib/telemetry.ts` — `hashUserId` + `logParseEvent` (structured logs, no PHI)                 | `ca5d2ce` |
+| 4   | `convex/lib/claude.ts` — real SDK calls, Sonnet 4.6 model IDs, cache on system block                 | `b34489d` |
+| 5   | `normalizeUnit` pure fn — numeric parse + factor conversion + qualitative + `<`/`>` qualifiers       | `9018868` |
+| 6   | `matchPatientName` — honorifics + initials + reversed order                                          | `871f53d` |
+| 7   | `classifyRow` — pregnancy-first guard → profile → range → unit → status                              | `d130a8a` |
+| 8   | `retryScheduler` — per-class backoff (30s/2m/5m/15m + 429 `retry-after`), 30-min cap                 | `5dd7ddc` |
+
+**Decisions logged mid-execution:**
+
+- `docs/decisions/2026-04-18-cache-breakpoint-on-system-block.md` — `cache_control` placement rationale (`3bbfe40` on master)
 
 **2.5A completion (prior context):**
 
