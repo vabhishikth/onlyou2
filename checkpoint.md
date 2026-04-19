@@ -1,13 +1,20 @@
 # Checkpoint
 
 **Current phase:** Phase 2.5B — Parse pipeline **✅ MERGED to master `eaea3b7` on 2026-04-18**. 2.5A merged earlier same day (`042f660`). **Plan 2.5C (ingestion + curation + portal contracts) queued next.**
-**Status:** Both 2.5A and 2.5B shipped to master. Remote `feature/phase-2.5b-parse-pipeline` branch deleted; local worktree at `D:/onlyou2-phase-2.5b` kept for reference until 2.5C is underway.
+**Status:** Both 2.5A and 2.5B shipped to master. Both feature branches + worktrees cleaned up on 2026-04-19 (git state clean; orphan dirs on disk harmless).
+
+**Post-merge fixes on master (2026-04-19):**
+
+- `e9bb225` — workspace lint restored: `next lint` removed in Next.js 16 → swap to `eslint .`; /design swatches now import from `@onlyou/core/tokens/colors` (30 `onlyou/no-hardcoded-hex` errors resolved).
+- `54ea1ad` — first live `pnpm test:claude` run surfaced `betas: Extra inputs are not permitted` from SDK ^0.90. Routed `callExtraction` through `client.beta.messages.create` (the supported surface for per-request beta features). Live test now calls `extractMarkersWithRetry` (production path) to exercise the 8192-token retry on multipage wellness panels. Timeout bumped to 180s. **8/8 live fixtures pass** (128s, ~$0.25 per full run).
+- Decision note: `docs/decisions/2026-04-19-anthropic-sdk-beta-namespace.md`
 
 **⚠️ Carry-forward items before prod:**
 
-- Manual Convex dashboard E2E (Task 19 Step 2) — user has not yet run `admin:triggerParseForLabReport` against a fixture PDF.
-- `pnpm test:claude` live suite has never been run with a real `ANTHROPIC_API_KEY` — prompt drift / model-ID regressions would only surface there.
+- ~~`pnpm test:claude` live suite has never been run~~ → **✅ RAN 2026-04-19, 8/8 pass**. First time with a real `ANTHROPIC_API_KEY`.
+- Manual Convex dashboard E2E (Task 19 Step 2) — user has not yet run `admin:triggerParseForLabReport` against a fixture PDF from the dashboard UI.
 - 45 reference-range rows remain `DRAFT — pending review`. Clinical advisor sign-off is a prerequisite before any prod seed.
+- Rotate the dev `ANTHROPIC_API_KEY` after E2E completes — it was pasted into chat on 2026-04-19 and is in transcript/terminal history.
 
 **2.5B artifacts on master:**
 
@@ -52,27 +59,28 @@
 
 - `docs/decisions/2026-04-18-cache-breakpoint-on-system-block.md` — `cache_control` placement rationale (`3bbfe40` on master)
 - `docs/decisions/2026-04-18-telemetry-hash-pure-js.md` — Convex V8 bundler forced pure-JS FNV-1a hash over `node:crypto` SHA-256 (`d088a4b` on master)
+- `docs/decisions/2026-04-19-anthropic-sdk-beta-namespace.md` — `betas` body param only valid on `client.beta.messages.create`; regular `messages.create` rejects it (`54ea1ad` on master)
 
-## Test counts at acceptance
+## Test counts at acceptance (refreshed 2026-04-19)
 
-- `pnpm test:convex` — **135 passed** (29 original 2.5A + 28 new mocked-pipeline + existing convex tests)
+- `pnpm test:convex` — **112 passed** (13 suites; mocked Anthropic SDK exposes both `messages.create` and `beta.messages.create` via same spy)
 - `pnpm test:seed` — **19 passed**
-- `pnpm test:claude` (live Anthropic API) — **NOT YET RUN** against a real `ANTHROPIC_API_KEY`; suite is built and `beforeAll` correctly throws without the env var. Test scaffolding verified on 8 synthetic fixtures via mocked suite (Task 16, 28 scenarios). First real-API run happens when the key is wired (prerequisite for prod).
-- `pnpm --filter @onlyou/mobile test` — **149/150 passed** (1 pre-existing flake, not introduced by 2.5B; 44 suites)
+- `pnpm test:claude` (live Anthropic API) — **✅ 8/8 passed** on first real run (2026-04-19, 128s duration, Sonnet 4.6 vision). Surfaced and fixed two real issues: SDK beta-namespace routing + multipage wellness `max_tokens` retry exercise.
+- `pnpm --filter @onlyou/mobile test` — **150/150 passed** (44 suites; prior flake did not fire on re-run)
 - `pnpm -w typecheck` — clean across 6 packages
-- `pnpm -w lint` — only pre-existing Next.js app failures in admin/doctor/landing (unchanged from master)
+- `pnpm -w lint` — clean across 6 packages (admin/doctor/landing lint now invokes `eslint .` directly)
 
 ## Next steps
 
-1. **Manual Convex dashboard E2E** (carry-forward from Task 19 Step 2) — trigger `triggerParseForLabReport` on a fixture PDF from the dashboard; verify `biomarker_reports` + `biomarker_values` rows appear. Best done with an `ANTHROPIC_API_KEY` configured on dev Convex deployment env.
-2. **Wire `ANTHROPIC_API_KEY` and run `pnpm test:claude`** at least once before the 2.5 approval gate to catch prompt drift / model-ID regressions.
-3. **Brainstorm Plan 2.5C** (ingestion + curation + portal contracts).
+1. **Manual Convex dashboard E2E** (carry-forward from Task 19 Step 2) — trigger `admin:triggerParseForLabReport` on a fixture PDF from the Convex dashboard; verify `biomarker_reports` + `biomarker_values` rows appear. `ANTHROPIC_API_KEY` is already set on dev Convex deployment (confirmed 2026-04-19).
+2. **Brainstorm Plan 2.5C** (ingestion + curation + portal contracts).
+3. **Push master to `origin/master`** — 3 commits ahead as of 2026-04-19 (`2f594fc`, `e9bb225`, `54ea1ad`).
 
 ## Branch + worktree
 
-- Master tip: `eaea3b7` (2.5B merge) + post-merge checkpoint commit
-- Phase 2.5B branch: merged and deleted (both remote + local branch removed)
-- Worktree: `D:/onlyou2-phase-2.5b` kept locally for reference; safe to remove once 2.5C is underway
+- Master tip: `54ea1ad` (2026-04-19 SDK beta-namespace fix)
+- Phase 2.5A + 2.5B branches: merged + deleted (local + remote)
+- Worktrees: both unregistered from git on 2026-04-19. Physical dirs `D:/onlyou2-phase-2.5a` and `D:/onlyou2-phase-2.5b` may still exist on disk (Windows file locks held by Metro/editors at cleanup time); safe to `rm -rf` after closing processes.
 
 ## Untracked / gitignored files (leave alone)
 
