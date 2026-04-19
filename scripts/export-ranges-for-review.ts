@@ -216,7 +216,7 @@ ${rows.length} rows across ${cats.length} categories:
 
 ${cats.map(([c, n]) => `- **${c}** — ${n} rows`).join("\n")}
 
-${rows.filter((r) => r.sex !== "any").length} rows are sex-specific (separate male/female rows for the same marker). ${rows.filter((r) => r.pregnancySensitive).length} rows are marked pregnancy-sensitive and should not be applied to pregnant patients (the app auto-skips classification for those).
+${rows.filter((r) => r.sex !== "any").length} rows are sex-specific (separate male/female rows for the same marker). ${rows.filter((r) => r.pregnancySensitive && r.sex !== "male").length} rows cover markers where the normal range is known to shift during pregnancy (pregnancy-sensitive). For safety, the app refuses to classify these markers when a female patient has **not yet told us her pregnancy status** — the value shows as "unclassified" until she confirms. Once she confirms (pregnant or not-pregnant), the single stored range in the CSV below is applied. **Please flag any pregnancy-sensitive marker where you believe a patient who IS confirmed pregnant needs a distinct range** — at the moment we only store one range per marker, and we'd like your guidance on which ones urgently need a dedicated pregnant range.
 
 ## How we classify values — the three-tier system
 
@@ -241,7 +241,7 @@ Some markers don't have a middle "sub-optimal" band at the extreme edge — most
 Each row has three empty columns at the right:
 
 1. **Approve as-is? (Y/N)** — Y if our numbers are fine for the Indian adult population. N if any number needs to change.
-2. **Corrected values (if any)** — e.g. "Optimal 30–100 → 25–80; action ≤ 15 (not ≤ 20); keep sub-optimal implicit."
+2. **Corrected values (if any)** — e.g. "Optimal 30–100 → 25–80; action ≤ 15 (not ≤ 20)" — just write the new numbers. No need to match our exact notation.
 3. **Notes** — anything you want us to know. Population caveats ("only for non-diabetic adults"), source you prefer over ours, edge cases, whether a distinct sub-optimal band should be added for this marker.
 
 ## How to open the CSV

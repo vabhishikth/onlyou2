@@ -31,7 +31,7 @@ ONLYOU is an India-first telehealth platform for stigmatized chronic conditions.
 - **Liver** — 2 rows
 - **Kidney** — 2 rows
 
-27 rows are sex-specific (separate male/female rows for the same marker). 19 rows are marked pregnancy-sensitive and should not be applied to pregnant patients (the app auto-skips classification for those).
+27 rows are sex-specific (separate male/female rows for the same marker). 12 rows cover markers where the normal range is known to shift during pregnancy (pregnancy-sensitive). For safety, the app refuses to classify these markers when a female patient has **not yet told us her pregnancy status** — the value shows as "unclassified" until she confirms. Once she confirms (pregnant or not-pregnant), the single stored range in the CSV below is applied. **Please flag any pregnancy-sensitive marker where you believe a patient who IS confirmed pregnant needs a distinct range** — at the moment we only store one range per marker, and we'd like your guidance on which ones urgently need a dedicated pregnant range.
 
 ## How we classify values — the three-tier system
 
@@ -56,7 +56,7 @@ Some markers don't have a middle "sub-optimal" band at the extreme edge — most
 Each row has three empty columns at the right:
 
 1. **Approve as-is? (Y/N)** — Y if our numbers are fine for the Indian adult population. N if any number needs to change.
-2. **Corrected values (if any)** — e.g. "Optimal 30–100 → 25–80; action ≤ 15 (not ≤ 20); keep sub-optimal implicit."
+2. **Corrected values (if any)** — e.g. "Optimal 30–100 → 25–80; action ≤ 15 (not ≤ 20)" — just write the new numbers. No need to match our exact notation.
 3. **Notes** — anything you want us to know. Population caveats ("only for non-diabetic adults"), source you prefer over ours, edge cases, whether a distinct sub-optimal band should be added for this marker.
 
 ## How to open the CSV
