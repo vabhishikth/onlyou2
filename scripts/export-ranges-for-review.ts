@@ -89,17 +89,31 @@ function main() {
   mkdirSync(OUT_DIR, { recursive: true });
 
   // ---- CSV ----
+  //
+  // Column design: the classifier (convex/biomarker/internal/classifyRow.ts)
+  // uses `value ≤ actionBelow` / `value ≥ actionAbove` as the action bands, and
+  // treats "outside optimal, not in action" as sub-optimal. So the sub-optimal
+  // band is implicit — derived, not looked up from the JSON fields.
+  //
+  // Per docs/decisions/2026-04-18-biomarker-threshold-invariant.md, actionBelow
+  // and subOptimalBelowMin are deliberately allowed to coincide (most clinical
+  // guidelines don't carve out a sub-optimal band at the extreme edge).
+  //
+  // Showing "Sub-optimal (below)" and "Action required (below)" as separate
+  // columns with identical numbers would confuse a reviewer. So we collapse to
+  // three columns that show the derived bands in plain language:
+  //   - Optimal range (inclusive)
+  //   - Sub-optimal when (open intervals flanking optimal)
+  //   - Action required when (closed intervals at the extremes)
   const header = [
     "#",
     "Biomarker",
     "Category",
     "Applies to",
     "Unit",
-    "Optimal range",
-    "Sub-optimal (below)",
-    "Sub-optimal (above)",
-    "Action required (below)",
-    "Action required (above)",
+    "🟢 Optimal range",
+    "🟡 Sub-optimal when value is",
+    "🔴 Action required when value is",
     "Our explainer (patient-facing)",
     "Our source",
     "Approve as-is? (Y/N)",
@@ -110,16 +124,42 @@ function main() {
   const lines: string[] = [toCsvRow(header)];
 
   rows.forEach((r, i) => {
-    const optimal =
-      r.optimalMin !== null && r.optimalMax !== null
-        ? `${r.optimalMin}–${r.optimalMax}`
-        : "qualitative";
-    const subBelow =
-      r.subOptimalBelowMin !== null ? `< ${r.subOptimalBelowMin}` : "—";
-    const subAbove =
-      r.subOptimalAboveMax !== null ? `> ${r.subOptimalAboveMax}` : "—";
-    const actBelow = r.actionBelow !== null ? `< ${r.actionBelow}` : "—";
-    const actAbove = r.actionAbove !== null ? `> ${r.actionAbove}` : "—";
+    // Qualitative rows have all six thresholds null (e.g. serology positive/negative)
+    const isQualitative =
+      r.optimalMin === null &&
+      r.optimalMax === null &&
+      r.actionBelow === null &&
+      r.actionAbove === null;
+
+    let optimal: string;
+    let subOptimal: string;
+    let action: string;
+
+    if (isQualitative) {
+      optimal = "qualitative — see explainer";
+      subOptimal = "qualitative — see explainer";
+      action = "qualitative — see explainer";
+    } else {
+      optimal = `${r.optimalMin} to ${r.optimalMax} (inclusive)`;
+
+      const subParts: string[] = [];
+      if (r.actionBelow !== null && r.optimalMin !== null) {
+        subParts.push(`> ${r.actionBelow} and < ${r.optimalMin}`);
+      } else if (r.optimalMin !== null) {
+        subParts.push(`< ${r.optimalMin}`);
+      }
+      if (r.actionAbove !== null && r.optimalMax !== null) {
+        subParts.push(`> ${r.optimalMax} and < ${r.actionAbove}`);
+      } else if (r.optimalMax !== null) {
+        subParts.push(`> ${r.optimalMax}`);
+      }
+      subOptimal = subParts.length > 0 ? subParts.join(", or ") : "—";
+
+      const actParts: string[] = [];
+      if (r.actionBelow !== null) actParts.push(`≤ ${r.actionBelow}`);
+      if (r.actionAbove !== null) actParts.push(`≥ ${r.actionAbove}`);
+      action = actParts.length > 0 ? actParts.join(" or ") : "—";
+    }
 
     lines.push(
       toCsvRow([
@@ -129,10 +169,8 @@ function main() {
         appliesTo(r),
         r.canonicalUnit,
         optimal,
-        subBelow,
-        subAbove,
-        actBelow,
-        actAbove,
+        subOptimal,
+        action,
         r.explainer,
         r.source,
         "", // Approve
@@ -180,13 +218,31 @@ ${cats.map(([c, n]) => `- **${c}** — ${n} rows`).join("\n")}
 
 ${rows.filter((r) => r.sex !== "any").length} rows are sex-specific (separate male/female rows for the same marker). ${rows.filter((r) => r.pregnancySensitive).length} rows are marked pregnancy-sensitive and should not be applied to pregnant patients (the app auto-skips classification for those).
 
+## How we classify values — the three-tier system
+
+Every numeric biomarker is classified into one of three tiers:
+
+- 🟢 **Optimal** — value is inside the healthy range.
+- 🟡 **Sub-optimal** — value is outside optimal but not yet in the action band.
+- 🔴 **Action required** — value crosses a clinical threshold that warrants doctor attention.
+
+Example for Vitamin D (ng/mL):
+
+| Value           | Tier             |
+| --------------- | ---------------- |
+| 30–100          | 🟢 optimal        |
+| 21–29 or 101–149 | 🟡 sub-optimal    |
+| ≤ 20 or ≥ 150    | 🔴 action required |
+
+Some markers don't have a middle "sub-optimal" band at the extreme edge — most clinical guidelines define a single cutoff where the value becomes "worth flagging" AND "worth acting on." That's clinically legitimate and not a bug. You're free to _widen_ the gap on any specific marker if you think a distinct sub-optimal band is warranted.
+
 ## Columns you fill in
 
 Each row has three empty columns at the right:
 
 1. **Approve as-is? (Y/N)** — Y if our numbers are fine for the Indian adult population. N if any number needs to change.
-2. **Corrected values (if any)** — e.g. "Optimal 30–100 → 25–80; sub-optimal below 25; action below 20."
-3. **Notes** — anything you want us to know. Population caveats ("only for non-diabetic adults"), source you prefer over ours, edge cases.
+2. **Corrected values (if any)** — e.g. "Optimal 30–100 → 25–80; action ≤ 15 (not ≤ 20); keep sub-optimal implicit."
+3. **Notes** — anything you want us to know. Population caveats ("only for non-diabetic adults"), source you prefer over ours, edge cases, whether a distinct sub-optimal band should be added for this marker.
 
 ## How to open the CSV
 

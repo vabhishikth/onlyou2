@@ -33,13 +33,31 @@ ONLYOU is an India-first telehealth platform for stigmatized chronic conditions.
 
 27 rows are sex-specific (separate male/female rows for the same marker). 19 rows are marked pregnancy-sensitive and should not be applied to pregnant patients (the app auto-skips classification for those).
 
+## How we classify values — the three-tier system
+
+Every numeric biomarker is classified into one of three tiers:
+
+- 🟢 **Optimal** — value is inside the healthy range.
+- 🟡 **Sub-optimal** — value is outside optimal but not yet in the action band.
+- 🔴 **Action required** — value crosses a clinical threshold that warrants doctor attention.
+
+Example for Vitamin D (ng/mL):
+
+| Value            | Tier               |
+| ---------------- | ------------------ |
+| 30–100           | 🟢 optimal         |
+| 21–29 or 101–149 | 🟡 sub-optimal     |
+| ≤ 20 or ≥ 150    | 🔴 action required |
+
+Some markers don't have a middle "sub-optimal" band at the extreme edge — most clinical guidelines define a single cutoff where the value becomes "worth flagging" AND "worth acting on." That's clinically legitimate and not a bug. You're free to _widen_ the gap on any specific marker if you think a distinct sub-optimal band is warranted.
+
 ## Columns you fill in
 
 Each row has three empty columns at the right:
 
 1. **Approve as-is? (Y/N)** — Y if our numbers are fine for the Indian adult population. N if any number needs to change.
-2. **Corrected values (if any)** — e.g. "Optimal 30–100 → 25–80; sub-optimal below 25; action below 20."
-3. **Notes** — anything you want us to know. Population caveats ("only for non-diabetic adults"), source you prefer over ours, edge cases.
+2. **Corrected values (if any)** — e.g. "Optimal 30–100 → 25–80; action ≤ 15 (not ≤ 20); keep sub-optimal implicit."
+3. **Notes** — anything you want us to know. Population caveats ("only for non-diabetic adults"), source you prefer over ours, edge cases, whether a distinct sub-optimal band should be added for this marker.
 
 ## How to open the CSV
 
