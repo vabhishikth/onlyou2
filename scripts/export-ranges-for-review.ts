@@ -218,6 +218,8 @@ ${cats.map(([c, n]) => `- **${c}** — ${n} rows`).join("\n")}
 
 ${rows.filter((r) => r.sex !== "any").length} rows are sex-specific (separate male/female rows for the same marker). ${rows.filter((r) => r.pregnancySensitive && r.sex !== "male").length} rows cover markers where the normal range is known to shift during pregnancy (pregnancy-sensitive). For safety, the app refuses to classify these markers when a female patient has **not yet told us her pregnancy status** — the value shows as "unclassified" until she confirms. Once she confirms (pregnant or not-pregnant), the single stored range in the CSV below is applied. **Please flag any pregnancy-sensitive marker where you believe a patient who IS confirmed pregnant needs a distinct range** — at the moment we only store one range per marker, and we'd like your guidance on which ones urgently need a dedicated pregnant range.
 
+**Age stratification — currently NOT differentiated.** Every row is set to apply to adults 18–120 with a single range. The app's data model supports age-stratified rows (e.g. separate ranges for 18–49 and 50+), but we have not split any marker yet. Several markers arguably need it — TSH, total testosterone, DHEA-S, IGF-1, and fasting glucose/HbA1c all drift with age. **In the Notes column of any row where you think age-stratification is clinically necessary, please write the proposed age bands and ranges** (e.g. "18–49: optimal 300–1000; 50+: optimal 250–900"). We will add the extra rows to the data model from your guidance. For markers where one adult range is clinically acceptable, leave Notes blank.
+
 ## How we classify values — the three-tier system
 
 Every numeric biomarker is classified into one of three tiers:
