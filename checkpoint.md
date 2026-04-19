@@ -12,9 +12,9 @@
 **⚠️ Carry-forward items before prod:**
 
 - ~~`pnpm test:claude` live suite has never been run~~ → **✅ RAN 2026-04-19, 8/8 pass**. First time with a real `ANTHROPIC_API_KEY`.
-- Manual Convex dashboard E2E (Task 19 Step 2) — user has not yet run `admin:triggerParseForLabReport` against a fixture PDF from the dashboard UI.
+- **Manual Convex dashboard E2E → deferred to Phase 2.5C** (entry in `docs/DEFERRED.md`). Pre-`intakeUpload`, manual setup is ~10 min of dashboard clicking per run; post-`intakeUpload` (2.5C) it becomes the real patient upload flow. Hard gate before Phase 2.5D approval.
 - 45 reference-range rows remain `DRAFT — pending review`. Clinical advisor sign-off is a prerequisite before any prod seed.
-- Rotate the dev `ANTHROPIC_API_KEY` after E2E completes — it was pasted into chat on 2026-04-19 and is in transcript/terminal history.
+- Rotate the dev `ANTHROPIC_API_KEY` — pasted into chat on 2026-04-19; lives in transcript/terminal history. Entry in `docs/DEFERRED.md` — do anytime after 2.5 approval gate.
 
 **2.5B artifacts on master:**
 
@@ -72,9 +72,9 @@
 
 ## Next steps
 
-1. **Manual Convex dashboard E2E** (carry-forward from Task 19 Step 2) — trigger `admin:triggerParseForLabReport` on a fixture PDF from the Convex dashboard; verify `biomarker_reports` + `biomarker_values` rows appear. `ANTHROPIC_API_KEY` is already set on dev Convex deployment (confirmed 2026-04-19).
-2. **Brainstorm Plan 2.5C** (ingestion + curation + portal contracts).
-3. **Push master to `origin/master`** — 3 commits ahead as of 2026-04-19 (`2f594fc`, `e9bb225`, `54ea1ad`).
+1. **Brainstorm Plan 2.5C** (ingestion + curation + portal contracts). **← next session starts here.** Brainstorm must review `docs/DEFERRED.md` first — several items land in this phase (manual E2E, I-3 few-shot examples, M-2 telemetry, M-5–M-7 hygiene).
+2. **Push master to `origin/master`** — multiple commits ahead as of 2026-04-19 (`e9bb225`, `54ea1ad`, `2546c6e`, plus this doc update).
+3. Manual Convex dashboard E2E — deferred to 2.5C per `docs/DEFERRED.md`. Will be exercised via the real `intakeUpload` action once 2.5C ships it.
 
 ## Branch + worktree
 
