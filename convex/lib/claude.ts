@@ -154,7 +154,7 @@ export async function callExtraction(
     content: parseMessageContent,
   };
 
-  const response = (await client.messages.create({
+  const response = (await client.beta.messages.create({
     model: MODEL_EXTRACTION,
     max_tokens: input.maxTokens ?? 4096,
     system: [
@@ -170,7 +170,7 @@ export async function callExtraction(
     messages: [...fewShotMessages, parseMessage],
     betas: [BETA_HEADER_EXTENDED_CACHE],
   } as unknown as Parameters<
-    typeof client.messages.create
+    typeof client.beta.messages.create
   >[0])) as unknown as RawClaudeResponse;
 
   // Surface stop_reason to the caller via a thrown error if truncated;

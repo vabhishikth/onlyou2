@@ -10,13 +10,17 @@ import {
 } from "../../lib/claude";
 
 // Mock the Anthropic SDK
+// callExtraction uses client.beta.messages.create (for the `betas` body param);
+// callNarrative uses client.messages.create. Both surfaces are mocked to the
+// same vi.fn so assertions in either path work against __createMock.
 vi.mock("@anthropic-ai/sdk", () => {
   const createMock = vi.fn();
-  // Must use a real function/class so `new Anthropic()` works in the impl
   function AnthropicMock(this: {
     messages: { create: ReturnType<typeof vi.fn> };
+    beta: { messages: { create: ReturnType<typeof vi.fn> } };
   }) {
     this.messages = { create: createMock };
+    this.beta = { messages: { create: createMock } };
   }
   return {
     default: AnthropicMock,

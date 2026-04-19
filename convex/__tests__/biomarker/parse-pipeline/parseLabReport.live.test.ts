@@ -4,8 +4,10 @@ import { join } from "node:path";
 
 import { describe, it, expect, beforeAll } from "vitest";
 
-import { ExtractionSchema } from "../../../biomarker/internal/extractMarkers";
-import { callExtraction } from "../../../lib/claude";
+import {
+  ExtractionSchema,
+  extractMarkersWithRetry,
+} from "../../../biomarker/internal/extractMarkers";
 
 const FIXTURES = [
   {
@@ -56,7 +58,7 @@ describe("parseLabReport — live Anthropic API (8 synthetic fixtures)", () => {
       const pdfBase64 = (
         await readFile(join(__dirname, "../fixtures/lab-reports", fix.file))
       ).toString("base64");
-      const response = await callExtraction({
+      const { response } = await extractMarkersWithRetry({
         pdfBase64,
         pdfMimeType: "application/pdf",
       });
