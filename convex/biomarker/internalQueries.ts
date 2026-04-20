@@ -83,6 +83,7 @@ export const findReferenceRangeId = internalQuery({
       .collect();
     const m = rows.find(
       (r) =>
+        r.isActive &&
         age >= r.ageMin &&
         age <= r.ageMax &&
         (r.sex === sex || r.sex === "any"),
