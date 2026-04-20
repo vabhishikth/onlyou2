@@ -13,6 +13,7 @@ import type * as auth_otp from "../auth/otp.js";
 import type * as auth_otpDb from "../auth/otpDb.js";
 import type * as auth_sender from "../auth/sender.js";
 import type * as auth_sessions from "../auth/sessions.js";
+import type * as biomarker_intakeUpload from "../biomarker/intakeUpload.js";
 import type * as biomarker_internalMutations from "../biomarker/internalMutations.js";
 import type * as biomarker_internalQueries from "../biomarker/internalQueries.js";
 import type * as biomarker_internal_classifyRow from "../biomarker/internal/classifyRow.js";
@@ -24,8 +25,10 @@ import type * as biomarker_internal_retryScheduler from "../biomarker/internal/r
 import type * as biomarker_internal_seedRanges from "../biomarker/internal/seedRanges.js";
 import type * as biomarker_internal_upsertCurationRow from "../biomarker/internal/upsertCurationRow.js";
 import type * as biomarker_lib_createLabReport from "../biomarker/lib/createLabReport.js";
+import type * as biomarker_lib_normalizeKey from "../biomarker/lib/normalizeKey.js";
 import type * as biomarker_lib_rateLimits from "../biomarker/lib/rateLimits.js";
 import type * as biomarker_parseLabReport from "../biomarker/parseLabReport.js";
+import type * as biomarker_retryParseLabReport from "../biomarker/retryParseLabReport.js";
 import type * as crons from "../crons.js";
 import type * as featureFlags from "../featureFlags.js";
 import type * as lib_claude from "../lib/claude.js";
@@ -45,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   "auth/otpDb": typeof auth_otpDb;
   "auth/sender": typeof auth_sender;
   "auth/sessions": typeof auth_sessions;
+  "biomarker/intakeUpload": typeof biomarker_intakeUpload;
   "biomarker/internalMutations": typeof biomarker_internalMutations;
   "biomarker/internalQueries": typeof biomarker_internalQueries;
   "biomarker/internal/classifyRow": typeof biomarker_internal_classifyRow;
@@ -56,8 +60,10 @@ declare const fullApi: ApiFromModules<{
   "biomarker/internal/seedRanges": typeof biomarker_internal_seedRanges;
   "biomarker/internal/upsertCurationRow": typeof biomarker_internal_upsertCurationRow;
   "biomarker/lib/createLabReport": typeof biomarker_lib_createLabReport;
+  "biomarker/lib/normalizeKey": typeof biomarker_lib_normalizeKey;
   "biomarker/lib/rateLimits": typeof biomarker_lib_rateLimits;
   "biomarker/parseLabReport": typeof biomarker_parseLabReport;
+  "biomarker/retryParseLabReport": typeof biomarker_retryParseLabReport;
   crons: typeof crons;
   featureFlags: typeof featureFlags;
   "lib/claude": typeof lib_claude;
