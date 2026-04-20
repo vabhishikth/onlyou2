@@ -36,6 +36,7 @@ import { generateNarrativeWithGuard } from "./internal/generateNarrative";
 import { matchPatientName } from "./internal/matchPatientName";
 import { computeNextRetry } from "./internal/retryScheduler";
 import { normalizeKey } from "./lib/normalizeKey";
+import { writeNotificationFromAction } from "./lib/notifications";
 
 export const parseLabReport = internalAction({
   args: { labReportId: v.id("lab_reports") },
@@ -316,6 +317,12 @@ export const parseLabReport = internalAction({
       now,
     });
 
+    await writeNotificationFromAction(ctx, "lab_report_ready", {
+      userId: labReport.userId,
+      biomarkerReportId,
+      labReportId,
+    });
+
     logParseEvent({
       level: "info",
       labReportId,
@@ -342,6 +349,10 @@ async function terminalFail(
     labReportId,
     errorCode,
     now,
+  });
+  await writeNotificationFromAction(ctx, "lab_report_parse_failed", {
+    userId: labReport.userId,
+    labReportId,
   });
   logParseEvent({
     level: errorCode === "api_bad_request" ? "error" : "info",
