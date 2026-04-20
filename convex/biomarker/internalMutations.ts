@@ -181,3 +181,48 @@ export const claimRetryCandidates = internalMutation({
     return claimed;
   },
 });
+
+export const insertLabReportRow = internalMutation({
+  args: {
+    userId: v.id("users"),
+    source: v.union(
+      v.literal("patient_upload"),
+      v.literal("lab_upload"),
+      v.literal("nurse_flow"),
+    ),
+    labOrderId: v.optional(v.id("lab_orders")),
+    fileId: v.id("_storage"),
+    mimeType: v.union(
+      v.literal("application/pdf"),
+      v.literal("image/jpeg"),
+      v.literal("image/png"),
+    ),
+    fileSizeBytes: v.number(),
+    contentHash: v.string(),
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const labReportId = await ctx.db.insert("lab_reports", {
+      userId: args.userId,
+      source: args.source,
+      labOrderId: args.labOrderId,
+      fileId: args.fileId,
+      mimeType: args.mimeType,
+      fileSizeBytes: args.fileSizeBytes,
+      contentHash: args.contentHash,
+      status: "uploaded",
+      retryCount: 0,
+      userRetryCount: 0,
+      createdAt: args.now,
+    });
+    // If lab/nurse source with order, link + flip order state
+    if (args.labOrderId && args.source !== "patient_upload") {
+      await ctx.db.patch(args.labOrderId, {
+        labReportId,
+        status: "results_uploaded",
+        updatedAt: args.now,
+      });
+    }
+    return { labReportId };
+  },
+});
