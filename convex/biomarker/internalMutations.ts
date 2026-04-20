@@ -210,3 +210,31 @@ export const insertLabReportRow = internalMutation({
     return { labReportId };
   },
 });
+
+export const writeNotification = internalMutation({
+  args: {
+    userId: v.id("users"),
+    kind: v.union(
+      v.literal("lab_report_ready"),
+      v.literal("lab_report_parse_failed"),
+      v.literal("lab_report_updated"),
+      v.literal("lab_report_uploaded_for_you"),
+    ),
+    biomarkerReportId: v.optional(v.id("biomarker_reports")),
+    labReportId: v.optional(v.id("lab_reports")),
+    title: v.string(),
+    body: v.string(),
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("notifications", {
+      userId: args.userId,
+      kind: args.kind,
+      biomarkerReportId: args.biomarkerReportId,
+      labReportId: args.labReportId,
+      title: args.title,
+      body: args.body,
+      createdAt: args.now,
+    });
+  },
+});

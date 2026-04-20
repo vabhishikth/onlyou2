@@ -26,6 +26,7 @@ import type * as biomarker_internal_seedRanges from "../biomarker/internal/seedR
 import type * as biomarker_internal_upsertCurationRow from "../biomarker/internal/upsertCurationRow.js";
 import type * as biomarker_lib_createLabReport from "../biomarker/lib/createLabReport.js";
 import type * as biomarker_lib_normalizeKey from "../biomarker/lib/normalizeKey.js";
+import type * as biomarker_lib_notifications from "../biomarker/lib/notifications.js";
 import type * as biomarker_lib_rateLimits from "../biomarker/lib/rateLimits.js";
 import type * as biomarker_parseLabReport from "../biomarker/parseLabReport.js";
 import type * as biomarker_retryParseLabReport from "../biomarker/retryParseLabReport.js";
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   "biomarker/internal/upsertCurationRow": typeof biomarker_internal_upsertCurationRow;
   "biomarker/lib/createLabReport": typeof biomarker_lib_createLabReport;
   "biomarker/lib/normalizeKey": typeof biomarker_lib_normalizeKey;
+  "biomarker/lib/notifications": typeof biomarker_lib_notifications;
   "biomarker/lib/rateLimits": typeof biomarker_lib_rateLimits;
   "biomarker/parseLabReport": typeof biomarker_parseLabReport;
   "biomarker/retryParseLabReport": typeof biomarker_retryParseLabReport;
