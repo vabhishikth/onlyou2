@@ -132,6 +132,7 @@ export const insertBiomarkerValue = internalMutation({
     pageNumber: v.optional(v.number()),
     confidence: v.optional(v.number()),
     classifiedAt: v.number(),
+    normalizedKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => await ctx.db.insert("biomarker_values", args),
 });

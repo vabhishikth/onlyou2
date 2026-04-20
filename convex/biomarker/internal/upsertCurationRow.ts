@@ -2,11 +2,15 @@
 //
 // Inserts or increments a biomarker_curation_queue row for every marker
 // extracted that did not classify against the reference DB. Idempotent on
-// normalizedKey = normalize(nameOnReport) + "|" + normalize(rawUnit).
+// normalizedKey = normalizeKey(nameOnReport, rawUnit) — see
+// ../lib/normalizeKey.ts. The shared helper is also used by parseLabReport
+// when persisting biomarker_values rows so that a queue row and its
+// contributing value rows resolve to the same key.
 
 import { v } from "convex/values";
 
 import { internalMutation } from "../../_generated/server";
+import { normalizeKey } from "../lib/normalizeKey";
 
 export const upsertCurationRow = internalMutation({
   args: {
@@ -17,7 +21,7 @@ export const upsertCurationRow = internalMutation({
     now: v.number(),
   },
   handler: async (ctx, args) => {
-    const normalizedKey = normalize(args.nameOnReport, args.rawUnit);
+    const normalizedKey = normalizeKey(args.nameOnReport, args.rawUnit);
     const existing = await ctx.db
       .query("biomarker_curation_queue")
       .withIndex("by_normalized_key", (q) =>
@@ -45,15 +49,3 @@ export const upsertCurationRow = internalMutation({
     });
   },
 });
-
-function normalize(name: string, unit: string | undefined): string {
-  const n = name
-    .toLowerCase()
-    .replace(/\s+/g, "_")
-    .replace(/[^a-z0-9_]/g, "");
-  const u = (unit ?? "none")
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/[^a-z0-9/%_.-]/g, "");
-  return `${n}|${u}`;
-}

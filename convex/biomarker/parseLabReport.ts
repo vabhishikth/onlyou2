@@ -35,6 +35,7 @@ import {
 import { generateNarrativeWithGuard } from "./internal/generateNarrative";
 import { matchPatientName } from "./internal/matchPatientName";
 import { computeNextRetry } from "./internal/retryScheduler";
+import { normalizeKey } from "./lib/normalizeKey";
 
 export const parseLabReport = internalAction({
   args: { labReportId: v.id("lab_reports") },
@@ -235,6 +236,13 @@ export const parseLabReport = internalAction({
           pageNumber: marker.page_number,
           confidence: marker.confidence,
           classifiedAt: now,
+          normalizedKey:
+            result.unclassifiedReason === "not_in_reference_db"
+              ? normalizeKey(
+                  marker.name_on_report,
+                  marker.raw_unit ?? undefined,
+                )
+              : undefined,
         },
       );
       switch (result.status) {
