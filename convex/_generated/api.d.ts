@@ -23,7 +23,10 @@ import type * as biomarker_internal_normalizeUnit from "../biomarker/internal/no
 import type * as biomarker_internal_retryScheduler from "../biomarker/internal/retryScheduler.js";
 import type * as biomarker_internal_seedRanges from "../biomarker/internal/seedRanges.js";
 import type * as biomarker_internal_upsertCurationRow from "../biomarker/internal/upsertCurationRow.js";
+import type * as biomarker_lib_createLabReport from "../biomarker/lib/createLabReport.js";
+import type * as biomarker_lib_rateLimits from "../biomarker/lib/rateLimits.js";
 import type * as biomarker_parseLabReport from "../biomarker/parseLabReport.js";
+import type * as crons from "../crons.js";
 import type * as featureFlags from "../featureFlags.js";
 import type * as lib_claude from "../lib/claude.js";
 import type * as lib_telemetry from "../lib/telemetry.js";
@@ -52,7 +55,10 @@ declare const fullApi: ApiFromModules<{
   "biomarker/internal/retryScheduler": typeof biomarker_internal_retryScheduler;
   "biomarker/internal/seedRanges": typeof biomarker_internal_seedRanges;
   "biomarker/internal/upsertCurationRow": typeof biomarker_internal_upsertCurationRow;
+  "biomarker/lib/createLabReport": typeof biomarker_lib_createLabReport;
+  "biomarker/lib/rateLimits": typeof biomarker_lib_rateLimits;
   "biomarker/parseLabReport": typeof biomarker_parseLabReport;
+  crons: typeof crons;
   featureFlags: typeof featureFlags;
   "lib/claude": typeof lib_claude;
   "lib/telemetry": typeof lib_telemetry;

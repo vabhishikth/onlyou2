@@ -18,7 +18,7 @@ import { v } from "convex/values";
 
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
-import { action } from "../_generated/server";
+import { internalAction } from "../_generated/server";
 import type { ActionCtx } from "../_generated/server";
 import { MODEL_EXTRACTION } from "../lib/claude";
 import { logParseEvent } from "../lib/telemetry";
@@ -36,7 +36,7 @@ import { generateNarrativeWithGuard } from "./internal/generateNarrative";
 import { matchPatientName } from "./internal/matchPatientName";
 import { computeNextRetry } from "./internal/retryScheduler";
 
-export const parseLabReport = action({
+export const parseLabReport = internalAction({
   args: { labReportId: v.id("lab_reports") },
   handler: async (ctx, { labReportId }): Promise<{ outcome: string }> => {
     const now = Date.now();

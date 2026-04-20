@@ -1,4 +1,4 @@
-import { api, internal } from "../../_generated/api";
+import { internal } from "../../_generated/api";
 import type { Id } from "../../_generated/dataModel";
 import type { ActionCtx, MutationCtx } from "../../_generated/server";
 
@@ -74,10 +74,13 @@ export async function createLabReportFromMutation(
   validateSizeAndMime(args);
   const now = Date.now();
   const labReportId = await insertLabReportRowInline(ctx, args, now);
-  // TODO(Task-4): flip to internal.biomarker.parseLabReport.parseLabReport once parseLabReport is internalAction
-  await ctx.scheduler.runAfter(0, api.biomarker.parseLabReport.parseLabReport, {
-    labReportId,
-  });
+  await ctx.scheduler.runAfter(
+    0,
+    internal.biomarker.parseLabReport.parseLabReport,
+    {
+      labReportId,
+    },
+  );
   return { labReportId };
 }
 
@@ -95,9 +98,12 @@ export async function createLabReportFromAction(
     internal.biomarker.internalMutations.insertLabReportRow,
     { ...args, now },
   );
-  // TODO(Task-4): flip to internal.biomarker.parseLabReport.parseLabReport once parseLabReport is internalAction
-  await ctx.scheduler.runAfter(0, api.biomarker.parseLabReport.parseLabReport, {
-    labReportId,
-  });
+  await ctx.scheduler.runAfter(
+    0,
+    internal.biomarker.parseLabReport.parseLabReport,
+    {
+      labReportId,
+    },
+  );
   return { labReportId };
 }

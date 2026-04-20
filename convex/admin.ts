@@ -12,7 +12,7 @@
 
 import { v } from "convex/values";
 
-import { api } from "./_generated/api";
+import { internal } from "./_generated/api";
 import { internalMutation } from "./_generated/server";
 
 const PROD_DEPLOYMENT_PATTERNS = [
@@ -36,7 +36,7 @@ export const triggerParseForLabReport = internalMutation({
     assertNotProd();
     await ctx.scheduler.runAfter(
       0,
-      api.biomarker.parseLabReport.parseLabReport,
+      internal.biomarker.parseLabReport.parseLabReport,
       { labReportId },
     );
     return { scheduled: true };
