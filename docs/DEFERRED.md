@@ -296,6 +296,10 @@ _(populated when Phase 3 brainstorm begins)_
 
 - Photo upload needs a real bottom-sheet picker ("Take photo" / "Choose from library") backed by `expo-image-picker`, replacing the mocked camera-only route. See Phase 2C walkthrough findings above for context.
 
+**Carry-forward from Plan 2.5C post-merge review (2026-04-20):**
+
+- **`PENDING_HASH_PREFIX` filter on `lab_reports.by_user_hash` queries.** Any future consumer that queries `lab_reports` by `contentHash` (patient dedupe UI, re-upload collision warnings, admin reports) MUST filter out rows whose `contentHash` starts with `PENDING_HASH_PREFIX` (`"pending:"`, exported from `convex/biomarker/lib/createLabReport.ts`). **Why:** `intakeUpload` writes a `pending:<fileId>` placeholder into `contentHash` until `parseLabReport` fills the authoritative SHA-256 during the parse pass. Without the filter, a legitimate re-upload during the brief insert→parse window would false-match the placeholder and trigger a spurious dedupe hit. **How:** `.filter((q) => !q.field("contentHash").startsWith(PENDING_HASH_PREFIX))` or equivalent client-side guard. **Destination:** Phase 3 (Hair Loss) — the earliest phase that would plausibly expose dedupe UI to patients after repeated lab uploads. If a Phase 5 admin report lands first, apply the same filter there.
+
 ---
 
 ## Phase 5 — Admin portal

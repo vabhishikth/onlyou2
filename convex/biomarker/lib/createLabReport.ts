@@ -14,6 +14,15 @@ export interface CreateLabReportArgs {
 
 export const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 
+/**
+ * Prefix for lab_reports.contentHash values that are placeholders pending
+ * authoritative server-side SHA-256 computation in parseLabReport.
+ * Any future query on lab_reports.by_user_hash MUST filter out rows whose
+ * contentHash starts with this prefix, otherwise legitimate re-uploads
+ * during the brief insert→parse window will trigger spurious dedupe hits.
+ */
+export const PENDING_HASH_PREFIX = "pending:";
+
 export function validateSizeAndMime(
   args: Pick<CreateLabReportArgs, "fileSizeBytes" | "mimeType">,
 ): void {

@@ -15,13 +15,13 @@
 
 import { ConvexError, v } from "convex/values";
 
-import type { Id } from "../_generated/dataModel";
 import { mutation } from "../_generated/server";
 import { logParseEvent } from "../lib/telemetry";
 
 import {
   createLabReportFromMutation,
   MAX_FILE_SIZE_BYTES,
+  PENDING_HASH_PREFIX,
 } from "./lib/createLabReport";
 import {
   istDayBucket,
@@ -34,6 +34,7 @@ import {
 
 export const intakeUpload = mutation({
   args: {
+    token: v.string(),
     fileId: v.id("_storage"),
     mimeType: v.union(
       v.literal("application/pdf"),
@@ -45,12 +46,19 @@ export const intakeUpload = mutation({
     labOrderId: v.optional(v.id("lab_orders")),
   },
   handler: async (ctx, args) => {
-    // 1. Auth.
-    const ident = await ctx.auth.getUserIdentity();
-    if (!ident) {
+    // 1. Auth — session-token lookup (matches users.ts pattern; ONLYOU v2
+    //    never wired Convex's built-in identity bridge).
+    const session = await ctx.db
+      .query("sessions")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique();
+    if (!session) {
       throw new ConvexError({ code: "unauthenticated" });
     }
-    const userId = ident.subject as Id<"users">;
+    if (session.expiresAt < Date.now()) {
+      throw new ConvexError({ code: "unauthenticated" });
+    }
+    const userId = session.userId;
 
     // 2. Kill-switch (shipped in 2.5A).
     const flag = await ctx.db
@@ -106,7 +114,7 @@ export const intakeUpload = mutation({
     //    the authoritative SHA-256 is computed server-side during
     //    parseLabReport (see 2.5B). We store a `pending:<fileId>` proxy
     //    so the row is valid but dedupe can’t false-match a real hash.
-    const contentHashProxy = `pending:${args.fileId}`;
+    const contentHashProxy = `${PENDING_HASH_PREFIX}${args.fileId}`;
 
     // 6. Insert lab_report + schedule parse via the shared helper.
     const { labReportId } = await createLabReportFromMutation(ctx, {
