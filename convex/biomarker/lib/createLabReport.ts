@@ -27,17 +27,17 @@ export function validateSizeAndMime(
 }
 
 /**
- * Called from a mutation handler. Inserts lab_reports row and schedules
- * parseLabReport. Rate-limit checks happen in the CALLER, not here —
- * this helper is shared across patient + lab + nurse surfaces and only
- * patient uploads are rate-limited.
+ * Shared write path used by both createLabReportFromMutation (direct) and
+ * insertLabReportRow internalMutation (via ctx.runMutation). Keeps the
+ * insert + optional lab-order patch in one place so schema changes touch
+ * one site, not two. Callers pass an explicit `now` so the internal
+ * mutation can forward the arg it received.
  */
-export async function createLabReportFromMutation(
+export async function insertLabReportRowInline(
   ctx: MutationCtx,
   args: CreateLabReportArgs,
-): Promise<{ labReportId: Id<"lab_reports"> }> {
-  validateSizeAndMime(args);
-  const now = Date.now();
+  now: number,
+): Promise<Id<"lab_reports">> {
   const labReportId = await ctx.db.insert("lab_reports", {
     userId: args.userId,
     source: args.source,
@@ -58,6 +58,22 @@ export async function createLabReportFromMutation(
       updatedAt: now,
     });
   }
+  return labReportId;
+}
+
+/**
+ * Called from a mutation handler. Inserts lab_reports row and schedules
+ * parseLabReport. Rate-limit checks happen in the CALLER, not here —
+ * this helper is shared across patient + lab + nurse surfaces and only
+ * patient uploads are rate-limited.
+ */
+export async function createLabReportFromMutation(
+  ctx: MutationCtx,
+  args: CreateLabReportArgs,
+): Promise<{ labReportId: Id<"lab_reports"> }> {
+  validateSizeAndMime(args);
+  const now = Date.now();
+  const labReportId = await insertLabReportRowInline(ctx, args, now);
   // TODO(Task-4): flip to internal.biomarker.parseLabReport.parseLabReport once parseLabReport is internalAction
   await ctx.scheduler.runAfter(0, api.biomarker.parseLabReport.parseLabReport, {
     labReportId,

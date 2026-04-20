@@ -3,6 +3,8 @@ import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { internalMutation } from "../_generated/server";
 
+import { insertLabReportRowInline } from "./lib/createLabReport";
+
 export const markAnalyzing = internalMutation({
   args: { labReportId: v.id("lab_reports"), now: v.number() },
   handler: async (ctx, { labReportId, now }) => {
@@ -202,27 +204,8 @@ export const insertLabReportRow = internalMutation({
     now: v.number(),
   },
   handler: async (ctx, args) => {
-    const labReportId = await ctx.db.insert("lab_reports", {
-      userId: args.userId,
-      source: args.source,
-      labOrderId: args.labOrderId,
-      fileId: args.fileId,
-      mimeType: args.mimeType,
-      fileSizeBytes: args.fileSizeBytes,
-      contentHash: args.contentHash,
-      status: "uploaded",
-      retryCount: 0,
-      userRetryCount: 0,
-      createdAt: args.now,
-    });
-    // If lab/nurse source with order, link + flip order state
-    if (args.labOrderId && args.source !== "patient_upload") {
-      await ctx.db.patch(args.labOrderId, {
-        labReportId,
-        status: "results_uploaded",
-        updatedAt: args.now,
-      });
-    }
+    const { now, ...rest } = args;
+    const labReportId = await insertLabReportRowInline(ctx, rest, now);
     return { labReportId };
   },
 });
