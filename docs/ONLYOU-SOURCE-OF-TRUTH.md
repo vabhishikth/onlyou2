@@ -3,7 +3,7 @@
 **Last Updated:** April 13, 2026
 **Purpose:** This is the single canonical reference for all enums, pricing, SLAs, transitions, privacy rules, tech decisions, and business logic. When any other document conflicts with this file, **this file wins.**
 
-**How this was produced:** Every value was cross-referenced across 40+ spec documents, companion `-CHANGES.md` files, and the `backend-errors-report.md`. Where conflicts existed, the resolution follows the document hierarchy defined in CLAUDE.md §2: ARCHITECTURE.md > docs/changes/*.md > onlyou-spec-resolved-v4.md > VERTICAL-*.md > CLAUDE.md.
+**How this was produced:** Every value was cross-referenced across 40+ spec documents, companion `-CHANGES.md` files, and the `backend-errors-report.md`. Where conflicts existed, the resolution follows the document hierarchy defined in CLAUDE.md §2: ARCHITECTURE.md > docs/changes/_.md > onlyou-spec-resolved-v4.md > VERTICAL-_.md > CLAUDE.md.
 
 ---
 
@@ -61,13 +61,13 @@ The free consultation is a customer acquisition cost. The patient pays only afte
 
 ### What Changed from Old Flow
 
-| Aspect | Old (WRONG) | New (CORRECT) |
-|--------|-------------|---------------|
-| Payment timing | Before doctor review | After doctor creates treatment plan |
-| Consultation cost | Charged | Free (1 per vertical per user) |
-| "Doctor refunds" | Existed (doctor refunds paid consult) | Eliminated (patient never paid, so doctor "declines") |
-| Terminal without payment | Did not exist | EXPIRED_UNPAID (30 days), DECLINED, REFERRED |
-| New statuses | N/A | AWAITING_PAYMENT, PAYMENT_COMPLETE, EXPIRED_UNPAID, DECLINED, ABANDONED |
+| Aspect                   | Old (WRONG)                           | New (CORRECT)                                                           |
+| ------------------------ | ------------------------------------- | ----------------------------------------------------------------------- |
+| Payment timing           | Before doctor review                  | After doctor creates treatment plan                                     |
+| Consultation cost        | Charged                               | Free (1 per vertical per user)                                          |
+| "Doctor refunds"         | Existed (doctor refunds paid consult) | Eliminated (patient never paid, so doctor "declines")                   |
+| Terminal without payment | Did not exist                         | EXPIRED_UNPAID (30 days), DECLINED, REFERRED                            |
+| New statuses             | N/A                                   | AWAITING_PAYMENT, PAYMENT_COMPLETE, EXPIRED_UNPAID, DECLINED, ABANDONED |
 
 ---
 
@@ -119,21 +119,21 @@ enum ConsultationStatus {
 
 If you see any of these in a spec doc, they are WRONG:
 
-| Wrong | Correct | Notes |
-|-------|---------|-------|
-| PENDING_REVIEW | AI_COMPLETE | BACKEND-PART1 §9 uses wrong name |
-| IN_REVIEW | REVIEWING | Most common error — appears in 10+ docs |
-| BLOOD_WORK_ORDERED | LAB_ORDERED | BACKEND-PART1 §9 |
-| INFO_REQUESTED | MORE_INFO_REQUESTED | BACKEND-PART1, PART2B, PART3B |
-| FOLLOW_UP | FOLLOW_UP_DUE | BACKEND-PART1, PART3B |
-| CLOSED | COMPLETED | Used in 27 files — always means COMPLETED for consultations |
-| EN_ROUTE | NURSE_EN_ROUTE | BACKEND-PART3B §30.4 (nurse context) |
-| DELIVERED_TO_LAB | AT_LAB | BACKEND-PART3B §30.4 (lab context) |
-| RESULTS_READY | RESULTS_UPLOADED | Self-upload path in BACKEND-PART3B |
-| INFO_PROVIDED | Not a status | Patient responds → goes back to REVIEWING directly |
-| RUNNING_LATE | Not a status | Fields only: lateReportedAt, newEta, lateReason |
-| PATIENT_UNAVAILABLE | FAILED | With failedReason field |
-| PRESCRIPTION_CREATED | PRESCRIBED | Some older references |
+| Wrong                | Correct             | Notes                                                       |
+| -------------------- | ------------------- | ----------------------------------------------------------- |
+| PENDING_REVIEW       | AI_COMPLETE         | BACKEND-PART1 §9 uses wrong name                            |
+| IN_REVIEW            | REVIEWING           | Most common error — appears in 10+ docs                     |
+| BLOOD_WORK_ORDERED   | LAB_ORDERED         | BACKEND-PART1 §9                                            |
+| INFO_REQUESTED       | MORE_INFO_REQUESTED | BACKEND-PART1, PART2B, PART3B                               |
+| FOLLOW_UP            | FOLLOW_UP_DUE       | BACKEND-PART1, PART3B                                       |
+| CLOSED               | COMPLETED           | Used in 27 files — always means COMPLETED for consultations |
+| EN_ROUTE             | NURSE_EN_ROUTE      | BACKEND-PART3B §30.4 (nurse context)                        |
+| DELIVERED_TO_LAB     | AT_LAB              | BACKEND-PART3B §30.4 (lab context)                          |
+| RESULTS_READY        | RESULTS_UPLOADED    | Self-upload path in BACKEND-PART3B                          |
+| INFO_PROVIDED        | Not a status        | Patient responds → goes back to REVIEWING directly          |
+| RUNNING_LATE         | Not a status        | Fields only: lateReportedAt, newEta, lateReason             |
+| PATIENT_UNAVAILABLE  | FAILED              | With failedReason field                                     |
+| PRESCRIPTION_CREATED | PRESCRIBED          | Some older references                                       |
 
 ---
 
@@ -145,28 +145,35 @@ Enforced by `transitionStatus()` in the consultations service.
 
 ```typescript
 const validTransitions: Record<ConsultationStatus, ConsultationStatus[]> = {
-  SUBMITTED:            ['AI_PROCESSING'],
-  AI_PROCESSING:        ['AI_COMPLETE', 'AI_FAILED'],
-  AI_FAILED:            ['AI_PROCESSING', 'AI_COMPLETE'],
-  AI_COMPLETE:          ['ASSIGNED'],
-  ASSIGNED:             ['REVIEWING'],
-  REVIEWING:            ['MORE_INFO_REQUESTED', 'LAB_ORDERED', 'PRESCRIBED', 'REFERRED', 'DECLINED', 'COMPLETED'],
-  MORE_INFO_REQUESTED:  ['REVIEWING'],
-  LAB_ORDERED:          ['REVIEWING'],
-  PRESCRIBED:           ['AWAITING_PAYMENT'],
-  AWAITING_PAYMENT:     ['PAYMENT_COMPLETE', 'EXPIRED_UNPAID'],
-  EXPIRED_UNPAID:       [],
-  PAYMENT_COMPLETE:     ['PHARMACY_PROCESSING'],
-  PHARMACY_PROCESSING:  ['DISPATCHED'],
-  DISPATCHED:           ['DELIVERED'],
-  DELIVERED:            ['TREATMENT_ACTIVE'],
-  TREATMENT_ACTIVE:     ['FOLLOW_UP_DUE', 'COMPLETED', 'CANCELLED'],
-  FOLLOW_UP_DUE:        ['REVIEWING'],
-  REFERRED:             [],
-  DECLINED:             [],
-  COMPLETED:            [],
-  CANCELLED:            [],
-  ABANDONED:            [],
+  SUBMITTED: ["AI_PROCESSING"],
+  AI_PROCESSING: ["AI_COMPLETE", "AI_FAILED"],
+  AI_FAILED: ["AI_PROCESSING", "AI_COMPLETE"],
+  AI_COMPLETE: ["ASSIGNED"],
+  ASSIGNED: ["REVIEWING"],
+  REVIEWING: [
+    "MORE_INFO_REQUESTED",
+    "LAB_ORDERED",
+    "PRESCRIBED",
+    "REFERRED",
+    "DECLINED",
+    "COMPLETED",
+  ],
+  MORE_INFO_REQUESTED: ["REVIEWING"],
+  LAB_ORDERED: ["REVIEWING"],
+  PRESCRIBED: ["AWAITING_PAYMENT"],
+  AWAITING_PAYMENT: ["PAYMENT_COMPLETE", "EXPIRED_UNPAID"],
+  EXPIRED_UNPAID: [],
+  PAYMENT_COMPLETE: ["PHARMACY_PROCESSING"],
+  PHARMACY_PROCESSING: ["DISPATCHED"],
+  DISPATCHED: ["DELIVERED"],
+  DELIVERED: ["TREATMENT_ACTIVE"],
+  TREATMENT_ACTIVE: ["FOLLOW_UP_DUE", "COMPLETED", "CANCELLED"],
+  FOLLOW_UP_DUE: ["REVIEWING"],
+  REFERRED: [],
+  DECLINED: [],
+  COMPLETED: [],
+  CANCELLED: [],
+  ABANDONED: [],
 };
 ```
 
@@ -380,25 +387,25 @@ Never use lowercase ('doctor'). Always UPPERCASE ('DOCTOR').
 
 **Source:** onlyou-spec-resolved-v4.md §5 (canonical)
 
-| Vertical | Monthly | Quarterly | 6-Month |
-|----------|---------|-----------|---------|
-| Hair Loss | ₹999 (99,900p) | ₹2,499 (249,900p) | ₹4,499 (449,900p) |
-| ED | ₹1,299 (129,900p) | ₹3,299 (329,900p) | ₹5,999 (599,900p) |
-| PE | ₹1,299 (129,900p) | ₹3,299 (329,900p) | ₹5,999 (599,900p) |
-| Weight Standard | ₹2,999 (299,900p) | ₹7,999 (799,900p) | ₹14,999 (1,499,900p) |
+| Vertical             | Monthly           | Quarterly            | 6-Month              |
+| -------------------- | ----------------- | -------------------- | -------------------- |
+| Hair Loss            | ₹999 (99,900p)    | ₹2,499 (249,900p)    | ₹4,499 (449,900p)    |
+| ED                   | ₹1,299 (129,900p) | ₹3,299 (329,900p)    | ₹5,999 (599,900p)    |
+| PE                   | ₹1,299 (129,900p) | ₹3,299 (329,900p)    | ₹5,999 (599,900p)    |
+| Weight Standard      | ₹2,999 (299,900p) | ₹7,999 (799,900p)    | ₹14,999 (1,499,900p) |
 | Weight GLP-1 Premium | ₹9,999 (999,900p) | ₹24,999 (2,499,900p) | ₹44,999 (4,499,900p) |
-| PCOS | ₹1,499 (149,900p) | ₹3,799 (379,900p) | ₹6,999 (699,900p) |
+| PCOS                 | ₹1,499 (149,900p) | ₹3,799 (379,900p)    | ₹6,999 (699,900p)    |
 
 ### Per-Month Breakdown (for UI display)
 
-| Vertical | Monthly | Quarterly (per mo) | 6-Month (per mo) |
-|----------|---------|-------------------|-----------------|
-| Hair Loss | ₹999 | ₹833 | ₹750 |
-| ED | ₹1,299 | ₹1,100 | ₹1,000 |
-| PE | ₹1,299 | ₹1,100 | ₹1,000 |
-| Weight Standard | ₹2,999 | ₹2,666 | ₹2,500 |
-| Weight GLP-1 | ₹9,999 | ₹8,333 | ₹7,500 |
-| PCOS | ₹1,499 | ₹1,266 | ₹1,167 |
+| Vertical        | Monthly | Quarterly (per mo) | 6-Month (per mo) |
+| --------------- | ------- | ------------------ | ---------------- |
+| Hair Loss       | ₹999    | ₹833               | ₹750             |
+| ED              | ₹1,299  | ₹1,100             | ₹1,000           |
+| PE              | ₹1,299  | ₹1,100             | ₹1,000           |
+| Weight Standard | ₹2,999  | ₹2,666             | ₹2,500           |
+| Weight GLP-1    | ₹9,999  | ₹8,333             | ₹7,500           |
+| PCOS            | ₹1,499  | ₹1,266             | ₹1,167           |
 
 ### Razorpay Rules
 
@@ -414,21 +421,21 @@ Never use lowercase ('doctor'). Always UPPERCASE ('DOCTOR').
 
 ### Standard Panels (per vertical)
 
-| Panel | Price | Vertical | Tests Included |
-|-------|-------|----------|----------------|
-| Extended Hair Panel | ₹1,200 (120,000p) | Hair Loss | TSH, CBC, Ferritin, Vitamin D, DHT, Zinc |
-| Basic Health Check | ₹800 (80,000p) | ED | Testosterone, Fasting Glucose, Lipid Profile |
-| PCOS Screen Panel | ₹1,500 (150,000p) | PCOS | FSH, LH, Estradiol, Testosterone, DHEA-S, Prolactin, Fasting Glucose, Lipid Panel, Insulin |
-| Metabolic Panel | ₹1,800 (180,000p) | Weight | HbA1c, Fasting Glucose, Lipid Profile, Liver Panel, Kidney Panel, TSH |
+| Panel               | Price             | Vertical  | Tests Included                                                                             |
+| ------------------- | ----------------- | --------- | ------------------------------------------------------------------------------------------ |
+| Extended Hair Panel | ₹1,200 (120,000p) | Hair Loss | TSH, CBC, Ferritin, Vitamin D, DHT, Zinc                                                   |
+| Basic Health Check  | ₹800 (80,000p)    | ED        | Testosterone, Fasting Glucose, Lipid Profile                                               |
+| PCOS Screen Panel   | ₹1,500 (150,000p) | PCOS      | FSH, LH, Estradiol, Testosterone, DHEA-S, Prolactin, Fasting Glucose, Lipid Panel, Insulin |
+| Metabolic Panel     | ₹1,800 (180,000p) | Weight    | HbA1c, Fasting Glucose, Lipid Profile, Liver Panel, Kidney Panel, TSH                      |
 
 ### PE-Specific Panels (missing from BACKEND-PART2A §12.5 — must be added)
 
-| Panel | Price | Tests Included |
-|-------|-------|----------------|
-| Thyroid Check | ₹350 (35,000p) | TSH, T3, T4 |
-| Hormonal | ₹800 (80,000p) | Testosterone, Prolactin, LH, FSH |
-| Prostate | ₹500 (50,000p) | PSA |
-| Combined | ₹1,500 (150,000p) | All of the above |
+| Panel         | Price             | Tests Included                   |
+| ------------- | ----------------- | -------------------------------- |
+| Thyroid Check | ₹350 (35,000p)    | TSH, T3, T4                      |
+| Hormonal      | ₹800 (80,000p)    | Testosterone, Prolactin, LH, FSH |
+| Prostate      | ₹500 (50,000p)    | PSA                              |
+| Combined      | ₹1,500 (150,000p) | All of the above                 |
 
 ### Pricing Rules
 
@@ -449,44 +456,44 @@ Never use lowercase ('doctor'). Always UPPERCASE ('DOCTOR').
 
 ### Doctor SLAs
 
-| Metric | Threshold | Measurement |
-|--------|-----------|-------------|
-| First review | **24 hours** | AI_COMPLETE → not yet ASSIGNED |
-| Case action | **48 hours** | ASSIGNED → no action taken |
+| Metric               | Threshold    | Measurement                                             |
+| -------------------- | ------------ | ------------------------------------------------------- |
+| First review         | **24 hours** | AI_COMPLETE → not yet ASSIGNED                          |
+| Case action          | **48 hours** | ASSIGNED → no action taken                              |
 | Info response review | **72 hours** | Patient responded to MORE_INFO_REQUESTED → no re-review |
-| Lab results review | **24 hours** | Results uploaded → not opened by doctor |
+| Lab results review   | **24 hours** | Results uploaded → not opened by doctor                 |
 
 **BACKEND-PART2B §18.3 says 4 hours for first review and 24 hours for info response — those values are WRONG.**
 
 ### Pharmacy SLAs
 
-| Metric | Threshold |
-|--------|-----------|
-| Start preparing | 2 hours after SENT_TO_PHARMACY |
-| Complete preparation | 4 hours after PREPARING |
-| Overall preparation | 24 hours after sent |
+| Metric               | Threshold                      |
+| -------------------- | ------------------------------ |
+| Start preparing      | 2 hours after SENT_TO_PHARMACY |
+| Complete preparation | 4 hours after PREPARING        |
+| Overall preparation  | 24 hours after sent            |
 
 ### Delivery SLAs
 
-| Metric | Threshold |
-|--------|-----------|
+| Metric                 | Threshold                            |
+| ---------------------- | ------------------------------------ |
 | Admin assigns pharmacy | 4 hours after prescription generated |
-| Delivery arrangement | 4 hours after pharmacy READY |
-| Delivery completion | **24 hours** after pickup |
-| End-to-end | 48 hours (prescription → delivered) |
+| Delivery arrangement   | 4 hours after pharmacy READY         |
+| Delivery completion    | **24 hours** after pickup            |
+| End-to-end             | 48 hours (prescription → delivered)  |
 
 **PORTAL-ADMIN.md says 2 hours for delivery completion — that is WRONG. It is 24 hours.**
 
 ### Lab SLAs
 
-| Metric | Threshold |
-|--------|-----------|
-| Patient books slot | 7 days after order placed |
-| Nurse assigned | 2 hours after booking |
-| Lab receives sample | 2 hours after nurse delivery |
-| Results uploaded (routine) | 48 hours after sample received |
-| Results uploaded (urgent) | 12 hours after sample received |
-| Doctor reviews results | 24 hours after results uploaded |
+| Metric                     | Threshold                       |
+| -------------------------- | ------------------------------- |
+| Patient books slot         | 7 days after order placed       |
+| Nurse assigned             | 2 hours after booking           |
+| Lab receives sample        | 2 hours after nurse delivery    |
+| Results uploaded (routine) | 48 hours after sample received  |
+| Results uploaded (urgent)  | 12 hours after sample received  |
+| Doctor reviews results     | 24 hours after results uploaded |
 
 ---
 
@@ -511,42 +518,42 @@ Privacy is enforced at the **tRPC router `select` clause** — forbidden fields 
 
 ### NURSE
 
-| Sees | Never Sees |
-|------|------------|
-| Patient name, phone, address (for visit only) | Diagnosis / condition name |
-| Tests to collect, tube count, instructions | Questionnaire responses |
-| Scheduled time, diagnostic centre | AI assessment, prescription details |
-| Special instructions (fasting, etc.) | Doctor notes, payment info, other nurses' data |
+| Sees                                          | Never Sees                                     |
+| --------------------------------------------- | ---------------------------------------------- |
+| Patient name, phone, address (for visit only) | Diagnosis / condition name                     |
+| Tests to collect, tube count, instructions    | Questionnaire responses                        |
+| Scheduled time, diagnostic centre             | AI assessment, prescription details            |
+| Special instructions (fasting, etc.)          | Doctor notes, payment info, other nurses' data |
 
 ### LAB_TECH (Anonymized — sees sample IDs only)
 
-| Sees | Never Sees |
-|------|------------|
+| Sees                                                | Never Sees                   |
+| --------------------------------------------------- | ---------------------------- |
 | Sample ID: `ONY-{YEAR}-{SEQ}` (e.g., ONY-2026-0042) | Patient name, phone, address |
-| Test names, tube count | Diagnosis / condition |
-| Patient age + gender (for reference ranges) | Doctor name, clinical notes |
-| Nurse name (who delivered), urgency | Questionnaire, AI assessment |
-| Lab-specific notes | Prescription, payments |
+| Test names, tube count                              | Diagnosis / condition        |
+| Patient age + gender (for reference ranges)         | Doctor name, clinical notes  |
+| Nurse name (who delivered), urgency                 | Questionnaire, AI assessment |
+| Lab-specific notes                                  | Prescription, payments       |
 
 ### PHARMACY_STAFF (Anonymized — sees order IDs only)
 
-| Sees | Never Sees |
-|------|------------|
-| Order ID: `ORD-{SEQ}` (e.g., ORD-001234) | Patient name, phone, address |
-| Anonymous patient ID: `ONY-P-{SEQ}` (e.g., ONY-P-0045) | Diagnosis / condition |
-| Medication names, dosages, quantities, sig | Questionnaire, AI assessment |
-| Prescription PDF (CloudFront signed URL, 1hr expiry) | Lab results |
-| Doctor name + NMC registration number | Delivery OTP, payment info |
-| Delivery person name (once assigned) | Internal prescriptionId |
+| Sees                                                   | Never Sees                   |
+| ------------------------------------------------------ | ---------------------------- |
+| Order ID: `ORD-{SEQ}` (e.g., ORD-001234)               | Patient name, phone, address |
+| Anonymous patient ID: `ONY-P-{SEQ}` (e.g., ONY-P-0045) | Diagnosis / condition        |
+| Medication names, dosages, quantities, sig             | Questionnaire, AI assessment |
+| Prescription PDF (CloudFront signed URL, 1hr expiry)   | Lab results                  |
+| Doctor name + NMC registration number                  | Delivery OTP, payment info   |
+| Delivery person name (once assigned)                   | Internal prescriptionId      |
 
 ### DELIVERY PERSON (No auth role, no portal — SMS link only)
 
-| Sees | Never Sees |
-|------|------------|
-| Pickup address (pharmacy) | Medication names |
-| Delivery address (patient) | Condition / diagnosis |
+| Sees                             | Never Sees                |
+| -------------------------------- | ------------------------- |
+| Pickup address (pharmacy)        | Medication names          |
+| Delivery address (patient)       | Condition / diagnosis     |
 | Patient phone (for arrival call) | Prescription, lab results |
-| OTP for delivery confirmation | Any clinical information |
+| OTP for delivery confirmation    | Any clinical information  |
 
 **CASL.js source of truth:** BACKEND-PART3A §22.4 ONLY. Ignore BACKEND-PART1 §4.6 (divergent older copy).
 
@@ -556,33 +563,33 @@ Privacy is enforced at the **tRPC router `select` clause** — forbidden fields 
 
 **Source:** ARCHITECTURE.md (wins all tech conflicts)
 
-| Layer | Technology | Notes |
-|-------|-----------|-------|
-| Backend | NestJS 10 + Fastify adapter | NOT Express. Decision #14 |
-| API (internal) | tRPC v10 | 7 TypeScript clients |
-| API (external) | REST only | Razorpay webhooks, Gupshup webhooks, delivery SMS |
-| Database | PostgreSQL 16 on RDS | ap-south-1 (Mumbai) |
-| ORM | Prisma 5 | Query Compiler enabled |
-| Cache / Queue backend | Redis 7 on ElastiCache | |
-| Job processing | BullMQ | Bull Board via `@bull-board/fastify` (NOT ExpressAdapter) |
-| Real-time | SSE + Redis Pub/Sub | NOT WebSockets. Decision #9 |
-| Auth | Custom NestJS JWT (RS256) | NOT Clerk/Auth0/Firebase. Decision #10 |
-| Patient auth | Email/Google/Apple + mandatory phone OTP | Decision #11 |
-| RBAC | CASL.js + NestJS Guards | |
-| Payments | Razorpay | ALL amounts in PAISE (integer) |
-| File storage | S3 (SSE-KMS) + CloudFront signed URLs | Buckets: photos, prescriptions, lab-results, documents |
-| AI | Claude API | Model from `process.env.ANTHROPIC_MODEL`, NEVER hardcoded |
-| WhatsApp | Gupshup Business API | PRIMARY channel |
-| SMS | MSG91 | FALLBACK only |
-| Push notifications | Firebase FCM | |
-| PDF generation | @react-pdf/renderer | Server-side |
-| Email | Resend (MVP) → SES (scale) | Needs RESEND_API_KEY in env vars |
-| Mobile | React Native Expo (managed + dev builds, Hermes) | |
-| Portals | Separate Next.js 14 per subdomain | Decision #8 |
-| UI components | Tailwind CSS + shadcn/ui | Shared via packages/ui |
-| Monorepo | Turborepo + pnpm | `node-linker=hoisted` in .npmrc |
-| Blog CMS | Sanity CMS (headless) | |
-| Infrastructure | AWS Mumbai (ap-south-1) | ECS Fargate, RDS, ElastiCache |
+| Layer                 | Technology                                       | Notes                                                     |
+| --------------------- | ------------------------------------------------ | --------------------------------------------------------- |
+| Backend               | NestJS 10 + Fastify adapter                      | NOT Express. Decision #14                                 |
+| API (internal)        | tRPC v10                                         | 7 TypeScript clients                                      |
+| API (external)        | REST only                                        | Razorpay webhooks, Gupshup webhooks, delivery SMS         |
+| Database              | PostgreSQL 16 on RDS                             | ap-south-1 (Mumbai)                                       |
+| ORM                   | Prisma 5                                         | Query Compiler enabled                                    |
+| Cache / Queue backend | Redis 7 on ElastiCache                           |                                                           |
+| Job processing        | BullMQ                                           | Bull Board via `@bull-board/fastify` (NOT ExpressAdapter) |
+| Real-time             | SSE + Redis Pub/Sub                              | NOT WebSockets. Decision #9                               |
+| Auth                  | Custom NestJS JWT (RS256)                        | NOT Clerk/Auth0/Firebase. Decision #10                    |
+| Patient auth          | Email/Google/Apple + mandatory phone OTP         | Decision #11                                              |
+| RBAC                  | CASL.js + NestJS Guards                          |                                                           |
+| Payments              | Razorpay                                         | ALL amounts in PAISE (integer)                            |
+| File storage          | S3 (SSE-KMS) + CloudFront signed URLs            | Buckets: photos, prescriptions, lab-results, documents    |
+| AI                    | Claude API                                       | Model from `process.env.ANTHROPIC_MODEL`, NEVER hardcoded |
+| WhatsApp              | Gupshup Business API                             | PRIMARY channel                                           |
+| SMS                   | MSG91                                            | FALLBACK only                                             |
+| Push notifications    | Firebase FCM                                     |                                                           |
+| PDF generation        | @react-pdf/renderer                              | Server-side                                               |
+| Email                 | Resend (MVP) → SES (scale)                       | Needs RESEND_API_KEY in env vars                          |
+| Mobile                | React Native Expo (managed + dev builds, Hermes) |                                                           |
+| Portals               | Separate Next.js 14 per subdomain                | Decision #8                                               |
+| UI components         | Tailwind CSS + shadcn/ui                         | Shared via packages/ui                                    |
+| Monorepo              | Turborepo + pnpm                                 | `node-linker=hoisted` in .npmrc                           |
+| Blog CMS              | Sanity CMS (headless)                            |                                                           |
+| Infrastructure        | AWS Mumbai (ap-south-1)                          | ECS Fargate, RDS, ElastiCache                             |
 
 ---
 
@@ -642,25 +649,25 @@ modules/{name}/
 
 **The notification queue is called `notification-dispatch`.** Not `notifications`. Use this name everywhere.
 
-| Queue Name | Type | Priority | Notes |
-|------------|------|----------|-------|
-| `ai-assessment` | Event-triggered, multi-step | Medium | Claude API analysis |
-| `subscription-renewal` | Cron (daily 2 AM IST) | Critical | Razorpay renewal checks |
-| `sla-check` | Repeatable (every 15 min) | High | SLA breach detection |
-| `notification-dispatch` | Event-triggered | Medium | WhatsApp/SMS/push/email |
-| `pdf-generation` | Event-triggered | Low | Prescription PDFs |
-| `scheduled-reminder` | Delayed | Medium | Follow-up reminders |
-| `auto-reorder` | Cron (daily) | Medium | Medication reorders |
+| Queue Name              | Type                        | Priority | Notes                   |
+| ----------------------- | --------------------------- | -------- | ----------------------- |
+| `ai-assessment`         | Event-triggered, multi-step | Medium   | Claude API analysis     |
+| `subscription-renewal`  | Cron (daily 2 AM IST)       | Critical | Razorpay renewal checks |
+| `sla-check`             | Repeatable (every 15 min)   | High     | SLA breach detection    |
+| `notification-dispatch` | Event-triggered             | Medium   | WhatsApp/SMS/push/email |
+| `pdf-generation`        | Event-triggered             | Low      | Prescription PDFs       |
+| `scheduled-reminder`    | Delayed                     | Medium   | Follow-up reminders     |
+| `auto-reorder`          | Cron (daily)                | Medium   | Medication reorders     |
 
 ### Scheduled Jobs (Payment Flow Related)
 
-| Job Name | Trigger | Action |
-|----------|---------|--------|
-| `treatment-plan-reminder-3d` | 3 days after AWAITING_PAYMENT | Remind patient to subscribe |
-| `treatment-plan-reminder-7d` | 7 days after AWAITING_PAYMENT | Second reminder |
-| `treatment-plan-reminder-14d` | 14 days after AWAITING_PAYMENT | Final reminder |
-| `treatment-plan-expire` | 30 days after AWAITING_PAYMENT | Auto-transition to EXPIRED_UNPAID |
-| `consultation-abandon-check` | 30 days after SUBMITTED/AI_COMPLETE/AI_FAILED | Auto-transition to ABANDONED |
+| Job Name                      | Trigger                                       | Action                            |
+| ----------------------------- | --------------------------------------------- | --------------------------------- |
+| `treatment-plan-reminder-3d`  | 3 days after AWAITING_PAYMENT                 | Remind patient to subscribe       |
+| `treatment-plan-reminder-7d`  | 7 days after AWAITING_PAYMENT                 | Second reminder                   |
+| `treatment-plan-reminder-14d` | 14 days after AWAITING_PAYMENT                | Final reminder                    |
+| `treatment-plan-expire`       | 30 days after AWAITING_PAYMENT                | Auto-transition to EXPIRED_UNPAID |
+| `consultation-abandon-check`  | 30 days after SUBMITTED/AI_COMPLETE/AI_FAILED | Auto-transition to ABANDONED      |
 
 ### Queues NOT Defined (Remove from Monitoring or Define)
 
@@ -756,12 +763,12 @@ Each purpose requires separate, unbundled consent. No pre-ticked boxes. Consent 
 
 Applies to all verticals. The 12-month entry is a **clinical follow-up**, NOT a subscription plan.
 
-| Timing | Type | Questionnaire | Photos | Notes |
-|--------|------|---------------|--------|-------|
-| 4 weeks | Side effects check | 10 abbreviated questions | None (except PCOS optional) | Early tolerance assessment |
-| 3 months | Progress review | 10 questions | 4 photos (vertical-dependent) | First major efficacy check |
-| 6 months | Full assessment | 15 questions | 4 photos | Treatment plan reassessment |
-| 12 months | Annual review | Full questionnaire | Comprehensive photo set | Long-term efficacy review |
+| Timing    | Type               | Questionnaire            | Photos                        | Notes                       |
+| --------- | ------------------ | ------------------------ | ----------------------------- | --------------------------- |
+| 4 weeks   | Side effects check | 10 abbreviated questions | None (except PCOS optional)   | Early tolerance assessment  |
+| 3 months  | Progress review    | 10 questions             | 4 photos (vertical-dependent) | First major efficacy check  |
+| 6 months  | Full assessment    | 15 questions             | 4 photos                      | Treatment plan reassessment |
+| 12 months | Annual review      | Full questionnaire       | Comprehensive photo set       | Long-term efficacy review   |
 
 Follow-up consultations re-enter the review cycle: `FOLLOW_UP_DUE → REVIEWING`
 
@@ -769,11 +776,11 @@ Follow-up consultations re-enter the review cycle: `FOLLOW_UP_DUE → REVIEWING`
 
 ## 15. ID Formats & Anonymization
 
-| Entity | Format | Example | Who Sees It |
-|--------|--------|---------|-------------|
-| Sample ID | `ONY-{YEAR}-{SEQ_4_DIGIT}` | ONY-2026-0042 | Lab tech (instead of patient name) |
-| Patient ID (pharmacy) | `ONY-P-{SEQ}` | ONY-P-0045 | Pharmacy staff (instead of patient name) |
-| Order ID | `ORD-{SEQ}` | ORD-001234 | Pharmacy staff, admin, delivery |
+| Entity                | Format                     | Example       | Who Sees It                              |
+| --------------------- | -------------------------- | ------------- | ---------------------------------------- |
+| Sample ID             | `ONY-{YEAR}-{SEQ_4_DIGIT}` | ONY-2026-0042 | Lab tech (instead of patient name)       |
+| Patient ID (pharmacy) | `ONY-P-{SEQ}`              | ONY-P-0045    | Pharmacy staff (instead of patient name) |
+| Order ID              | `ORD-{SEQ}`                | ORD-001234    | Pharmacy staff, admin, delivery          |
 
 ---
 
@@ -781,15 +788,15 @@ Follow-up consultations re-enter the review cycle: `FOLLOW_UP_DUE → REVIEWING`
 
 All disabled for MVP. Build the interfaces but gate behind flags for future activation.
 
-| Flag | Value | Meaning |
-|------|-------|---------|
-| `VIDEO_CONSULTATION_ENABLED` | `false` | Async text+photos only. No video. |
-| `THIRD_PARTY_LAB_APIS` | `false` | Partner diagnostic centres, portal-tracked. No API integration. |
-| `SHIPROCKET_DELHIVERY` | `false` | Local delivery (Rapido/Dunzo/own), coordinator-managed. |
-| `COLD_CHAIN_TRACKING` | `false` | Manual insulated bag for GLP-1 pens. |
-| `FACE_MATCH_VERIFICATION` | `false` | Government ID photo only. |
-| `ABHA_INTEGRATION` | `false` | Not mandated. |
-| `GPS_CHECKIN_NURSES` | `false` | Phase 2. |
+| Flag                         | Value   | Meaning                                                         |
+| ---------------------------- | ------- | --------------------------------------------------------------- |
+| `VIDEO_CONSULTATION_ENABLED` | `false` | Async text+photos only. No video.                               |
+| `THIRD_PARTY_LAB_APIS`       | `false` | Partner diagnostic centres, portal-tracked. No API integration. |
+| `SHIPROCKET_DELHIVERY`       | `false` | Local delivery (Rapido/Dunzo/own), coordinator-managed.         |
+| `COLD_CHAIN_TRACKING`        | `false` | Manual insulated bag for GLP-1 pens.                            |
+| `FACE_MATCH_VERIFICATION`    | `false` | Government ID photo only.                                       |
+| `ABHA_INTEGRATION`           | `false` | Not mandated.                                                   |
+| `GPS_CHECKIN_NURSES`         | `false` | Phase 2.                                                        |
 
 ---
 
@@ -821,13 +828,13 @@ A patient can have 1 free Hair Loss consultation AND 1 free ED consultation AND 
 
 Since patients do not pay before doctor review, pre-consultation refund scenarios are eliminated.
 
-| Scenario | Refund Amount | Destination |
-|----------|--------------|-------------|
-| After payment, before pharmacy dispatches | 100% | Wallet |
-| Delivery failure | 100% | Wallet or original payment method |
-| Wrong medication dispensed | 100% + replacement | Original payment method |
-| Subscription cancellation mid-cycle | Prorated remaining days | Wallet |
-| Doctor-initiated (post-payment contraindication found) | Full refund | Original payment method |
+| Scenario                                               | Refund Amount           | Destination                       |
+| ------------------------------------------------------ | ----------------------- | --------------------------------- |
+| After payment, before pharmacy dispatches              | 100%                    | Wallet                            |
+| Delivery failure                                       | 100%                    | Wallet or original payment method |
+| Wrong medication dispensed                             | 100% + replacement      | Original payment method           |
+| Subscription cancellation mid-cycle                    | Prorated remaining days | Wallet                            |
+| Doctor-initiated (post-payment contraindication found) | Full refund             | Original payment method           |
 
 ---
 
@@ -844,12 +851,14 @@ This section provides the content that was meant to go into the missing `WORKFLO
 After submitting the questionnaire and photos, the patient sees a confirmation screen:
 
 **What the patient sees:**
+
 - "Your assessment has been submitted" confirmation
 - "A specialist doctor will review your case — this is completely free"
 - Estimated review time: within 24 hours
 - Animation/progress indicator showing case status
 
 **Status flow from patient's perspective:**
+
 ```
 SUBMITTED → AI_PROCESSING → AI_COMPLETE → ASSIGNED → REVIEWING
 ```
@@ -865,18 +874,21 @@ If the doctor orders lab work (LAB_ORDERED), the patient receives instructions t
 The doctor's review results in one of these outcomes:
 
 **Outcome A — Treatment Plan Created (PRESCRIBED → AWAITING_PAYMENT)**
+
 - Patient receives notification: "Your treatment plan is ready"
 - Patient opens app to view the personalized treatment plan
 - Plan shows: condition summary, prescribed medications with dosages, expected timeline, what's included in subscription
 - Patient is NOT yet charged — they choose whether to subscribe
 
 **Outcome B — Referred (REFERRED — terminal)**
+
 - Patient receives notification: "Your doctor recommends an in-person consultation"
 - Referral reason explained
 - Suggested specialist type displayed
 - No payment collected. Case is closed.
 
 **Outcome C — Declined (DECLINED — terminal)**
+
 - Patient receives notification: "Based on your assessment, this treatment program isn't the right fit"
 - Doctor's reasoning provided (age, contraindications, severity, etc.)
 - Alternative suggestions if applicable
@@ -887,6 +899,7 @@ The doctor's review results in one of these outcomes:
 When the patient opens the treatment plan (status: AWAITING_PAYMENT):
 
 **Treatment Plan Screen shows:**
+
 - Doctor's name and qualification
 - Condition assessment summary
 - Prescribed medications with dosages and instructions
@@ -895,6 +908,7 @@ When the patient opens the treatment plan (status: AWAITING_PAYMENT):
 - "What's Included" breakdown
 
 **Plan Selection:**
+
 - Three subscription options displayed: Monthly / Quarterly / 6-Month
 - Per-month price breakdown for each
 - Savings percentage for longer plans
@@ -909,6 +923,7 @@ When the patient opens the treatment plan (status: AWAITING_PAYMENT):
 After selecting a plan:
 
 **Payment Flow:**
+
 1. Patient taps "Subscribe" on chosen plan
 2. Razorpay checkout opens (in-app WebView)
 3. Payment methods: UPI, Credit/Debit Card, Net Banking, Wallets
@@ -917,16 +932,72 @@ After selecting a plan:
 6. On success: status transitions PAYMENT_COMPLETE → PHARMACY_PROCESSING (automatic)
 
 **Post-Payment Confirmation:**
+
 - "Welcome to your treatment journey" screen
 - First medication order created automatically
 - Estimated delivery timeline shown
 - Treatment day counter begins after delivery
 
 **Payment Failure Handling:**
+
 - Razorpay retry mechanism
 - Patient can retry with different payment method
 - Status remains AWAITING_PAYMENT until successful payment
 - No timeout on payment attempts (only the 30-day plan expiry)
+
+---
+
+## 20. Admin Portal — Design System & Biomarker Admin Surface
+
+**Status:** Plan 2.5C lands the first admin portal surfaces (biomarker curation + ranges + reclassify). Full admin portal is Phase 5; this section is the SOT for decisions that must survive into Phase 5.
+
+### 20.1 Design registers (three, intentional)
+
+| Register            | Fonts                                     | Where                                                                                       |
+| ------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Clinical Luxe       | Playfair Display + system sans            | Patient app: auth, profile, consultation, treatment, home, activity, messages               |
+| Biomarker Editorial | Instrument Serif + Inter + JetBrains Mono | Patient app: `lab-results/**`, `lab-booking/upload-results*`, `src/components/biomarker/**` |
+| Operator Desk       | Instrument Serif + Inter + JetBrains Mono | **Admin portal: `apps/admin/**`\*\*                                                         |
+
+Biomarker Editorial and Operator Desk share the font trio (loaded once; shared primitives extracted to `warm-primitives.ts`) but differ in palette, layout language, and ESLint boundary. See:
+
+- [[decisions/2026-04-17-biomarker-design-register]] — two-register rationale (Clinical Luxe + Biomarker Editorial)
+- [[decisions/2026-04-20-admin-token-register]] — third-register rationale (Operator Desk)
+
+**Source design bundle:** `docs/design/admin/operator-desk/` — HTML/CSS/JSX prototype. The Night Desk alternate in the bundle is parked; see [[DEFERRED]] Phase 5.
+
+### 20.2 Component architecture
+
+Hybrid ceiling: custom visual components ported from the Operator Desk prototype + shadcn/Radix primitives for mechanics (Dialog, Combobox, Form, Toast, Sheet, Skeleton). shadcn components are imported exactly once, themed with `operatorPalette` tokens, and re-exported from `apps/admin/src/components/ui/*`. The rest of the admin app imports only the themed wrappers — never Radix or raw shadcn files directly. ESLint enforced.
+
+- [[decisions/2026-04-20-admin-component-ceiling]] — hybrid-ceiling rationale
+- [[decisions/2026-04-20-admin-ui-wrapper-layer]] — single-site wrapper invariant
+
+### 20.3 Admin auth
+
+Admin portal reuses the mobile app's Convex Auth OTP provider. Role-gate middleware on `/admin/**` redirects non-admins. No admin invite flow in 2.5C — admin users are seeded in dev via `scripts/seed-admin-user.ts`; prod admins bootstrapped via Convex dashboard until Phase 5's invite flow ships.
+
+### 20.4 Biomarker admin — reclassify integrity
+
+The global `reclassifyAllReports` action returns a preview payload whose fields (`totalValues`, `wouldChange`, `byTransition`, `byMarker`, `affectedReports`, `affectedPatientCount`, `rangesSignature`) are computed from a single DB snapshot. The commit handler verifies `rangesSignature` against the current `MAX(updatedAt)` over `biomarker_reference_ranges`; on mismatch, throws `ranges_changed_since_preview` and the admin UI discards the full preview.
+
+All fields in the preview payload invalidate together — there is no "partial staleness" path where `rangesSignature` is rechecked but `affectedPatientCount` is assumed stable. See:
+
+- [[decisions/2026-04-20-reclassify-preview-payload-coupling]]
+
+### 20.5 Reclassify concurrency
+
+Per-canonical reclassify (`reclassifyForCanonicalId`) and global reclassify (`reclassifyAllReports`) serialize through the `reclassify_locks` table keyed by canonicalId (sentinel `"*"` for global). Acquire-or-fail semantics: second caller receives `reclassify_in_progress` error. Lock row includes `ownerToken` to prevent stale-sweeper races; 5-minute TTL as safety net.
+
+### 20.6 Audit trail
+
+Every admin-side mutation (curation resolve/wont-fix, range CRUD, reclassify commit, reclassify preview) writes to `admin_audit_log` in the same transaction as the data change. Action field is a typed union; no merged combo actions. Write-only in 2.5C; Phase 5 ships the viewer UI.
+
+### 20.7 Cross-links to biomarker platform decisions
+
+- [[decisions/2026-04-20-proceeding-on-draft-ranges]] — DRAFT→reviewed range swap procedure
+- [[decisions/2026-04-18-biomarker-threshold-invariant]] — threshold ordering invariant
+- [[decisions/2026-04-17-pregnancy-safety-guard]] — pregnancy-sensitive classification rule
 
 ---
 

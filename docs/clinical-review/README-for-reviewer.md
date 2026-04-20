@@ -72,6 +72,7 @@ Each row has three empty columns at the right:
 1. We update each approved row's `clinicalReviewer` field to your name and stamp `reviewedAt` with the date.
 2. Rows you corrected get the new numbers applied before the stamp.
 3. Only signed-off rows get loaded into the production database. Unreviewed rows stay in dev.
+4. An automated reclassify runs across every lab report already in the system and updates the stored band on each biomarker value wherever your corrections moved a threshold. Patients see the updated bands on their next home-screen load — they don't need to re-upload anything. (We've built ONLYOU to store the raw numeric value, not just the band, specifically so this is safe and instant.)
 
 ## Context you might want
 

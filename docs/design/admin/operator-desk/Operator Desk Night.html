@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ONLYOU · Night Desk</title>
+<link rel="stylesheet" href="night-styles.css"/>
+<style>
+  body { background: var(--bg); }
+
+  .night-shell {
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(190,245,120,0.05), transparent 60%),
+      radial-gradient(900px 400px at 0% 90%, rgba(100,180,220,0.04), transparent 60%),
+      var(--bg);
+  }
+
+  .night-main {
+    max-width: 1400px; margin: 0 auto;
+    padding: 28px 28px 60px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+
+  .hero-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  .bottom-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  @media (max-width: 1100px) {
+    .hero-row { grid-template-columns: 1fr; }
+    .bottom-row { grid-template-columns: 1fr 1fr; }
+    .bottom-row > :last-child { grid-column: 1 / -1; }
+  }
+  @media (max-width: 680px) {
+    .bottom-row { grid-template-columns: 1fr; }
+    .bottom-row > :last-child { grid-column: auto; }
+    .night-main { padding: 18px 16px 60px; }
+  }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="night-top.jsx"></script>
+<script type="text/babel" src="night-hero.jsx"></script>
+<script type="text/babel" src="night-panels.jsx"></script>
+
+<script type="text/babel">
+function App() {
+  return (
+    <div className="night-shell">
+      <NightHeader/>
+
+      <main className="night-main">
+        {/* Top row: hero chart + recent orders list */}
+        <div className="hero-row">
+          <HeroCard/>
+          <RecentOrders/>
+        </div>
+
+        {/* Bottom row: workforce / CTA / shift perf */}
+        <div className="bottom-row">
+          <WorkforcePanel/>
+          <CTAPanel/>
+          <ShiftPerfPanel/>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

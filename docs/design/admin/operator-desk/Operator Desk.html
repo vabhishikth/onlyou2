@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ONLYOU · Operator Desk</title>
+<link rel="stylesheet" href="admin-styles.css"/>
+<style>
+  /* Responsive layout shell */
+  .app { display: flex; min-height: 100vh; background: var(--page); }
+  .main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .workspace { padding: 22px 24px 40px; display: flex; flex-direction: column; gap: 18px; }
+
+  .two-col { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 18px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+
+  .right-rail { width: 340px; flex-shrink: 0; border-left: 1px solid var(--line); background: var(--shell); padding: 22px 20px 40px; display: flex; flex-direction: column; gap: 18px; }
+
+  /* At ≤1400: merge right rail into workspace as full-width cards */
+  @media (max-width: 1400px) {
+    .right-rail { display: none; }
+    .rail-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  }
+  @media (min-width: 1401px) {
+    .rail-inline { display: none; }
+  }
+
+  /* At ≤1100: sidebar collapses to icons automatically via prop */
+  @media (max-width: 900px) {
+    .sidebar-hide { display: none; }
+    .mobile-menu { display: grid !important; }
+    .workspace { padding: 16px 14px 80px; gap: 14px; }
+    .kpi-strip { grid-template-columns: 1fr 1fr !important; }
+    .two-col { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .rail-inline { grid-template-columns: 1fr !important; }
+    .queue-head { display: none !important; }
+    .queue-row {
+      display: flex !important; flex-direction: column !important; align-items: flex-start !important;
+      gap: 6px !important; padding: 14px 16px !important;
+    }
+    .queue-row > :nth-child(7) { display: none; }
+    .search-bar { min-width: 0 !important; flex: 1 !important; }
+    .search-bar span:not(:last-child) { display: none; }
+    .search-bar span:last-child { display: none; }
+    .header-btn span, .header-name { display: none; }
+  }
+  @media (max-width: 560px) {
+    .kpi-strip { grid-template-columns: 1fr !important; }
+  }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="admin-data.jsx"></script>
+<script type="text/babel" src="admin-viz.jsx"></script>
+<script type="text/babel" src="admin-sidebar.jsx"></script>
+<script type="text/babel" src="admin-top.jsx"></script>
+<script type="text/babel" src="admin-panels.jsx"></script>
+
+<script type="text/babel">
+function App() {
+  const [sbCollapsed, setSbCollapsed] = React.useState(false);
+  const [sbHidden, setSbHidden] = React.useState(false);
+
+  React.useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth <= 1200 && window.innerWidth > 900) setSbCollapsed(true);
+      else if (window.innerWidth > 1200) setSbCollapsed(false);
+    };
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  return (
+    <div className="app">
+      <div className={sbHidden ? 'sidebar-hide' : ''} style={{ display: 'flex' }}>
+        <Sidebar collapsed={sbCollapsed} onToggle={() => setSbCollapsed(c => !c)}/>
+      </div>
+
+      <div className="main-col">
+        <Header onMenu={() => setSbHidden(h => !h)}/>
+
+        <div className="workspace">
+          {/* Section 1: KPIs */}
+          <KPIStrip/>
+
+          {/* Section 2: Two pipelines side-by-side */}
+          <div className="two-col">
+            <PipelineCard title="Lab Orders"   flavor="Consultation → Results"   stages={LAB_PIPELINE}      accent="var(--amber)"/>
+            <PipelineCard title="Deliveries"   flavor="Prescription → OTP"       stages={DELIVERY_PIPELINE} accent="var(--honey)"/>
+          </div>
+
+          {/* Section 3: Queue full width */}
+          <QueueTable/>
+
+          {/* Section 4: Revenue + Coverage (inline on narrow) */}
+          <div className="two-col">
+            <RevenueCard/>
+            <CoverageCard/>
+          </div>
+
+          {/* Inline mirror of right-rail on narrow screens */}
+          <div className="rail-inline">
+            <WorkforceCard/>
+            <FeedCard/>
+          </div>
+        </div>
+      </div>
+
+      {/* Right rail — always present on ≥1401, hidden via CSS otherwise */}
+      <aside className="right-rail scroll-y" style={{ overflow: 'auto', maxHeight: '100vh', position: 'sticky', top: 0 }}>
+        <WorkforceCard/>
+        <FeedCard/>
+      </aside>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
