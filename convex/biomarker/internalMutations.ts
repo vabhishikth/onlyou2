@@ -211,6 +211,32 @@ export const insertLabReportRow = internalMutation({
   },
 });
 
+// Patches a curation queue row. Used by Layer C to mark a row "resolved"
+// once the auto-DRAFT generator writes a reference range for it. Also used
+// by the admin-curation UI (Phase 2.5D) to resolve rows by hand.
+export const patchCurationQueueRow = internalMutation({
+  args: {
+    queueId: v.id("biomarker_curation_queue"),
+    patch: v.object({
+      status: v.optional(
+        v.union(
+          v.literal("pending"),
+          v.literal("in_review"),
+          v.literal("resolved"),
+          v.literal("wont_fix"),
+        ),
+      ),
+      resolvedAt: v.optional(v.number()),
+      resolvedReferenceRangeId: v.optional(v.id("biomarker_reference_ranges")),
+      resolvedByUserId: v.optional(v.id("users")),
+    }),
+  },
+  handler: async (ctx, { queueId, patch }) => {
+    await ctx.db.patch(queueId, patch);
+    return { ok: true };
+  },
+});
+
 // Inserts a new reference range row. Used by Layer C auto-DRAFT generation
 // (convex/biomarker/lib/autoDraftRange.ts) to persist Claude-proposed ranges
 // with clinicalReviewer = "DRAFT — auto-generated YYYY-MM-DD" for clinician

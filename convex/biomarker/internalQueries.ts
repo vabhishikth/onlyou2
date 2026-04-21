@@ -113,6 +113,17 @@ export const isBiomarkerParsingEnabled = internalQuery({
   },
 });
 
+export const getCurationRowByKey = internalQuery({
+  args: { normalizedKey: v.string() },
+  handler: async (ctx, { normalizedKey }) =>
+    await ctx.db
+      .query("biomarker_curation_queue")
+      .withIndex("by_normalized_key", (q) =>
+        q.eq("normalizedKey", normalizedKey),
+      )
+      .first(),
+});
+
 export const findRetryCandidates = internalQuery({
   args: { now: v.number(), staleLockCutoff: v.number() },
   handler: async (ctx, { now, staleLockCutoff }) => {
