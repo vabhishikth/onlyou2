@@ -62,22 +62,26 @@ Wave 2 observations flagged during review (consider DEFERRED entries before merg
 - `writeAuditLog` system-triggered attribution hardening — sentinel-admin lookup is non-deterministic + full-scan. Destination: **Phase 5 (admin portal)** (`docs/DEFERRED.md` under "Phase 5 — Admin portal").
 - Code reviewer observations tracked for post-Wave-4 cleanup: N+1 user load in chunk loops (Tasks 22/23), commit-mode test coverage extensions, `findRange` vs `findReferenceRangeId` sex-preference drift (pre-existing 2.5B bug).
 
-**Wave 5 — Portal contracts (4 commits, tip `1c32920`):**
+**Wave 5 — Portal contracts (5 commits incl. review fixes, tip `a39643b`):**
 
-| #   | Task                                                                                                                                                                                                                            | Commit    |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 26  | `assertPortalEnabled` helper with double-flag prod guard (`LAB`/`DOCTOR` × `_PORTAL_ENABLED` + `_PORTAL_REAL_AUTH` on prod). 5 unit tests.                                                                                      | `8938304` |
-| 27  | `labUploadResult` mutation (lab-partner upload surface). Guards: portal-enabled flag + nonempty partner token + order must be in `awaiting_results`. Emits `lab_report_uploaded_for_you`. 4 tests.                              | `d7076bf` |
-| 28  | `biomarkerReportsForPatient` query (doctor-portal read surface). Guards: DOCTOR portal-enabled + caller.role must be `DOCTOR`. `doctorContext` arg dropped — `consultations` table not in schema yet; Phase 4 re-adds. 3 tests. | `9061c66` |
-| 29  | `simulateLabUpload` admin action — reuses shared `createLabReportFromAction`; supports both `lab_upload` and `nurse_flow` sources via the same code path. Guarded by `assertNotProd()` + auth.                                  | `1c32920` |
+| #   | Task                                                                                                                                                                                                                                                                                                                                    | Commit    |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 26  | `assertPortalEnabled` helper with double-flag prod guard (`LAB`/`DOCTOR` × `_PORTAL_ENABLED` + `_PORTAL_REAL_AUTH` on prod). 5 unit tests.                                                                                                                                                                                              | `8938304` |
+| 27  | `labUploadResult` mutation (lab-partner upload surface). Guards: portal-enabled flag + nonempty partner token + order must be in `awaiting_results`. Emits `lab_report_uploaded_for_you`. 4 tests.                                                                                                                                      | `d7076bf` |
+| 28  | `biomarkerReportsForPatient` query (doctor-portal read surface). Guards: DOCTOR portal-enabled + caller.role must be `DOCTOR`. `doctorContext` arg dropped — `consultations` table not in schema yet; Phase 4 re-adds. 3 tests.                                                                                                         | `9061c66` |
+| 29  | `simulateLabUpload` admin action — reuses shared `createLabReportFromAction`; supports both `lab_upload` and `nurse_flow` sources via the same code path. Guarded by `assertNotProd()` + auth.                                                                                                                                          | `1c32920` |
+| RFX | Review fixes C-1 (session-token auth on doctor query + drop identity check on admin action), I-1 (hoist anchored prod regex to `convex/lib/envGuards.ts`, dash-bounded), I-2 (explicit field projection on doctor query), I-3 (reject non-finite/non-positive `fileSizeBytes`). +2 false-positive regex tests, +1 unauthenticated test. | `a39643b` |
 
 **Wave 5 notes:**
 
 - Plan snippets used lowercase roles (`"patient"`, `"doctor"`, `"nurse"`) and `ctx.db.system.insert("_storage", …)` in test fixtures — actual `roleValidator` uses uppercase `ROLES` (`"PATIENT"/"DOCTOR"/"NURSE"`) and convex-test needs `ctx.storage.store(blob)` for storage. Adjusted tests in place; plan kept for future reference.
 - Plan proposed an `_modules.ts` barrel for convex-test; repo convention is inline `import.meta.glob("../../**/*.ts")` per file (matches `intake-upload.test.ts`). Used inline glob.
 - Task 29 dashboard smoke skipped (requires `npx convex dev` auth). Typecheck + full suite confirm the action compiles. Manual dashboard verify tracked as a follow-up before merging 2.5C.
+- **C-1 root cause:** Wave 5 initial pass used `ctx.auth.getUserIdentity()` — forbidden because `auth.config.ts` has `providers: []`. The 2026-04-20 decision note (`docs/decisions/2026-04-20-session-token-auth-in-2-5c-mutations.md`) mandates session-token auth; Wave 5 regressed and review caught it. Fix extends the decision scope from mutations to queries.
 
-**Test counts after Wave 5:** `pnpm test:convex` — 29 files passed + 1 skipped, **191 tests passing** (prior 179 + 5 helper + 4 labUpload + 3 doctor-query). `pnpm -w typecheck --force` clean across all 6 packages.
+**Wave 5 review artifact:** `docs/superpowers/reviews/2026-04-21-phase-2.5c-wave-5-review.md` (Critical: 1, Important: 4 — all addressed in `a39643b`; I-4 was a checkpoint-on-master-vs-worktree false alarm).
+
+**Test counts after Wave 5 (post review fixes):** `pnpm test:convex` — 29 files passed + 1 skipped, **194 tests passing** (prior 179 + 5 helper + 4 labUpload + 3 doctor-query + 3 review-fix regressions). `pnpm -w typecheck --force` clean across all 6 packages.
 
 **Next:** Wave 6 — Tests + E2E (Tasks 30–31+). Seed admin-user script + the canonical DRAFT→reviewed round-trip test. Starts at plan line 5420.
 
