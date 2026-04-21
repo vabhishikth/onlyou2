@@ -1,6 +1,6 @@
 # Checkpoint
 
-**Current phase:** Phase 2.5C — Ingestion + curation + portal contracts. **Waves 1 + 2 + 3 complete** on branch `feature/phase-2.5c-ingestion-automation-reclassify` (worktree: `D:/onlyou2-phase-2.5c`). Waves 4–6 remaining.
+**Current phase:** Phase 2.5C — Ingestion + curation + portal contracts. **Waves 1 + 2 + 3 + 4 complete** on branch `feature/phase-2.5c-ingestion-automation-reclassify` (worktree: `D:/onlyou2-phase-2.5c`). Waves 5–6 remaining.
 **Status:** 2.5A + 2.5B shipped to master earlier. 2.5C is in-flight on a feature branch; not yet merged.
 
 ## Phase 2.5C progress
@@ -36,12 +36,33 @@ Wave 2 observations flagged during review (consider DEFERRED entries before merg
 
 **Test counts after Wave 3:** `pnpm test:convex` — 22 files passed + 2 skipped (Tasks 11 + 18 placeholders), **156 tests passing** (prior 132 + 6 Jaro-Winkler + 6 fuzzy-alias + 5 panel-code + 7 auto-range). `pnpm -w typecheck` clean across all 6 packages.
 
-**Wave 3 carry-forward — wired but not yet real:**
+**Wave 3 carry-forward — resolved in Wave 4:**
 
-- `convex/biomarker/reclassifyForCanonicalId.ts` is a stub action (returns `stub_not_yet_implemented`). Layer C schedules it on auto-DRAFT success; the stub lets typecheck pass until Wave 4 Task 22 lands the real reclassifier.
-- `convex/__tests__/biomarker/notifications-band-change.test.ts` still has the Wave 2 unused-`it` import. `pnpm -w typecheck` passes (convex dir isn't part of the workspace tsc run) but `npx convex codegen` fails its tsc pass. Codegen is regenerable via `--typecheck=disable`; real fix is Wave 4 Task 25 when the placeholder is filled in.
+- ~~`convex/biomarker/reclassifyForCanonicalId.ts` stub~~ → **filled by Task 22 (`0822b86`).**
+- ~~`notifications-band-change.test.ts` unused `it` import~~ → **filled by Task 25 (`d24fd1e`). `npx convex codegen` tsc now clean.**
 
-**Next:** Wave 4 — Reclassify engine. Task 19 carries forward the 2.5B review punchlist (I-3 few-shot examples, M-2 classify_row telemetry, M-5/M-6/M-7 hygiene), then Tasks 20–25 build `reclassify_locks` acquire/release helpers, the stale-lock cron, `reclassifyForCanonicalId` action (fills the Wave 3 stub), `reclassifyAllReports` preview + commit modes with audit log, and fills the `notifications-band-change.test.ts` placeholder. Starts at plan line 3075.
+**Wave 4 — Reclassify engine (10 commits, tip `d24fd1e`):**
+
+| #   | Task                                                                                                                                                                                                                                                                                                                                                                  | Commit(s)             |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| 19  | 2.5B carry-forwards — I-3 few-shot (8 pairs), M-2 drop `classify_row` literal, M-6 findRetryCandidates return type; M-5/M-7 verified no-op                                                                                                                                                                                                                            | `c13dd28` + `0ec7dbc` |
+| 20  | `reclassify_locks` acquire/release helpers + owner-token semantics + stale-sweep mutation (6 tests); `!`-assertion dropped after code review                                                                                                                                                                                                                          | `f74ef50` + `e7ade71` |
+| 21  | Stale-lock sweep cron (5min)                                                                                                                                                                                                                                                                                                                                          | `a68eeb2`             |
+| 22  | `reclassifyForCanonicalId` internal action — lock, chunked loop, classifyRow re-run, band-change notifications, `reclassify_canonical_commit` audit log (4 tests); fills Wave 3 Layer C stub                                                                                                                                                                          | `0822b86`             |
+| 23  | `reclassifyAllReports` preview mode — coupled `computeReclassifyPayload(ctx, write)` helper, rangesSignature staleness contract (3 tests). Fix: hardcoded `age: 30` bug caught by code reviewer (would corrupt `referenceRangeId` for age-banded markers) + moved staleness check under lock (folds I1+I4) + regression test with pediatric range.                    | `59744d5` + `fcf4466` |
+| 24  | `reclassifyAllReports` commit mode + real `writeAuditLog` (replaces Task 22 stub). Commit tests (2), audit-log tests (3). Fix: audit-assertion gap closed (test now seeds ADMIN + asserts admin_audit_log row); shared `adminAuditActionValidator` + `adminAuditTargetTableValidator` extracted to `convex/biomarker/lib/auditValidators.ts` (prevents schema drift). | `a22ae39` + `da357cb` |
+| 25  | Fill `notifications-band-change.test.ts` — 2 tests (no-op emits zero; N-affected-reports → N-notifications contract)                                                                                                                                                                                                                                                  | `d24fd1e`             |
+
+**Test counts after Wave 4:** `pnpm test:convex` — 28 files passed + 1 skipped (Task 18 Wave 6 placeholder only), **179 tests passing** (prior 156 + 6 lock + 4 reclassifyForCanonicalId + 6 preview+fix + 5 commit+audit + 2 band-change). `pnpm -w typecheck --force` clean across all 6 packages. `pnpm -w lint --force` clean. `npx convex codegen` tsc now clean (previously failed on Wave 2 placeholder).
+
+**Wave 4 live-test validation:** `pnpm test:claude` re-run with populated `FEW_SHOT_EXAMPLES` — **8/8 golden fixtures pass in 80s** (2.5B baseline was 128s on empty few-shots; faster by 37%). No extraction regression from I-3 populate.
+
+**Wave 4 DEFERRED additions:**
+
+- `writeAuditLog` system-triggered attribution hardening — sentinel-admin lookup is non-deterministic + full-scan. Destination: **Phase 5 (admin portal)** (`docs/DEFERRED.md` under "Phase 5 — Admin portal").
+- Code reviewer observations tracked for post-Wave-4 cleanup: N+1 user load in chunk loops (Tasks 22/23), commit-mode test coverage extensions, `findRange` vs `findReferenceRangeId` sex-preference drift (pre-existing 2.5B bug).
+
+**Next:** Wave 5 — Portal contracts (Tasks 26–30). `assertPortalEnabled` helper with double-flag prod guard + `labUploadResult` + `doctorSubmitResult` mutations. Starts at plan line 4833.
 
 ---
 
