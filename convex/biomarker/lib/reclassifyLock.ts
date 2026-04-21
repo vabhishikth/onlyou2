@@ -18,7 +18,7 @@ export async function acquireLock(
   if (!result.acquired) {
     throw new Error("reclassify_in_progress");
   }
-  return result.ownerToken!;
+  return result.ownerToken;
 }
 
 export async function releaseLock(
