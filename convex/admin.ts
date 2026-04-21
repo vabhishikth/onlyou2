@@ -10,10 +10,11 @@
 // Throws "admin operations are disabled in production" if the current
 // Convex deployment name matches a production pattern.
 
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 
 import { internal } from "./_generated/api";
-import { internalMutation } from "./_generated/server";
+import { action, internalMutation } from "./_generated/server";
+import { createLabReportFromAction } from "./biomarker/lib/createLabReport";
 
 const PROD_DEPLOYMENT_PATTERNS = [
   /^(prod|production)$/i,
@@ -40,5 +41,35 @@ export const triggerParseForLabReport = internalMutation({
       { labReportId },
     );
     return { scheduled: true };
+  },
+});
+
+export const simulateLabUpload = action({
+  args: {
+    userId: v.id("users"),
+    labOrderId: v.optional(v.id("lab_orders")),
+    fileId: v.id("_storage"),
+    mimeType: v.union(
+      v.literal("application/pdf"),
+      v.literal("image/jpeg"),
+      v.literal("image/png"),
+    ),
+    fileSizeBytes: v.number(),
+    source: v.union(v.literal("lab_upload"), v.literal("nurse_flow")),
+  },
+  handler: async (ctx, args) => {
+    assertNotProd();
+    const ident = await ctx.auth.getUserIdentity();
+    if (!ident) throw new ConvexError({ code: "unauthenticated" });
+
+    return await createLabReportFromAction(ctx, {
+      userId: args.userId,
+      source: args.source,
+      labOrderId: args.labOrderId,
+      fileId: args.fileId,
+      mimeType: args.mimeType,
+      fileSizeBytes: args.fileSizeBytes,
+      contentHash: `pending:${args.fileId}`,
+    });
   },
 });
