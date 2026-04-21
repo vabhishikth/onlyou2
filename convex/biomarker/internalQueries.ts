@@ -141,6 +141,25 @@ export const getBiomarkerReportById = internalQuery({
   handler: async (ctx, { biomarkerReportId }) => ctx.db.get(biomarkerReportId),
 });
 
+export const listAllValues = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("biomarker_values")
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
+
+export const getMaxRangeUpdatedAt = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("biomarker_reference_ranges").collect();
+    if (rows.length === 0) return "0";
+    return String(Math.max(...rows.map((r) => r.updatedAt)));
+  },
+});
+
 export const findRetryCandidates = internalQuery({
   args: { now: v.number(), staleLockCutoff: v.number() },
   handler: async (

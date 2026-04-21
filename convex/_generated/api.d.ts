@@ -32,7 +32,9 @@ import type * as biomarker_lib_normalizeKey from "../biomarker/lib/normalizeKey.
 import type * as biomarker_lib_notifications from "../biomarker/lib/notifications.js";
 import type * as biomarker_lib_panelCodeDetect from "../biomarker/lib/panelCodeDetect.js";
 import type * as biomarker_lib_rateLimits from "../biomarker/lib/rateLimits.js";
+import type * as biomarker_lib_reclassifyLock from "../biomarker/lib/reclassifyLock.js";
 import type * as biomarker_parseLabReport from "../biomarker/parseLabReport.js";
+import type * as biomarker_reclassifyAllReports from "../biomarker/reclassifyAllReports.js";
 import type * as biomarker_reclassifyForCanonicalId from "../biomarker/reclassifyForCanonicalId.js";
 import type * as biomarker_retryParseLabReport from "../biomarker/retryParseLabReport.js";
 import type * as crons from "../crons.js";
@@ -73,7 +75,9 @@ declare const fullApi: ApiFromModules<{
   "biomarker/lib/notifications": typeof biomarker_lib_notifications;
   "biomarker/lib/panelCodeDetect": typeof biomarker_lib_panelCodeDetect;
   "biomarker/lib/rateLimits": typeof biomarker_lib_rateLimits;
+  "biomarker/lib/reclassifyLock": typeof biomarker_lib_reclassifyLock;
   "biomarker/parseLabReport": typeof biomarker_parseLabReport;
+  "biomarker/reclassifyAllReports": typeof biomarker_reclassifyAllReports;
   "biomarker/reclassifyForCanonicalId": typeof biomarker_reclassifyForCanonicalId;
   "biomarker/retryParseLabReport": typeof biomarker_retryParseLabReport;
   crons: typeof crons;
