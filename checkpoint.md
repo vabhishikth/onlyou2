@@ -1,6 +1,6 @@
 # Checkpoint
 
-**Current phase:** Phase 2.5C — Ingestion + curation + portal contracts. **Waves 1 + 2 + 3 + 4 complete** on branch `feature/phase-2.5c-ingestion-automation-reclassify` (worktree: `D:/onlyou2-phase-2.5c`). Waves 5–6 remaining.
+**Current phase:** Phase 2.5C — Ingestion + curation + portal contracts. **Waves 1 + 2 + 3 + 4 + 5 complete** on branch `feature/phase-2.5c-ingestion-automation-reclassify` (worktree: `D:/onlyou2-phase-2.5c`). Wave 6 remaining.
 **Status:** 2.5A + 2.5B shipped to master earlier. 2.5C is in-flight on a feature branch; not yet merged.
 
 ## Phase 2.5C progress
@@ -62,7 +62,24 @@ Wave 2 observations flagged during review (consider DEFERRED entries before merg
 - `writeAuditLog` system-triggered attribution hardening — sentinel-admin lookup is non-deterministic + full-scan. Destination: **Phase 5 (admin portal)** (`docs/DEFERRED.md` under "Phase 5 — Admin portal").
 - Code reviewer observations tracked for post-Wave-4 cleanup: N+1 user load in chunk loops (Tasks 22/23), commit-mode test coverage extensions, `findRange` vs `findReferenceRangeId` sex-preference drift (pre-existing 2.5B bug).
 
-**Next:** Wave 5 — Portal contracts (Tasks 26–30). `assertPortalEnabled` helper with double-flag prod guard + `labUploadResult` + `doctorSubmitResult` mutations. Starts at plan line 4833.
+**Wave 5 — Portal contracts (4 commits, tip `1c32920`):**
+
+| #   | Task                                                                                                                                                                                                                            | Commit    |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 26  | `assertPortalEnabled` helper with double-flag prod guard (`LAB`/`DOCTOR` × `_PORTAL_ENABLED` + `_PORTAL_REAL_AUTH` on prod). 5 unit tests.                                                                                      | `8938304` |
+| 27  | `labUploadResult` mutation (lab-partner upload surface). Guards: portal-enabled flag + nonempty partner token + order must be in `awaiting_results`. Emits `lab_report_uploaded_for_you`. 4 tests.                              | `d7076bf` |
+| 28  | `biomarkerReportsForPatient` query (doctor-portal read surface). Guards: DOCTOR portal-enabled + caller.role must be `DOCTOR`. `doctorContext` arg dropped — `consultations` table not in schema yet; Phase 4 re-adds. 3 tests. | `9061c66` |
+| 29  | `simulateLabUpload` admin action — reuses shared `createLabReportFromAction`; supports both `lab_upload` and `nurse_flow` sources via the same code path. Guarded by `assertNotProd()` + auth.                                  | `1c32920` |
+
+**Wave 5 notes:**
+
+- Plan snippets used lowercase roles (`"patient"`, `"doctor"`, `"nurse"`) and `ctx.db.system.insert("_storage", …)` in test fixtures — actual `roleValidator` uses uppercase `ROLES` (`"PATIENT"/"DOCTOR"/"NURSE"`) and convex-test needs `ctx.storage.store(blob)` for storage. Adjusted tests in place; plan kept for future reference.
+- Plan proposed an `_modules.ts` barrel for convex-test; repo convention is inline `import.meta.glob("../../**/*.ts")` per file (matches `intake-upload.test.ts`). Used inline glob.
+- Task 29 dashboard smoke skipped (requires `npx convex dev` auth). Typecheck + full suite confirm the action compiles. Manual dashboard verify tracked as a follow-up before merging 2.5C.
+
+**Test counts after Wave 5:** `pnpm test:convex` — 29 files passed + 1 skipped, **191 tests passing** (prior 179 + 5 helper + 4 labUpload + 3 doctor-query). `pnpm -w typecheck --force` clean across all 6 packages.
+
+**Next:** Wave 6 — Tests + E2E (Tasks 30–31+). Seed admin-user script + the canonical DRAFT→reviewed round-trip test. Starts at plan line 5420.
 
 ---
 
