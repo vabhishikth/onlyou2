@@ -440,7 +440,16 @@ export const recomputeBiomarkerReportCounts = internalMutation({
   },
 });
 
-// STUB — Task 24 ships real impl
+// Writes a row to admin_audit_log for phase 2.5C admin mutations and
+// system-triggered reclassify jobs.
+//
+// The schema requires adminUserId: v.id("users") (NON-NULL). To support
+// system-triggered writes (e.g. reclassifyAllReports commit, which has no
+// acting admin in the action context), this mutation accepts null and
+// looks up a sentinel admin user (first user with role "ADMIN"). If no
+// admin exists, the write is skipped (returns { skipped: true }) rather
+// than failing the caller — system audit coverage is best-effort in dev
+// environments that haven't seeded an admin yet.
 export const writeAuditLog = internalMutation({
   args: {
     adminUserId: v.union(v.id("users"), v.null()),
@@ -464,7 +473,28 @@ export const writeAuditLog = internalMutation({
     after: v.optional(v.any()),
     now: v.number(),
   },
-  handler: async () => ({ ok: true as const }), // Task 24 fills this
+  handler: async (ctx, args) => {
+    let adminUserId: Id<"users"> | null = args.adminUserId;
+    if (adminUserId === null) {
+      // System-triggered: find sentinel admin
+      const sentinel = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("role"), "ADMIN"))
+        .first();
+      if (!sentinel) return { skipped: true as const };
+      adminUserId = sentinel._id;
+    }
+    await ctx.db.insert("admin_audit_log", {
+      adminUserId,
+      action: args.action,
+      targetTable: args.targetTable,
+      targetId: args.targetId,
+      before: args.before,
+      after: args.after,
+      timestamp: args.now,
+    });
+    return { written: true as const };
+  },
 });
 
 export const sweepExpiredReclassifyLocks = internalMutation({
