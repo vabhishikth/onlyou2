@@ -302,3 +302,89 @@ export const writeNotification = internalMutation({
     });
   },
 });
+
+function uuid(): string {
+  // Simple random token; Convex V8 lacks crypto.randomUUID. Use a pseudo-UUID.
+  const chars = "abcdef0123456789";
+  let s = "";
+  for (let i = 0; i < 32; i++) s += chars[Math.floor(Math.random() * 16)];
+  return `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20, 32)}`;
+}
+
+export const acquireReclassifyLock = internalMutation({
+  args: {
+    canonicalId: v.string(),
+    action: v.union(
+      v.literal("reclassifyForCanonicalId"),
+      v.literal("reclassifyAllReportsPreview"),
+      v.literal("reclassifyAllReportsCommit"),
+    ),
+    ttlMs: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // 1. Check for ANY active lock that should block this acquisition
+    // - If requesting per-canonical: block if global "*" is held OR same canonical is held
+    // - If requesting global "*": block if ANY lock is held
+    const activeLocks = await ctx.db.query("reclassify_locks").collect();
+    const activeValid = activeLocks.filter((l) => l.expiresAt > now);
+
+    if (args.canonicalId === "*") {
+      if (activeValid.length > 0) return { acquired: false as const };
+    } else {
+      const blockers = activeValid.filter(
+        (l) => l.canonicalId === "*" || l.canonicalId === args.canonicalId,
+      );
+      if (blockers.length > 0) return { acquired: false as const };
+    }
+
+    // 2. Clean up any expired rows with this canonicalId (stale-lock safety)
+    const expiredSameCanonical = activeLocks.filter(
+      (l) => l.canonicalId === args.canonicalId && l.expiresAt <= now,
+    );
+    for (const e of expiredSameCanonical) {
+      await ctx.db.delete(e._id);
+    }
+
+    // 3. Insert fresh lock
+    const ownerToken = uuid();
+    await ctx.db.insert("reclassify_locks", {
+      canonicalId: args.canonicalId,
+      ownerToken,
+      acquiredAt: now,
+      expiresAt: now + args.ttlMs,
+      action: args.action,
+    });
+    return { acquired: true as const, ownerToken };
+  },
+});
+
+export const releaseReclassifyLock = internalMutation({
+  args: { canonicalId: v.string(), ownerToken: v.string() },
+  handler: async (ctx, { canonicalId, ownerToken }) => {
+    const rows = await ctx.db
+      .query("reclassify_locks")
+      .withIndex("by_canonical", (q) => q.eq("canonicalId", canonicalId))
+      .collect();
+    for (const row of rows) {
+      if (row.ownerToken === ownerToken) {
+        await ctx.db.delete(row._id);
+      }
+    }
+    return { ok: true };
+  },
+});
+
+export const sweepExpiredReclassifyLocks = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const expired = await ctx.db
+      .query("reclassify_locks")
+      .withIndex("by_expires", (q) => q.lt("expiresAt", now))
+      .collect();
+    for (const row of expired) await ctx.db.delete(row._id);
+    return { swept: expired.length };
+  },
+});
