@@ -2,6 +2,7 @@ import { convexTest } from "convex-test";
 import { describe, it, expect } from "vitest";
 
 import { api } from "../../_generated/api";
+import type { Id } from "../../_generated/dataModel";
 import { assertPortalEnabled } from "../../biomarker/lib/portalGates";
 import schema from "../../schema";
 
@@ -36,6 +37,27 @@ describe("assertPortalEnabled", () => {
     expect(() =>
       assertPortalEnabled("DOCTOR", "dev-deploy", env),
     ).not.toThrow();
+  });
+  it("does not false-positive on prodigy-staging / reproductive-dev", () => {
+    const env = { LAB_PORTAL_ENABLED: "1", LAB_PORTAL_REAL_AUTH: "" };
+    expect(() =>
+      assertPortalEnabled("LAB", "prodigy-staging", env),
+    ).not.toThrow();
+    expect(() =>
+      assertPortalEnabled("LAB", "reproductive-dev", env),
+    ).not.toThrow();
+  });
+  it("matches prod-suffix / prod-in-middle / bare prod", () => {
+    const env = { LAB_PORTAL_ENABLED: "1", LAB_PORTAL_REAL_AUTH: "" };
+    expect(() => assertPortalEnabled("LAB", "deploy-prod", env)).toThrow(
+      /endpoint_disabled_unsafe_in_prod/,
+    );
+    expect(() => assertPortalEnabled("LAB", "foo-prod-bar", env)).toThrow(
+      /endpoint_disabled_unsafe_in_prod/,
+    );
+    expect(() => assertPortalEnabled("LAB", "prod", env)).toThrow(
+      /endpoint_disabled_unsafe_in_prod/,
+    );
   });
 });
 
@@ -143,6 +165,22 @@ describe("labUploadResult mutation", () => {
 });
 
 describe("biomarkerReportsForPatient query", () => {
+  async function seedSession(
+    t: ReturnType<typeof convexTest>,
+    userId: Id<"users">,
+  ): Promise<string> {
+    const token = `tok-${userId}-${Date.now()}-${Math.random()}`;
+    await t.run(async (ctx) => {
+      await ctx.db.insert("sessions", {
+        userId,
+        token,
+        expiresAt: Date.now() + 60 * 60 * 1000,
+        createdAt: Date.now(),
+      });
+    });
+    return token;
+  }
+
   it("throws endpoint_disabled when flag off", async () => {
     delete process.env.DOCTOR_PORTAL_ENABLED;
     const t = convexTest(schema, modules);
@@ -162,15 +200,35 @@ describe("biomarkerReportsForPatient query", () => {
         createdAt: Date.now(),
       }),
     );
+    const token = await seedSession(t, doctorId);
     await expect(
-      t
-        .withIdentity({ subject: doctorId, issuer: "test" })
-        .query(
-          api.biomarker.portal.biomarkerReportsForPatient
-            .biomarkerReportsForPatient,
-          { patientId },
-        ),
+      t.query(
+        api.biomarker.portal.biomarkerReportsForPatient
+          .biomarkerReportsForPatient,
+        { token, patientId },
+      ),
     ).rejects.toThrow(/endpoint_disabled/);
+  });
+
+  it("throws unauthenticated when token missing or expired", async () => {
+    process.env.DOCTOR_PORTAL_ENABLED = "1";
+    process.env.CONVEX_DEPLOYMENT = "dev-deploy";
+    const t = convexTest(schema, modules);
+    const patientId = await t.run(async (ctx) =>
+      ctx.db.insert("users", {
+        role: "PATIENT",
+        phoneVerified: true,
+        profileComplete: true,
+        createdAt: Date.now(),
+      }),
+    );
+    await expect(
+      t.query(
+        api.biomarker.portal.biomarkerReportsForPatient
+          .biomarkerReportsForPatient,
+        { token: "bogus-token", patientId },
+      ),
+    ).rejects.toThrow(/unauthenticated/);
   });
 
   it("happy path on dev returns reports+values for patientId", async () => {
@@ -229,18 +287,20 @@ describe("biomarkerReportsForPatient query", () => {
       });
       return { patientId, doctorId };
     });
+    const token = await seedSession(t, doctorId);
 
-    const result = await t
-      .withIdentity({ subject: doctorId, issuer: "test" })
-      .query(
-        api.biomarker.portal.biomarkerReportsForPatient
-          .biomarkerReportsForPatient,
-        { patientId },
-      );
+    const result = await t.query(
+      api.biomarker.portal.biomarkerReportsForPatient
+        .biomarkerReportsForPatient,
+      { token, patientId },
+    );
     expect(result).toHaveLength(1);
     expect(result[0].report.userId).toBe(patientId);
     expect(result[0].values).toHaveLength(1);
     expect(result[0].values[0].canonicalId).toBe("tsh");
+    // Projection: internal fields must not leak.
+    expect("_creationTime" in result[0].report).toBe(false);
+    expect("deletedAt" in result[0].values[0]).toBe(false);
   });
 
   it("rejects when caller role is not doctor", async () => {
@@ -262,14 +322,13 @@ describe("biomarkerReportsForPatient query", () => {
       });
       return { patientId, nonDoctorId };
     });
+    const token = await seedSession(t, nonDoctorId);
     await expect(
-      t
-        .withIdentity({ subject: nonDoctorId, issuer: "test" })
-        .query(
-          api.biomarker.portal.biomarkerReportsForPatient
-            .biomarkerReportsForPatient,
-          { patientId },
-        ),
+      t.query(
+        api.biomarker.portal.biomarkerReportsForPatient
+          .biomarkerReportsForPatient,
+        { token, patientId },
+      ),
     ).rejects.toThrow(/forbidden/);
   });
 });

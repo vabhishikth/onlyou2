@@ -10,21 +10,15 @@
 // Throws "admin operations are disabled in production" if the current
 // Convex deployment name matches a production pattern.
 
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
 
 import { internal } from "./_generated/api";
 import { action, internalMutation } from "./_generated/server";
 import { createLabReportFromAction } from "./biomarker/lib/createLabReport";
-
-const PROD_DEPLOYMENT_PATTERNS = [
-  /^(prod|production)$/i,
-  /-(prod|production)$/i,
-];
+import { isProdDeployment } from "./lib/envGuards";
 
 export function assertNotProd(): void {
-  const deployment = process.env.CONVEX_DEPLOYMENT ?? "";
-  const isProd = PROD_DEPLOYMENT_PATTERNS.some((p) => p.test(deployment));
-  if (isProd) {
+  if (isProdDeployment(process.env.CONVEX_DEPLOYMENT ?? "")) {
     throw new Error(
       "admin operations are disabled in production (CONVEX_DEPLOYMENT matched a prod pattern)",
     );
@@ -58,9 +52,11 @@ export const simulateLabUpload = action({
     source: v.union(v.literal("lab_upload"), v.literal("nurse_flow")),
   },
   handler: async (ctx, args) => {
+    // Dashboard-only dev stub. `assertNotProd()` blocks prod; real admin
+    // role enforcement lives behind Phase 5's admin portal. Identity is not
+    // asserted here because the Convex dashboard invokes actions without
+    // a user identity — same pattern as `triggerParseForLabReport`.
     assertNotProd();
-    const ident = await ctx.auth.getUserIdentity();
-    if (!ident) throw new ConvexError({ code: "unauthenticated" });
 
     return await createLabReportFromAction(ctx, {
       userId: args.userId,

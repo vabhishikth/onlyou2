@@ -26,6 +26,9 @@ export const PENDING_HASH_PREFIX = "pending:";
 export function validateSizeAndMime(
   args: Pick<CreateLabReportArgs, "fileSizeBytes" | "mimeType">,
 ): void {
+  if (!Number.isFinite(args.fileSizeBytes) || args.fileSizeBytes <= 0) {
+    throw new Error("invalid_file_size");
+  }
   if (args.fileSizeBytes > MAX_FILE_SIZE_BYTES) {
     throw new Error("file_too_large");
   }

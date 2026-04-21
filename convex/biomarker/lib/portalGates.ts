@@ -1,6 +1,6 @@
-export type PortalName = "LAB" | "DOCTOR";
+import { isProdDeployment } from "../../lib/envGuards";
 
-const PROD_PATTERN = /prod/i;
+export type PortalName = "LAB" | "DOCTOR";
 
 export function assertPortalEnabled(
   portal: PortalName,
@@ -14,9 +14,8 @@ export function assertPortalEnabled(
   if (!enabled) {
     throw new Error(`endpoint_disabled:${portal}`);
   }
-  const prod = PROD_PATTERN.test(deployment);
   const realAuth = env[`${portal}_PORTAL_REAL_AUTH`] === "1";
-  if (prod && !realAuth) {
+  if (isProdDeployment(deployment) && !realAuth) {
     throw new Error(`endpoint_disabled_unsafe_in_prod:${portal}`);
   }
 }
