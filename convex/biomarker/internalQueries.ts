@@ -48,6 +48,7 @@ export const getActiveRanges = internalQuery({
       subOptimalAboveMax: r.subOptimalAboveMax,
       actionBelow: r.actionBelow,
       actionAbove: r.actionAbove,
+      aliases: r.aliases,
     }));
   },
 });

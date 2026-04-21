@@ -39,6 +39,7 @@ export interface ReferenceRange {
   subOptimalAboveMax?: number;
   actionBelow?: number;
   actionAbove?: number;
+  aliases?: string[];
 }
 
 export interface UserProfile {
@@ -52,6 +53,10 @@ export interface ClassifyInput {
   user: UserProfile;
   ranges: ReferenceRange[];
   conversions: UnitConversion[];
+  // When the orchestrator has already resolved the canonical via a later
+  // classification layer (fuzzy alias match, auto-DRAFT generation), pass
+  // it here to bypass the marker.canonical_id_guess lookup.
+  forcedCanonicalId?: string;
 }
 
 export type MarkerStatus =
@@ -100,8 +105,8 @@ function unclassified(
 }
 
 export function classifyRow(input: ClassifyInput): ClassifyResult {
-  const { marker, user, ranges, conversions } = input;
-  const canonicalId = marker.canonical_id_guess;
+  const { marker, user, ranges, conversions, forcedCanonicalId } = input;
+  const canonicalId = forcedCanonicalId ?? marker.canonical_id_guess;
 
   // 4a. Find the matching range ONCE to inform the pregnancy check
   const matchingRange = canonicalId

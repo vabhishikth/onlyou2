@@ -35,8 +35,10 @@ import {
 import { generateNarrativeWithGuard } from "./internal/generateNarrative";
 import { matchPatientName } from "./internal/matchPatientName";
 import { computeNextRetry } from "./internal/retryScheduler";
+import { fuzzyAliasMatch, type RangeForMatch } from "./lib/fuzzyAliasMatch";
 import { normalizeKey } from "./lib/normalizeKey";
 import { writeNotificationFromAction } from "./lib/notifications";
+import { isPanelCode } from "./lib/panelCodeDetect";
 
 export const parseLabReport = internalAction({
   args: { labReportId: v.id("lab_reports") },
@@ -202,7 +204,56 @@ export const parseLabReport = internalAction({
       value: number | string;
     }> = [];
     for (const marker of extract.response.markers) {
-      const result = classifyRow({ marker, user, ranges, conversions });
+      // Layer A: Panel-code auto-skip. Lab panel codes (HEM-401, PANEL-12,
+      // CBC/PLT-RATIO, etc.) are not real biomarkers — don't persist a
+      // biomarker_value row, and auto-resolve any queue entry as wont_fix.
+      if (isPanelCode(marker.name_on_report)) {
+        await ctx.runMutation(
+          internal.biomarker.internal.upsertCurationRow.upsertCurationRow,
+          {
+            nameOnReport: marker.name_on_report,
+            rawUnit: marker.raw_unit ?? undefined,
+            sampleLabPrintedRange: marker.lab_printed_range ?? undefined,
+            firstSeenBiomarkerReportId: biomarkerReportId,
+            now,
+            resolveAsWontFix: true,
+          },
+        );
+        continue;
+      }
+
+      // Layer B: Fuzzy alias match — only runs if the exact-alias classifier
+      // returned unclassified:not_in_reference_db. A match here is gated by
+      // unit agreement + Claude's canonical_id_guess agreement (see
+      // fuzzyAliasMatch). On success we re-run classifyRow with the matched
+      // canonical forced so bands + status evaluate against the range.
+      let result = classifyRow({ marker, user, ranges, conversions });
+      if (
+        result.status === "unclassified" &&
+        result.unclassifiedReason === "not_in_reference_db"
+      ) {
+        const rangesForMatch: RangeForMatch[] = ranges.map((r) => ({
+          canonicalId: r.canonicalId,
+          canonicalUnit: r.canonicalUnit,
+          aliases: r.aliases ?? [],
+        }));
+        const fuzzyMatch = fuzzyAliasMatch({
+          normalizedName: marker.name_on_report,
+          rawUnit: marker.raw_unit,
+          canonicalIdGuess: marker.canonical_id_guess ?? null,
+          ranges: rangesForMatch,
+          unitConversions: conversions,
+        });
+        if (fuzzyMatch) {
+          result = classifyRow({
+            marker: { ...marker, canonical_id_guess: fuzzyMatch },
+            user,
+            ranges,
+            conversions,
+            forcedCanonicalId: fuzzyMatch,
+          });
+        }
+      }
       // Lookup reference-range id if classified
       let refId: Id<"biomarker_reference_ranges"> | null = null;
       if (result.canonicalId && result.status !== "unclassified") {
