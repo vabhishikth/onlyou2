@@ -4,6 +4,11 @@ import { v } from "convex/values";
 
 import { ROLES } from "../packages/core/src/enums/roles";
 
+import {
+  adminAuditActionValidator,
+  adminAuditTargetTableValidator,
+} from "./biomarker/lib/auditValidators";
+
 const roleValidator = v.union(...ROLES.map((r) => v.literal(r)));
 const genderValidator = v.union(
   v.literal("male"),
@@ -322,21 +327,8 @@ export default defineSchema({
 
   admin_audit_log: defineTable({
     adminUserId: v.id("users"),
-    action: v.union(
-      v.literal("curation_resolve"),
-      v.literal("curation_wont_fix"),
-      v.literal("range_create"),
-      v.literal("range_update"),
-      v.literal("range_deactivate"),
-      v.literal("range_reactivate"),
-      v.literal("reclassify_canonical_commit"),
-      v.literal("reclassify_all_preview"),
-      v.literal("reclassify_all_commit"),
-    ),
-    targetTable: v.union(
-      v.literal("biomarker_curation_queue"),
-      v.literal("biomarker_reference_ranges"),
-    ),
+    action: adminAuditActionValidator,
+    targetTable: adminAuditTargetTableValidator,
     targetId: v.string(),
     before: v.optional(v.any()),
     after: v.optional(v.any()),

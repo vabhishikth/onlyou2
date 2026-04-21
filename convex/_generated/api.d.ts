@@ -24,6 +24,7 @@ import type * as biomarker_internal_normalizeUnit from "../biomarker/internal/no
 import type * as biomarker_internal_retryScheduler from "../biomarker/internal/retryScheduler.js";
 import type * as biomarker_internal_seedRanges from "../biomarker/internal/seedRanges.js";
 import type * as biomarker_internal_upsertCurationRow from "../biomarker/internal/upsertCurationRow.js";
+import type * as biomarker_lib_auditValidators from "../biomarker/lib/auditValidators.js";
 import type * as biomarker_lib_autoDraftRange from "../biomarker/lib/autoDraftRange.js";
 import type * as biomarker_lib_createLabReport from "../biomarker/lib/createLabReport.js";
 import type * as biomarker_lib_fuzzyAliasMatch from "../biomarker/lib/fuzzyAliasMatch.js";
@@ -67,6 +68,7 @@ declare const fullApi: ApiFromModules<{
   "biomarker/internal/retryScheduler": typeof biomarker_internal_retryScheduler;
   "biomarker/internal/seedRanges": typeof biomarker_internal_seedRanges;
   "biomarker/internal/upsertCurationRow": typeof biomarker_internal_upsertCurationRow;
+  "biomarker/lib/auditValidators": typeof biomarker_lib_auditValidators;
   "biomarker/lib/autoDraftRange": typeof biomarker_lib_autoDraftRange;
   "biomarker/lib/createLabReport": typeof biomarker_lib_createLabReport;
   "biomarker/lib/fuzzyAliasMatch": typeof biomarker_lib_fuzzyAliasMatch;

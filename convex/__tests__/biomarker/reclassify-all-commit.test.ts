@@ -41,6 +41,12 @@ describe("reclassifyAllReports commit", () => {
   it("happy path: commit writes value updates + emits lab_report_updated per affected report", async () => {
     const t = convexTest(schema, modules);
     const ids = await t.run(async (ctx) => {
+      const adminUserId = await ctx.db.insert("users", {
+        role: "ADMIN",
+        phoneVerified: true,
+        profileComplete: true,
+        createdAt: Date.now(),
+      });
       const userId = await ctx.db.insert("users", {
         role: "PATIENT",
         phoneVerified: true,
@@ -100,7 +106,7 @@ describe("reclassifyAllReports commit", () => {
         isActive: true,
         updatedAt: 5000,
       });
-      return { userId, biomarkerReportId };
+      return { adminUserId, userId, biomarkerReportId };
     });
 
     const result = await t.action(
@@ -121,6 +127,15 @@ describe("reclassifyAllReports commit", () => {
       const report = await ctx.db.get(ids.biomarkerReportId);
       expect(report).not.toBeNull();
       expect(report!.lastReclassifiedAt).toBeTypeOf("number");
+
+      // Audit row must be written (sentinel admin path, proves the call site
+      // in reclassifyAllReports commit mode actually reaches writeAuditLog).
+      const audit = await ctx.db.query("admin_audit_log").collect();
+      expect(audit).toHaveLength(1);
+      expect(audit[0].action).toBe("reclassify_all_commit");
+      expect(audit[0].targetTable).toBe("biomarker_reference_ranges");
+      expect(audit[0].adminUserId).toBe(ids.adminUserId);
+      expect(audit[0].after).toMatchObject({ rangesSignature: "5000" });
     });
   });
 });

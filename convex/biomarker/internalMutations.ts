@@ -3,6 +3,10 @@ import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { internalMutation } from "../_generated/server";
 
+import {
+  adminAuditActionValidator,
+  adminAuditTargetTableValidator,
+} from "./lib/auditValidators";
 import { insertLabReportRowInline } from "./lib/createLabReport";
 
 export const markAnalyzing = internalMutation({
@@ -453,21 +457,8 @@ export const recomputeBiomarkerReportCounts = internalMutation({
 export const writeAuditLog = internalMutation({
   args: {
     adminUserId: v.union(v.id("users"), v.null()),
-    action: v.union(
-      v.literal("curation_resolve"),
-      v.literal("curation_wont_fix"),
-      v.literal("range_create"),
-      v.literal("range_update"),
-      v.literal("range_deactivate"),
-      v.literal("range_reactivate"),
-      v.literal("reclassify_canonical_commit"),
-      v.literal("reclassify_all_preview"),
-      v.literal("reclassify_all_commit"),
-    ),
-    targetTable: v.union(
-      v.literal("biomarker_curation_queue"),
-      v.literal("biomarker_reference_ranges"),
-    ),
+    action: adminAuditActionValidator,
+    targetTable: adminAuditTargetTableValidator,
     targetId: v.string(),
     before: v.optional(v.any()),
     after: v.optional(v.any()),
