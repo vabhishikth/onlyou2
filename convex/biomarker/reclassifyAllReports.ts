@@ -4,7 +4,7 @@ import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import { internalAction } from "../_generated/server";
 
-import { classifyRow } from "./internal/classifyRow";
+import { classifyRow, computeAge } from "./internal/classifyRow";
 import { writeNotificationFromAction } from "./lib/notifications";
 import { acquireLock, releaseLock } from "./lib/reclassifyLock";
 
@@ -126,7 +126,7 @@ async function computeReclassifyPayload(
               {
                 canonicalId: newResult.canonicalId,
                 sex: user.sex ?? "any",
-                age: 30,
+                age: user.dob ? computeAge(user.dob) : 0,
               },
             );
             newRefId = refId ?? undefined;
@@ -177,16 +177,6 @@ export const reclassifyAllReports = internalAction({
     rangesSignature: v.optional(v.string()),
   },
   handler: async (ctx, { mode, rangesSignature: passedSig }) => {
-    if (mode === "commit") {
-      // Staleness check BEFORE acquiring the lock
-      const currentSig = await ctx.runQuery(
-        internal.biomarker.internalQueries.getMaxRangeUpdatedAt,
-        {},
-      );
-      if (!passedSig || currentSig !== passedSig) {
-        throw new Error("ranges_changed_since_preview");
-      }
-    }
     const action =
       mode === "preview"
         ? "reclassifyAllReportsPreview"
@@ -196,6 +186,12 @@ export const reclassifyAllReports = internalAction({
       const payload = await computeReclassifyPayload(ctx, mode === "commit");
 
       if (mode === "commit") {
+        // Staleness check under the lock, reusing the signature
+        // computeReclassifyPayload already fetched. This closes the
+        // race window that existed when the check ran before the lock.
+        if (!passedSig || payload.rangesSignature !== passedSig) {
+          throw new Error("ranges_changed_since_preview");
+        }
         // Recompute counts + emit notifications
         for (const reportId of payload.affectedReportsSet) {
           await ctx.runMutation(
