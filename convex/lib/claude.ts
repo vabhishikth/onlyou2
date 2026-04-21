@@ -19,6 +19,7 @@
 // Reference: https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
 
 import Anthropic from "@anthropic-ai/sdk";
+import { z } from "zod";
 
 // Verified via WebFetch on 2026-04-18 against
 // https://platform.claude.com/docs/en/docs/about-claude/models
@@ -257,4 +258,99 @@ export async function generateNarrative(): Promise<never> {
   throw new Error(
     "convex/lib/claude.ts: generateNarrative() is the 2.5A stub. Use callNarrative() instead.",
   );
+}
+
+// ---------- Auto-DRAFT range generation ----------
+//
+// Secondary Claude call for markers that (a) never classified against the
+// reference DB, (b) didn't match any alias fuzzily, and (c) have accumulated
+// enough occurrences in the curation queue to justify paying for a second
+// call. Output is persisted as a DRAFT reference_range (clinicalReviewer =
+// "DRAFT — auto-generated YYYY-MM-DD") which a human reviews before the
+// range is trusted for production decisions.
+//
+// Gating is handled by convex/biomarker/lib/autoDraftRange.ts.
+
+export const AutoDraftRangeOutputSchema = z.object({
+  is_real_biomarker: z.boolean(),
+  canonical_id: z.string().nullable(),
+  display_name: z.string().nullable(),
+  aliases: z.array(z.string()),
+  category: z.string().nullable(),
+  canonical_unit: z.string().nullable(),
+  sex: z.enum(["male", "female", "any"]).nullable(),
+  age_min: z.number().nullable(),
+  age_max: z.number().nullable(),
+  pregnancy_sensitive: z.boolean().nullable(),
+  optimal_min: z.number().nullable(),
+  optimal_max: z.number().nullable(),
+  sub_optimal_below_min: z.number().nullable(),
+  sub_optimal_above_max: z.number().nullable(),
+  action_below: z.number().nullable(),
+  action_above: z.number().nullable(),
+  explainer: z.string().nullable(),
+  source_citation: z.string().nullable(),
+  confidence: z.number(),
+});
+export type AutoDraftRangeOutput = z.infer<typeof AutoDraftRangeOutputSchema>;
+
+export const ALLOWED_CATEGORIES = [
+  "Nutrient Health",
+  "Thyroid",
+  "Metabolic",
+  "CBC",
+  "Hormonal Balance",
+  "Lipids",
+  "Liver",
+  "Kidney",
+] as const;
+
+const AUTO_DRAFT_SYSTEM_PROMPT = `You are a clinical biomarker taxonomy assistant. Given a single marker extracted from a patient's lab report (name, raw unit, lab-printed reference range, and an optional canonical ID guess), decide whether this is a real biomarker in one of the allowed categories. If yes, propose DRAFT reference ranges for Indian adult patients based on standard medical references.
+
+IMPORTANT: return is_real_biomarker=false for:
+- Lab panel codes (e.g., "HEM-401", "CBC/PLT-RATIO")
+- Derivations or computed ratios (e.g., "LDL/HDL Ratio")
+- Lab-specific internal codes
+- Anything outside the allowed categories
+
+Allowed categories: ${ALLOWED_CATEGORIES.join(", ")}
+
+For real biomarkers, provide clinically reasonable DRAFT thresholds. Always cite a standard reference (Endocrine Society, NIH, WHO, IOM, etc.). Threshold ordering MUST satisfy: actionBelow < subOptimalBelowMin < optimalMin <= optimalMax < subOptimalAboveMax < actionAbove (for bounds you provide; omit with null if not applicable).
+
+Your output will be reviewed by a clinician before reaching patients.`;
+
+export async function callAutoDraftRange(args: {
+  nameOnReport: string;
+  rawUnit: string | null;
+  labPrintedRange: string | null;
+  canonicalIdGuess: string | null;
+}): Promise<AutoDraftRangeOutput> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const userMessage = JSON.stringify({
+    name_on_report: args.nameOnReport,
+    raw_unit: args.rawUnit,
+    lab_printed_range: args.labPrintedRange,
+    canonical_id_guess: args.canonicalIdGuess,
+    categories_allowed: ALLOWED_CATEGORIES,
+  });
+  const response = (await client.messages.create({
+    model: MODEL_NARRATIVE,
+    max_tokens: 1200,
+    temperature: 0.2,
+    system: AUTO_DRAFT_SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userMessage }],
+  } as unknown as Parameters<
+    typeof client.messages.create
+  >[0])) as unknown as RawClaudeResponse;
+  const text = response.content
+    .filter((b) => b.type === "text")
+    .map((b) => b.text ?? "")
+    .join("");
+  const jsonStart = text.indexOf("{");
+  const jsonEnd = text.lastIndexOf("}");
+  if (jsonStart < 0 || jsonEnd < 0) {
+    throw new Error("auto_draft_no_json_in_response");
+  }
+  const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+  return AutoDraftRangeOutputSchema.parse(parsed);
 }
