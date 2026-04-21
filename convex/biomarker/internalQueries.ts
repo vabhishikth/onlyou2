@@ -125,6 +125,22 @@ export const getCurationRowByKey = internalQuery({
       .first(),
 });
 
+export const getValuesByCanonical = internalQuery({
+  args: { canonicalId: v.string() },
+  handler: async (ctx, { canonicalId }) => {
+    return await ctx.db
+      .query("biomarker_values")
+      .withIndex("by_canonical_status", (q) => q.eq("canonicalId", canonicalId))
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
+
+export const getBiomarkerReportById = internalQuery({
+  args: { biomarkerReportId: v.id("biomarker_reports") },
+  handler: async (ctx, { biomarkerReportId }) => ctx.db.get(biomarkerReportId),
+});
+
 export const findRetryCandidates = internalQuery({
   args: { now: v.number(), staleLockCutoff: v.number() },
   handler: async (

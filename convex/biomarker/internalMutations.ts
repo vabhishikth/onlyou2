@@ -376,6 +376,97 @@ export const releaseReclassifyLock = internalMutation({
   },
 });
 
+export const patchBiomarkerValue = internalMutation({
+  args: {
+    valueId: v.id("biomarker_values"),
+    patch: v.object({
+      status: v.optional(
+        v.union(
+          v.literal("optimal"),
+          v.literal("sub_optimal"),
+          v.literal("action_required"),
+          v.literal("unclassified"),
+        ),
+      ),
+      unclassifiedReason: v.optional(
+        v.union(
+          v.literal("not_in_reference_db"),
+          v.literal("profile_incomplete"),
+          v.literal("pregnancy_sensitive"),
+          v.literal("qualitative_value"),
+          v.literal("unit_conversion_missing"),
+        ),
+      ),
+      referenceRangeId: v.optional(v.id("biomarker_reference_ranges")),
+      classifiedAt: v.optional(v.number()),
+    }),
+  },
+  handler: async (ctx, { valueId, patch }) => {
+    await ctx.db.patch(valueId, patch);
+    return { ok: true };
+  },
+});
+
+export const recomputeBiomarkerReportCounts = internalMutation({
+  args: {
+    biomarkerReportId: v.id("biomarker_reports"),
+    now: v.number(),
+  },
+  handler: async (ctx, { biomarkerReportId, now }) => {
+    const values = await ctx.db
+      .query("biomarker_values")
+      .withIndex("by_report", (q) =>
+        q.eq("biomarkerReportId", biomarkerReportId),
+      )
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+    const counts = {
+      optimalCount: 0,
+      subOptimalCount: 0,
+      actionRequiredCount: 0,
+      unclassifiedCount: 0,
+    };
+    for (const v of values) {
+      if (v.status === "optimal") counts.optimalCount++;
+      else if (v.status === "sub_optimal") counts.subOptimalCount++;
+      else if (v.status === "action_required") counts.actionRequiredCount++;
+      else counts.unclassifiedCount++;
+    }
+    await ctx.db.patch(biomarkerReportId, {
+      ...counts,
+      lastReclassifiedAt: now,
+    });
+    return counts;
+  },
+});
+
+// STUB — Task 24 ships real impl
+export const writeAuditLog = internalMutation({
+  args: {
+    adminUserId: v.union(v.id("users"), v.null()),
+    action: v.union(
+      v.literal("curation_resolve"),
+      v.literal("curation_wont_fix"),
+      v.literal("range_create"),
+      v.literal("range_update"),
+      v.literal("range_deactivate"),
+      v.literal("range_reactivate"),
+      v.literal("reclassify_canonical_commit"),
+      v.literal("reclassify_all_preview"),
+      v.literal("reclassify_all_commit"),
+    ),
+    targetTable: v.union(
+      v.literal("biomarker_curation_queue"),
+      v.literal("biomarker_reference_ranges"),
+    ),
+    targetId: v.string(),
+    before: v.optional(v.any()),
+    after: v.optional(v.any()),
+    now: v.number(),
+  },
+  handler: async () => ({ ok: true as const }), // Task 24 fills this
+});
+
 export const sweepExpiredReclassifyLocks = internalMutation({
   args: {},
   handler: async (ctx) => {
