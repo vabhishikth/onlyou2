@@ -1,7 +1,34 @@
 # Checkpoint
 
-**Current phase:** Phase 2.5B — Parse pipeline **✅ MERGED to master `eaea3b7` on 2026-04-18**. 2.5A merged earlier same day (`042f660`). **Plan 2.5C (ingestion + curation + portal contracts) queued next.**
-**Status:** Both 2.5A and 2.5B shipped to master. Both feature branches + worktrees cleaned up on 2026-04-19 (git state clean; orphan dirs on disk harmless).
+**Current phase:** Phase 2.5C — Ingestion + curation + portal contracts. **Wave 1 + Wave 2 complete** on branch `feature/phase-2.5c-ingestion-automation-reclassify` (worktree: `D:/onlyou2-phase-2.5c`). Waves 3–6 remaining.
+**Status:** 2.5A + 2.5B shipped to master earlier. 2.5C is in-flight on a feature branch; not yet merged.
+
+## Phase 2.5C progress
+
+**Wave 1 — Real ingestion (12 commits, tip `55947ff`):** schema widens, IST rate-limit helpers, shared `createLabReport`, `parseLabReport` → internalAction, `intakeUpload` mutation with atomic rate-limit check+insert, `retryParseLabReport` with 3-lifetime cap, session-token auth, I-1/I-2 fixes, `findReferenceRangeId` isActive bug fix, shared `normalizeKey` persisted on `biomarker_values`, codegen regen.
+
+**Wave 2 — Notifications (3 commits, tip `70879ec`):**
+
+| #   | Task                                                                        | Commit    |
+| --- | --------------------------------------------------------------------------- | --------- |
+| 9   | Notification writer helper + `writeNotification` internalMutation (4 kinds) | `46c1e50` |
+| 10  | Emit `lab_report_ready` + `lab_report_parse_failed` from `parseLabReport`   | `e4b1cae` |
+| 11  | Placeholder test for `lab_report_updated` band-change emission (filled W4)  | `70879ec` |
+
+Wave 2 observations flagged during review (consider DEFERRED entries before merging 2.5C):
+
+- **Notification emit is not atomic with the status mutation.** If `writeNotificationFromAction` fails after `markReady`/`markParseFailed` commit, Convex retries the whole action, but the idempotency guards at the top of `parseLabReport` short-circuit on the retry — notification is silently dropped. Fix options: (a) make the notification write idempotent on `(userId, kind, biomarkerReportId ?? labReportId)` and emit from the idempotent-noop branch too, or (b) move the insert into the same mutation as `markReady`/`markParseFailed` (helper file already exports `writeNotificationFromMutation`).
+- **Log ordering.** Emit sits between mark-status and `logParseEvent`; if the emit throws, the structured log for `parse_complete`/`parse_failed` is lost. Wrap-and-rethrow, or swap order.
+
+**Test counts after Wave 2:** `pnpm test:convex` — 18 files passed + 1 skipped (Task 11 placeholder), **132 tests passing** (prior 112 + 20 new Wave 1 tests; Wave 2 added no active tests by design).
+
+**Next:** Wave 3 — Smart unknowns (auto-classification): Jaro-Winkler fuzzy alias match, panel-code auto-skip, gated auto-DRAFT range generation. Starts at plan line 1700.
+
+---
+
+## Prior history (2.5A/2.5B, merged to master)
+
+**2.5B on master:** `eaea3b7` (2026-04-18). **2.5A on master:** `042f660` (same day). Both feature branches + worktrees cleaned up on 2026-04-19.
 
 **Post-merge fixes on master (2026-04-19):**
 
