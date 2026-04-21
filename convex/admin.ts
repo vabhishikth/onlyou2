@@ -13,7 +13,8 @@
 import { v } from "convex/values";
 
 import { internal } from "./_generated/api";
-import { action, internalMutation } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
+import { action, internalAction, internalMutation } from "./_generated/server";
 import { createLabReportFromAction } from "./biomarker/lib/createLabReport";
 import { isProdDeployment } from "./lib/envGuards";
 
@@ -67,5 +68,30 @@ export const simulateLabUpload = action({
       fileSizeBytes: args.fileSizeBytes,
       contentHash: `pending:${args.fileId}`,
     });
+  },
+});
+
+type SeedAdminUserResult =
+  | { existing: true; userId: Id<"users"> }
+  | { created: true; userId: Id<"users"> };
+
+export const seedAdminUser = internalAction({
+  args: { phone: v.string(), role: v.string() },
+  handler: async (ctx, { phone, role }): Promise<SeedAdminUserResult> => {
+    assertNotProd();
+    if (role !== "ADMIN") {
+      throw new Error("only ADMIN role seedable here");
+    }
+    const existing = await ctx.runQuery(internal.users.getUserByPhone, {
+      phone,
+    });
+    if (existing) return { existing: true, userId: existing._id };
+    const userId = await ctx.runMutation(internal.users.createUser, {
+      phone,
+      role: "ADMIN",
+      phoneVerified: true,
+      profileComplete: true,
+    });
+    return { created: true, userId };
   },
 });
