@@ -141,3 +141,135 @@ describe("labUploadResult mutation", () => {
     ).toBe(1);
   });
 });
+
+describe("biomarkerReportsForPatient query", () => {
+  it("throws endpoint_disabled when flag off", async () => {
+    delete process.env.DOCTOR_PORTAL_ENABLED;
+    const t = convexTest(schema, modules);
+    const patientId = await t.run(async (ctx) =>
+      ctx.db.insert("users", {
+        role: "PATIENT",
+        phoneVerified: true,
+        profileComplete: true,
+        createdAt: Date.now(),
+      }),
+    );
+    const doctorId = await t.run(async (ctx) =>
+      ctx.db.insert("users", {
+        role: "DOCTOR",
+        phoneVerified: true,
+        profileComplete: true,
+        createdAt: Date.now(),
+      }),
+    );
+    await expect(
+      t
+        .withIdentity({ subject: doctorId, issuer: "test" })
+        .query(
+          api.biomarker.portal.biomarkerReportsForPatient
+            .biomarkerReportsForPatient,
+          { patientId },
+        ),
+    ).rejects.toThrow(/endpoint_disabled/);
+  });
+
+  it("happy path on dev returns reports+values for patientId", async () => {
+    process.env.DOCTOR_PORTAL_ENABLED = "1";
+    process.env.CONVEX_DEPLOYMENT = "dev-deploy";
+    delete process.env.DOCTOR_PORTAL_REAL_AUTH;
+    const t = convexTest(schema, modules);
+    const fid = await t.run(async (ctx) => {
+      const blob = new Blob(["%PDF"], { type: "application/pdf" });
+      return await ctx.storage.store(blob);
+    });
+    const { patientId, doctorId } = await t.run(async (ctx) => {
+      const patientId = await ctx.db.insert("users", {
+        role: "PATIENT",
+        phoneVerified: true,
+        profileComplete: true,
+        createdAt: Date.now(),
+      });
+      const doctorId = await ctx.db.insert("users", {
+        role: "DOCTOR",
+        phoneVerified: true,
+        profileComplete: true,
+        createdAt: Date.now(),
+      });
+      const lrid = await ctx.db.insert("lab_reports", {
+        userId: patientId,
+        source: "patient_upload",
+        fileId: fid,
+        mimeType: "application/pdf",
+        fileSizeBytes: 1,
+        contentHash: "x",
+        status: "ready",
+        createdAt: Date.now(),
+      });
+      const brid = await ctx.db.insert("biomarker_reports", {
+        labReportId: lrid,
+        userId: patientId,
+        narrative: "test",
+        narrativeModel: "m",
+        optimalCount: 1,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 0,
+        analyzedAt: Date.now(),
+      });
+      await ctx.db.insert("biomarker_values", {
+        biomarkerReportId: brid,
+        userId: patientId,
+        canonicalId: "tsh",
+        nameOnReport: "TSH",
+        valueType: "numeric",
+        rawValue: "2.0",
+        numericValue: 2.0,
+        status: "optimal",
+        classifiedAt: Date.now(),
+      });
+      return { patientId, doctorId };
+    });
+
+    const result = await t
+      .withIdentity({ subject: doctorId, issuer: "test" })
+      .query(
+        api.biomarker.portal.biomarkerReportsForPatient
+          .biomarkerReportsForPatient,
+        { patientId },
+      );
+    expect(result).toHaveLength(1);
+    expect(result[0].report.userId).toBe(patientId);
+    expect(result[0].values).toHaveLength(1);
+    expect(result[0].values[0].canonicalId).toBe("tsh");
+  });
+
+  it("rejects when caller role is not doctor", async () => {
+    process.env.DOCTOR_PORTAL_ENABLED = "1";
+    process.env.CONVEX_DEPLOYMENT = "dev-deploy";
+    const t = convexTest(schema, modules);
+    const { patientId, nonDoctorId } = await t.run(async (ctx) => {
+      const patientId = await ctx.db.insert("users", {
+        role: "PATIENT",
+        phoneVerified: true,
+        profileComplete: true,
+        createdAt: Date.now(),
+      });
+      const nonDoctorId = await ctx.db.insert("users", {
+        role: "NURSE",
+        phoneVerified: true,
+        profileComplete: true,
+        createdAt: Date.now(),
+      });
+      return { patientId, nonDoctorId };
+    });
+    await expect(
+      t
+        .withIdentity({ subject: nonDoctorId, issuer: "test" })
+        .query(
+          api.biomarker.portal.biomarkerReportsForPatient
+            .biomarkerReportsForPatient,
+          { patientId },
+        ),
+    ).rejects.toThrow(/forbidden/);
+  });
+});
