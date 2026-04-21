@@ -42,7 +42,6 @@ export type ParseEvent =
   | "extract_retried_json"
   | "extract_retried_max_tokens"
   | "extract_retried_refusal"
-  | "classify_row"
   | "intake_uploaded"
   | "intake_retried";
 

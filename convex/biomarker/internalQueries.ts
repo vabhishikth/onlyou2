@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 
+import type { Doc } from "../_generated/dataModel";
 import { internalQuery } from "../_generated/server";
 
 import type { ReferenceRange } from "./internal/classifyRow";
@@ -126,7 +127,10 @@ export const getCurationRowByKey = internalQuery({
 
 export const findRetryCandidates = internalQuery({
   args: { now: v.number(), staleLockCutoff: v.number() },
-  handler: async (ctx, { now, staleLockCutoff }) => {
+  handler: async (
+    ctx,
+    { now, staleLockCutoff },
+  ): Promise<Doc<"lab_reports">[]> => {
     return await ctx.db
       .query("lab_reports")
       .withIndex("by_next_retry", (q) => q.lte("nextRetryAt", now))
