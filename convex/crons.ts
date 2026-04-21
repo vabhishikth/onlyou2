@@ -38,4 +38,9 @@ crons.interval(
   { minutes: 2 },
   internal.crons.retryStuckParses,
 );
+crons.interval(
+  "sweep-expired-reclassify-locks",
+  { minutes: 5 },
+  internal.biomarker.internalMutations.sweepExpiredReclassifyLocks,
+);
 export default crons;
