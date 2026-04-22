@@ -41,6 +41,21 @@ import { normalizeKey } from "./lib/normalizeKey";
 import { writeNotificationFromAction } from "./lib/notifications";
 import { isPanelCode } from "./lib/panelCodeDetect";
 
+// Convex V8 actions don't expose Node's Buffer — use web APIs.
+// Chunked to avoid argument-count limits on String.fromCharCode for large files.
+function arrayBufferToBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  const CHUNK = 0x8000;
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(
+      null,
+      Array.from(bytes.subarray(i, i + CHUNK)),
+    );
+  }
+  return btoa(binary);
+}
+
 export const parseLabReport = internalAction({
   args: { labReportId: v.id("lab_reports") },
   handler: async (ctx, { labReportId }): Promise<{ outcome: string }> => {
@@ -125,9 +140,7 @@ export const parseLabReport = internalAction({
     if (!pdfBlob) {
       return await terminalFail(ctx, labReportId, labReport, "pdf_decode", now);
     }
-    const pdfBase64 = Buffer.from(await pdfBlob.arrayBuffer()).toString(
-      "base64",
-    );
+    const pdfBase64 = arrayBufferToBase64(await pdfBlob.arrayBuffer());
 
     // 4. Extraction
     let extract;
