@@ -6,19 +6,11 @@
 
 import { spawnSync } from "node:child_process";
 
-// Must match convex/lib/envGuards.ts PROD_DEPLOYMENT_PATTERNS.
-// Dash-bounded so we don't false-positive on names like `prodigy-staging`
-// or `reproductive-dev`, but still match `prod`, `prod-deploy`,
-// `deploy-prod`, `foo-prod-bar`, and any `production` variant.
-// Kept inline (not imported from @onlyou/core) because the root workspace
-// does not currently depend on that package and adding one export is not
-// worth the dep-graph churn — review this comment if that changes.
-const PROD_DEPLOYMENT_PATTERNS: RegExp[] = [/(^|-)(prod|production)(-|$)/i];
+import { isProdDeployment } from "../packages/core/src/deployment/prod-patterns";
 
 async function main() {
   const deployment = process.env.CONVEX_DEPLOYMENT ?? "";
-  const isProd = PROD_DEPLOYMENT_PATTERNS.some((p) => p.test(deployment));
-  if (isProd) {
+  if (isProdDeployment(deployment)) {
     console.error("seed-admin-user is dev-only; refuse to run against prod");
     process.exit(1);
   }

@@ -12,7 +12,8 @@
 // — not callable from ConvexHttpClient. We shell out to `npx convex run`,
 // which authenticates via the admin deploy key baked into the local dev env.
 // `simulateLabUpload` stays as a public `action` (gated server-side by
-// `assertNotProd()`) and is still invoked via ConvexHttpClient.
+// `assertNotProd()` + `assertPortalEnabled("LAB", ...)`) and is still invoked
+// via ConvexHttpClient.
 //
 // Run: `pnpm e2e:manual` (package.json script uses tsx --env-file=.env.local).
 
@@ -24,9 +25,7 @@ import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-
-// Must mirror convex/lib/envGuards.ts PROD_DEPLOYMENT_PATTERNS.
-const PROD_DEPLOYMENT_PATTERNS: RegExp[] = [/(^|-)(prod|production)(-|$)/i];
+import { isProdDeployment } from "../packages/core/src/deployment/prod-patterns";
 
 const TERMINAL_STATUSES = new Set([
   "ready",
@@ -85,7 +84,7 @@ function convexRun<T>(functionRef: string, args: unknown): T {
 
 async function main(): Promise<void> {
   const deployment = process.env.CONVEX_DEPLOYMENT ?? "";
-  if (PROD_DEPLOYMENT_PATTERNS.some((p) => p.test(deployment))) {
+  if (isProdDeployment(deployment)) {
     console.error("run-manual-e2e is dev-only; refuse to run against prod");
     process.exit(1);
   }

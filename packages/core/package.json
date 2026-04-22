@@ -19,7 +19,9 @@
     "./flags": "./src/flags/index.ts",
     "./formatters": "./src/formatters/index.ts",
     "./validators": "./src/validators/index.ts",
-    "./validators/age": "./src/validators/age.ts"
+    "./validators/age": "./src/validators/age.ts",
+    "./deployment": "./src/deployment/index.ts",
+    "./deployment/prod-patterns": "./src/deployment/prod-patterns.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
