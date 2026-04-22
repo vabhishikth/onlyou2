@@ -21,7 +21,8 @@
     "./validators": "./src/validators/index.ts",
     "./validators/age": "./src/validators/age.ts",
     "./deployment": "./src/deployment/index.ts",
-    "./deployment/prod-patterns": "./src/deployment/prod-patterns.ts"
+    "./deployment/prod-patterns": "./src/deployment/prod-patterns.ts",
+    "./tokens/biomarker": "./src/tokens/biomarker.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
