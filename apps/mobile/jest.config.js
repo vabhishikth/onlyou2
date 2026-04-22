@@ -10,6 +10,7 @@ module.exports = {
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.(css)$": "<rootDir>/__mocks__/style-mock.js",
     "^react-native-reanimated$": "<rootDir>/__mocks__/react-native-reanimated.js",
+    "^expo-linear-gradient$": "<rootDir>/__mocks__/expo-linear-gradient.js",
     // babel-preset-expo's codegen plugin crashes on native component specs in
     // specs_DEPRECATED (unsupported ReadonlyArray props/commands).
     //
