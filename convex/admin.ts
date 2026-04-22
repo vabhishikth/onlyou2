@@ -21,6 +21,7 @@ import {
   internalQuery,
 } from "./_generated/server";
 import { createLabReportFromAction } from "./biomarker/lib/createLabReport";
+import { assertPortalEnabled } from "./biomarker/lib/portalGates";
 import { isProdDeployment } from "./lib/envGuards";
 
 export function assertNotProd(): void {
@@ -63,6 +64,14 @@ export const simulateLabUpload = action({
     // asserted here because the Convex dashboard invokes actions without
     // a user identity — same pattern as `triggerParseForLabReport`.
     assertNotProd();
+
+    // Uniform portal gate: when simulating a lab-partner upload, honor the
+    // same `LAB_PORTAL_ENABLED` operator kill-switch the real
+    // `labUploadResult` mutation enforces. `source === "nurse_flow"` is not
+    // gated here — nurse portal gating ships with Phase 6.
+    if (args.source === "lab_upload") {
+      assertPortalEnabled("LAB", process.env.CONVEX_DEPLOYMENT ?? "");
+    }
 
     return await createLabReportFromAction(ctx, {
       userId: args.userId,
