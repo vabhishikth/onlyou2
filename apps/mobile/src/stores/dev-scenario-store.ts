@@ -35,6 +35,12 @@ interface DevScenarioState {
   verticalsByUser: Record<string, Vertical>;
   /** How `activeScenario` was last set. Null only at first boot / reset. */
   lastSource: ScenarioSource | null;
+  /**
+   * Dev flag: simulates a newly arrived lab report so the NewReportBanner
+   * entry point on the home screen can be demoed without a real Convex event.
+   * Persisted via AsyncStorage so the banner survives hot-reload.
+   */
+  hasUnreadReport: boolean;
 
   setScenario: (state: PatientState, opts?: SetScenarioOpts) => void;
   /**
@@ -45,6 +51,8 @@ interface DevScenarioState {
   setActiveUser: (userId: string | null) => void;
   /** Hard reset — only for tests. Wipes the per-user map too. */
   resetScenario: () => void;
+  /** Toggle the unread-report banner on the home screen. */
+  setHasUnreadReport: (v: boolean) => void;
 }
 
 export const useDevScenarioStore = __DEV__
@@ -56,6 +64,7 @@ export const useDevScenarioStore = __DEV__
           scenariosByUser: {},
           verticalsByUser: {},
           lastSource: null,
+          hasUnreadReport: false,
 
           setScenario: (scenario, opts) => {
             const { activeUserId, scenariosByUser, verticalsByUser } = get();
@@ -99,7 +108,10 @@ export const useDevScenarioStore = __DEV__
               scenariosByUser: {},
               verticalsByUser: {},
               lastSource: null,
+              hasUnreadReport: false,
             }),
+
+          setHasUnreadReport: (v) => set({ hasUnreadReport: v }),
         }),
         {
           name: "onlyou.dev.scenario",
@@ -113,7 +125,9 @@ export const useDevScenarioStore = __DEV__
       scenariosByUser: {},
       verticalsByUser: {},
       lastSource: null,
+      hasUnreadReport: false,
       setScenario: () => {},
       setActiveUser: () => {},
       resetScenario: () => {},
+      setHasUnreadReport: () => {},
     }));
