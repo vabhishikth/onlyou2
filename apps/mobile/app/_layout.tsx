@@ -59,6 +59,7 @@ export default function RootLayout() {
               name="photo-upload"
               options={{ presentation: "modal" }}
             />
+            <Stack.Screen name="lab-results" />
           </Stack>
         </SafeAreaProvider>
       </GestureHandlerRootView>
