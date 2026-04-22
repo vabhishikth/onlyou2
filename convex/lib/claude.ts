@@ -739,25 +739,29 @@ export async function generateNarrative(): Promise<never> {
 //
 // Gating is handled by convex/biomarker/lib/autoDraftRange.ts.
 
+// Fields are `.nullish()` (accepts both null and undefined) because when
+// Claude returns `is_real_biomarker: false`, it typically omits the other
+// keys entirely rather than emitting them as null — the downstream gate
+// short-circuits on is_real_biomarker=false before reading them anyway.
 export const AutoDraftRangeOutputSchema = z.object({
   is_real_biomarker: z.boolean(),
-  canonical_id: z.string().nullable(),
-  display_name: z.string().nullable(),
-  aliases: z.array(z.string()),
-  category: z.string().nullable(),
-  canonical_unit: z.string().nullable(),
-  sex: z.enum(["male", "female", "any"]).nullable(),
-  age_min: z.number().nullable(),
-  age_max: z.number().nullable(),
-  pregnancy_sensitive: z.boolean().nullable(),
-  optimal_min: z.number().nullable(),
-  optimal_max: z.number().nullable(),
-  sub_optimal_below_min: z.number().nullable(),
-  sub_optimal_above_max: z.number().nullable(),
-  action_below: z.number().nullable(),
-  action_above: z.number().nullable(),
-  explainer: z.string().nullable(),
-  source_citation: z.string().nullable(),
+  canonical_id: z.string().nullish(),
+  display_name: z.string().nullish(),
+  aliases: z.array(z.string()).default([]),
+  category: z.string().nullish(),
+  canonical_unit: z.string().nullish(),
+  sex: z.enum(["male", "female", "any"]).nullish(),
+  age_min: z.number().nullish(),
+  age_max: z.number().nullish(),
+  pregnancy_sensitive: z.boolean().nullish(),
+  optimal_min: z.number().nullish(),
+  optimal_max: z.number().nullish(),
+  sub_optimal_below_min: z.number().nullish(),
+  sub_optimal_above_max: z.number().nullish(),
+  action_below: z.number().nullish(),
+  action_above: z.number().nullish(),
+  explainer: z.string().nullish(),
+  source_citation: z.string().nullish(),
   confidence: z.number(),
 });
 export type AutoDraftRangeOutput = z.infer<typeof AutoDraftRangeOutputSchema>;
