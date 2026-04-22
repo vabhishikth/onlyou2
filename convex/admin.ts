@@ -14,7 +14,13 @@ import { v } from "convex/values";
 
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { action, internalAction, internalMutation } from "./_generated/server";
+import {
+  action,
+  internalAction,
+  internalMutation,
+  mutation,
+  query,
+} from "./_generated/server";
 import { createLabReportFromAction } from "./biomarker/lib/createLabReport";
 import { isProdDeployment } from "./lib/envGuards";
 
@@ -74,6 +80,60 @@ export const simulateLabUpload = action({
 type SeedAdminUserResult =
   | { existing: true; userId: Id<"users"> }
   | { created: true; userId: Id<"users"> };
+
+/**
+ * Dev-only upload URL generator for the E2E driver script
+ * (scripts/run-manual-e2e.ts). Public because ConvexHttpClient cannot call
+ * internal mutations from outside Convex; `assertNotProd()` is the real gate.
+ * Revert-candidate once a real admin portal exists (Phase 5).
+ */
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    assertNotProd();
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+/**
+ * Dev-only E2E status probe. Returns the lab_report row plus any
+ * biomarker_report + biomarker_values + notifications for the owning user,
+ * all in one round-trip. Used by scripts/run-manual-e2e.ts to poll until the
+ * parse pipeline reaches a terminal state. Public for the same reason as
+ * generateUploadUrl above; `assertNotProd()` is the real gate.
+ */
+export const getE2EStatus = query({
+  args: { labReportId: v.id("lab_reports") },
+  handler: async (ctx, { labReportId }) => {
+    assertNotProd();
+    const labReport = await ctx.db.get(labReportId);
+    if (!labReport) {
+      return {
+        labReport: null,
+        biomarkerReport: null,
+        values: [],
+        notifications: [],
+      };
+    }
+    const biomarkerReport = await ctx.db
+      .query("biomarker_reports")
+      .withIndex("by_lab_report", (q) => q.eq("labReportId", labReportId))
+      .unique();
+    const values = biomarkerReport
+      ? await ctx.db
+          .query("biomarker_values")
+          .withIndex("by_report", (q) =>
+            q.eq("biomarkerReportId", biomarkerReport._id),
+          )
+          .collect()
+      : [];
+    const notifications = await ctx.db
+      .query("notifications")
+      .withIndex("by_user_created", (q) => q.eq("userId", labReport.userId))
+      .collect();
+    return { labReport, biomarkerReport, values, notifications };
+  },
+});
 
 export const seedAdminUser = internalAction({
   args: { phone: v.string(), role: v.string() },

@@ -22,6 +22,7 @@
     "test": "pnpm test:convex && pnpm test:seed && pnpm test:claude:conditional",
     "seed:biomarker-ranges": "tsx scripts/seed-biomarker-ranges.ts",
     "seed:admin-user": "tsx scripts/seed-admin-user.ts",
+    "e2e:manual": "tsx --env-file=.env.local scripts/run-manual-e2e.ts",
     "test:claude": "vitest run --config convex/__tests__/biomarker/vitest.claude.config.ts"
   },
   "lint-staged": {
