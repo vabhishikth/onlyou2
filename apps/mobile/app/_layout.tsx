@@ -6,9 +6,10 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { ConvexProvider } from "convex/react";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import * as Linking from "expo-linking";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -22,6 +23,8 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const hydrate = useAuthStore((s) => s.hydrate);
   const hydrated = useAuthStore((s) => s.hydrated);
+
+  const pendingLinkRef = useRef<string | null>(null);
 
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_900Black,
@@ -43,6 +46,35 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, hydrated]);
+
+  // Deep-link handler: onlyou://lab-results and onlyou://lab-results/<id>
+  useEffect(() => {
+    const handle = (url: string | null) => {
+      if (!url) return;
+      const { path } = Linking.parse(url);
+      if (!path) return;
+      if (path.startsWith("lab-results")) {
+        if (hydrated) {
+          router.push(`/${path}` as never);
+        } else {
+          pendingLinkRef.current = path;
+        }
+      }
+    };
+
+    const sub = Linking.addEventListener("url", ({ url }) => handle(url));
+    Linking.getInitialURL().then(handle);
+
+    return () => sub.remove();
+  }, [hydrated]);
+
+  // Flush queued link once auth hydrates
+  useEffect(() => {
+    if (hydrated && pendingLinkRef.current) {
+      router.push(`/${pendingLinkRef.current}` as never);
+      pendingLinkRef.current = null;
+    }
+  }, [hydrated]);
 
   if (!fontsLoaded || !hydrated) return null;
 
