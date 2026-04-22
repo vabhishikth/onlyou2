@@ -54,8 +54,11 @@ import { BIOMARKERS_MOCK, CATEGORIES } from "../../src/data/biomarker-mock";
 // Device-specific tweaks deferred to Phase 8.
 // ---------------------------------------------------------------------------
 const SCREEN_W = Dimensions.get("window").width;
-// 24px horizontal padding on each side → inner content width.
-const CHART_W = SCREEN_W - 48;
+// 24px screen padding each side → section width (SCREEN_W - 48).
+// Card inside section has padding:16 each side + 1px border each side →
+// subtract 34 more so the AreaChart fits inside the card without the last
+// point's halo overflowing the card border.
+const CHART_W = SCREEN_W - 48 - 34;
 
 // ---------------------------------------------------------------------------
 // Range toggle options (cosmetic only — no data filtering in Phase 2.5D)
