@@ -88,13 +88,17 @@ async function seedBiomarkerValue(
   t: ReturnType<typeof convexTest>,
   biomarkerReportId: Id<"biomarker_reports">,
   userId: Id<"users">,
-  opts: { deletedAt?: number } = {},
+  opts: {
+    deletedAt?: number;
+    referenceRangeId?: Id<"biomarker_reference_ranges">;
+    canonicalId?: string;
+  } = {},
 ): Promise<Id<"biomarker_values">> {
   return t.run(async (ctx) => {
     return ctx.db.insert("biomarker_values", {
       biomarkerReportId,
       userId,
-      canonicalId: "tsh",
+      canonicalId: opts.canonicalId ?? "tsh",
       nameOnReport: "TSH",
       valueType: "numeric",
       rawValue: "2.0",
@@ -102,7 +106,37 @@ async function seedBiomarkerValue(
       numericValue: 2.0,
       status: "optimal",
       classifiedAt: Date.now(),
+      ...(opts.referenceRangeId !== undefined
+        ? { referenceRangeId: opts.referenceRangeId }
+        : {}),
       ...(opts.deletedAt !== undefined ? { deletedAt: opts.deletedAt } : {}),
+    });
+  });
+}
+
+async function seedReferenceRange(
+  t: ReturnType<typeof convexTest>,
+  canonicalId: string,
+): Promise<Id<"biomarker_reference_ranges">> {
+  return t.run(async (ctx) => {
+    return ctx.db.insert("biomarker_reference_ranges", {
+      canonicalId,
+      displayName: "Thyroid Stimulating Hormone",
+      aliases: ["TSH", "thyrotropin"],
+      category: "hormones",
+      canonicalUnit: "mIU/L",
+      ageMin: 0,
+      ageMax: 120,
+      sex: "any",
+      pregnancySensitive: false,
+      optimalMin: 0.5,
+      optimalMax: 2.5,
+      actionBelow: 0.1,
+      actionAbove: 10.0,
+      explainer: "TSH regulates thyroid hormone production.",
+      source: "test-seed",
+      isActive: true,
+      updatedAt: Date.now(),
     });
   });
 }
@@ -258,6 +292,7 @@ describe("myBiomarkerReports", () => {
         "numericValue",
         "status",
         "classifiedAt",
+        "canonical",
       ].sort(),
     );
 
@@ -267,5 +302,79 @@ describe("myBiomarkerReports", () => {
     expect("narrativeModel" in result[0].report).toBe(false);
     expect("_creationTime" in result[0].values[0]).toBe(false);
     expect("deletedAt" in result[0].values[0]).toBe(false);
+  });
+
+  it("returns canonical block joined from reference ranges via referenceRangeId", async () => {
+    const t = convexTest(schema, modules);
+    const patientId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, patientId);
+
+    const lab = await seedLabReport(t, patientId);
+    const reportId = await seedBiomarkerReport(t, patientId, lab);
+    const rangeId = await seedReferenceRange(t, "tsh");
+    await seedBiomarkerValue(t, reportId, patientId, {
+      referenceRangeId: rangeId,
+      canonicalId: "tsh",
+    });
+
+    const result = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+
+    expect(result).toHaveLength(1);
+    expect(result[0].values).toHaveLength(1);
+
+    const canonical = result[0].values[0].canonical;
+    expect(canonical).not.toBeNull();
+    expect(canonical!.displayName).toBe("Thyroid Stimulating Hormone");
+    expect(canonical!.category).toBe("hormones");
+    expect(canonical!.canonicalUnit).toBe("mIU/L");
+    // _id must be the reference range document id
+    expect(canonical!._id).toBe(rangeId);
+  });
+
+  it("returns canonical block via canonicalId string fallback when no referenceRangeId", async () => {
+    const t = convexTest(schema, modules);
+    const patientId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, patientId);
+
+    const lab = await seedLabReport(t, patientId);
+    const reportId = await seedBiomarkerReport(t, patientId, lab);
+    // Seed a range with canonicalId "tsh" but do NOT pass referenceRangeId to the value
+    await seedReferenceRange(t, "tsh");
+    await seedBiomarkerValue(t, reportId, patientId, { canonicalId: "tsh" });
+
+    const result = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+
+    expect(result).toHaveLength(1);
+    const canonical = result[0].values[0].canonical;
+    expect(canonical).not.toBeNull();
+    expect(canonical!.displayName).toBe("Thyroid Stimulating Hormone");
+    expect(canonical!.category).toBe("hormones");
+  });
+
+  it("returns canonical: null when no matching reference range exists", async () => {
+    const t = convexTest(schema, modules);
+    const patientId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, patientId);
+
+    const lab = await seedLabReport(t, patientId);
+    const reportId = await seedBiomarkerReport(t, patientId, lab);
+    // Value with a canonicalId that has no reference range seeded
+    await seedBiomarkerValue(t, reportId, patientId, {
+      canonicalId: "unknown_marker",
+    });
+
+    const result = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+
+    expect(result).toHaveLength(1);
+    expect(result[0].values[0].canonical).toBeNull();
   });
 });

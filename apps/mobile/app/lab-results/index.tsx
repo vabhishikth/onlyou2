@@ -29,16 +29,8 @@ import { BiomarkerCard } from "@/components/biomarker/BiomarkerCard";
 import { CategoryFilterPills } from "@/components/biomarker/CategoryFilterPills";
 import { NewReportBanner } from "@/components/biomarker/NewReportBanner";
 import { SummaryStat } from "@/components/biomarker/SummaryStat";
-import { BIOMARKERS_MOCK, CATEGORIES } from "@/data/biomarker-mock";
-
-// ---------------------------------------------------------------------------
-// Derived counts
-// ---------------------------------------------------------------------------
-
-const toWatchCount = BIOMARKERS_MOCK.filter(
-  (b) => b.status !== "optimal",
-).length;
-const inRangeCount = BIOMARKERS_MOCK.length - toWatchCount;
+import { CATEGORIES } from "@/data/biomarker-mock";
+import { useBiomarkerReports } from "@/hooks/use-biomarker-reports";
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -46,11 +38,109 @@ const inRangeCount = BIOMARKERS_MOCK.length - toWatchCount;
 
 export default function LabResultsDashboard() {
   const [filter, setFilter] = useState<string>("All");
+  const { isLoading, isEmpty, isError, rows } = useBiomarkerReports();
+
+  // Derived counts from live (or mock) data.
+  const toWatchCount = rows.filter((b) => b.status !== "optimal").length;
+  const inRangeCount = rows.length - toWatchCount;
 
   const filtered =
-    filter === "All"
-      ? BIOMARKERS_MOCK
-      : BIOMARKERS_MOCK.filter((b) => b.cat === filter);
+    filter === "All" ? rows : rows.filter((b) => b.cat === filter);
+
+  // ── Loading / Error / Empty states ──────────────────────────────────────
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: biomarkerPalette.bg }}>
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <Text
+            style={{
+              fontFamily: biomarkerFonts.mono,
+              fontSize: 11,
+              color: biomarkerPalette.muted,
+              letterSpacing: 1.2,
+              textTransform: "uppercase",
+            }}
+          >
+            Loading reports…
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: biomarkerPalette.bg }}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: biomarkerFonts.display,
+              fontSize: 18,
+              color: biomarkerPalette.ink,
+              marginBottom: 8,
+            }}
+          >
+            Couldn't load reports.
+          </Text>
+          <Text
+            style={{
+              fontFamily: biomarkerFonts.mono,
+              fontSize: 11,
+              color: biomarkerPalette.muted,
+              textAlign: "center",
+            }}
+          >
+            Check your connection and try again.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isEmpty) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: biomarkerPalette.bg }}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: biomarkerFonts.display,
+              fontSize: 20,
+              color: biomarkerPalette.ink,
+              marginBottom: 8,
+            }}
+          >
+            No reports yet.
+          </Text>
+          <Text
+            style={{
+              fontFamily: biomarkerFonts.mono,
+              fontSize: 11,
+              color: biomarkerPalette.muted,
+              textAlign: "center",
+            }}
+          >
+            Upload a lab report to see your biomarkers here.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: biomarkerPalette.bg }}>
@@ -149,7 +239,7 @@ export default function LabResultsDashboard() {
             paddingTop: 18,
           }}
         >
-          <SummaryStat label="Biomarkers" value={BIOMARKERS_MOCK.length} />
+          <SummaryStat label="Biomarkers" value={rows.length} />
           <SummaryStat
             label="In Range"
             value={inRangeCount}

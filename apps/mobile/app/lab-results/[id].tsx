@@ -47,7 +47,8 @@ import { statusColor } from "../../src/components/biomarker/status-helpers";
 import { AreaChart } from "../../src/components/biomarker/viz/AreaChart";
 import { RangeBar } from "../../src/components/biomarker/viz/RangeBar";
 import { explainerFor } from "../../src/data/biomarker-explainers";
-import { BIOMARKERS_MOCK, CATEGORIES } from "../../src/data/biomarker-mock";
+import { CATEGORIES } from "../../src/data/biomarker-mock";
+import { useBiomarkerReports } from "../../src/hooks/use-biomarker-reports";
 
 // ---------------------------------------------------------------------------
 // Screen width — used for AreaChart and card sizing.
@@ -124,7 +125,8 @@ export default function BiomarkerDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [activeRange, setActiveRange] = useState<RangeOption>("6M");
 
-  const b = BIOMARKERS_MOCK.find((x) => x.id === id);
+  const { rows } = useBiomarkerReports();
+  const b = rows.find((x) => x.id === id);
 
   if (!b) {
     return <NotFoundScreen id={id ?? ""} />;
