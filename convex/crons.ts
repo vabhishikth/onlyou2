@@ -1,7 +1,7 @@
 // convex/crons.ts
 import { cronJobs } from "convex/server";
 
-import { api, internal } from "./_generated/api";
+import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalAction } from "./_generated/server";
 
@@ -24,7 +24,7 @@ export const retryStuckParses = internalAction({
       // Fire parseLabReport, don't await — cron should not hold the lock tail
       await ctx.scheduler.runAfter(
         0,
-        api.biomarker.parseLabReport.parseLabReport,
+        internal.biomarker.parseLabReport.parseLabReport,
         { labReportId },
       );
     }
@@ -37,5 +37,10 @@ crons.interval(
   "retry stuck parses",
   { minutes: 2 },
   internal.crons.retryStuckParses,
+);
+crons.interval(
+  "sweep-expired-reclassify-locks",
+  { minutes: 5 },
+  internal.biomarker.internalMutations.sweepExpiredReclassifyLocks,
 );
 export default crons;

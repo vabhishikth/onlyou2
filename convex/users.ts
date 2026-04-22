@@ -1,11 +1,14 @@
 import { ConvexError, v } from "convex/values";
 
+import { ROLES } from "../packages/core/src/enums/roles";
 import {
   computeAgeYears,
   MIN_AGE_YEARS,
 } from "../packages/core/src/validators/age";
 
-import { mutation } from "./_generated/server";
+import { internalMutation, internalQuery, mutation } from "./_generated/server";
+
+const roleValidator = v.union(...ROLES.map((r) => v.literal(r)));
 
 export const completeProfile = mutation({
   args: {
@@ -49,6 +52,34 @@ export const completeProfile = mutation({
       state: args.state,
       address: args.address,
       profileComplete: true,
+    });
+  },
+});
+
+export const getUserByPhone = internalQuery({
+  args: { phone: v.string() },
+  handler: async (ctx, { phone }) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_phone", (q) => q.eq("phone", phone))
+      .unique();
+  },
+});
+
+export const createUser = internalMutation({
+  args: {
+    phone: v.string(),
+    role: roleValidator,
+    phoneVerified: v.boolean(),
+    profileComplete: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("users", {
+      phone: args.phone,
+      role: args.role,
+      phoneVerified: args.phoneVerified,
+      profileComplete: args.profileComplete,
+      createdAt: Date.now(),
     });
   },
 });

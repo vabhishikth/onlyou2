@@ -1,8 +1,29 @@
 import { v } from "convex/values";
 
+import unitConversionsRaw from "../../packages/core/seeds/unit-conversions.json";
+import type { Doc } from "../_generated/dataModel";
 import { internalQuery } from "../_generated/server";
 
 import type { ReferenceRange } from "./internal/classifyRow";
+
+const UNIT_CONVERSIONS: Array<{
+  from: string;
+  to: string;
+  canonicalId: string;
+  factor: number;
+}> = (
+  unitConversionsRaw as Array<{
+    canonicalId: string;
+    rawUnitPattern: string;
+    canonicalUnit: string;
+    factor: number;
+  }>
+).map((r) => ({
+  from: r.rawUnitPattern,
+  to: r.canonicalUnit,
+  canonicalId: r.canonicalId,
+  factor: r.factor,
+}));
 
 export const getLabReportById = internalQuery({
   args: { labReportId: v.id("lab_reports") },
@@ -48,30 +69,14 @@ export const getActiveRanges = internalQuery({
       subOptimalAboveMax: r.subOptimalAboveMax,
       actionBelow: r.actionBelow,
       actionAbove: r.actionAbove,
+      aliases: r.aliases,
     }));
   },
 });
 
 export const getUnitConversions = internalQuery({
   args: {},
-  handler: async () => {
-    // Static import; conversions are data, not schema.
-    // JSON uses rawUnitPattern/canonicalUnit; normalizeUnit expects from/to.
-    const raw = (
-      await import("../../packages/core/seeds/unit-conversions.json")
-    ).default as Array<{
-      canonicalId: string;
-      rawUnitPattern: string;
-      canonicalUnit: string;
-      factor: number;
-    }>;
-    return raw.map((r) => ({
-      from: r.rawUnitPattern,
-      to: r.canonicalUnit,
-      canonicalId: r.canonicalId,
-      factor: r.factor,
-    }));
-  },
+  handler: async () => UNIT_CONVERSIONS,
 });
 
 export const findReferenceRangeId = internalQuery({
@@ -83,6 +88,7 @@ export const findReferenceRangeId = internalQuery({
       .collect();
     const m = rows.find(
       (r) =>
+        r.isActive &&
         age >= r.ageMin &&
         age <= r.ageMax &&
         (r.sex === sex || r.sex === "any"),
@@ -111,9 +117,58 @@ export const isBiomarkerParsingEnabled = internalQuery({
   },
 });
 
+export const getCurationRowByKey = internalQuery({
+  args: { normalizedKey: v.string() },
+  handler: async (ctx, { normalizedKey }) =>
+    await ctx.db
+      .query("biomarker_curation_queue")
+      .withIndex("by_normalized_key", (q) =>
+        q.eq("normalizedKey", normalizedKey),
+      )
+      .first(),
+});
+
+export const getValuesByCanonical = internalQuery({
+  args: { canonicalId: v.string() },
+  handler: async (ctx, { canonicalId }) => {
+    return await ctx.db
+      .query("biomarker_values")
+      .withIndex("by_canonical_status", (q) => q.eq("canonicalId", canonicalId))
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
+
+export const getBiomarkerReportById = internalQuery({
+  args: { biomarkerReportId: v.id("biomarker_reports") },
+  handler: async (ctx, { biomarkerReportId }) => ctx.db.get(biomarkerReportId),
+});
+
+export const listAllValues = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("biomarker_values")
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
+
+export const getMaxRangeUpdatedAt = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("biomarker_reference_ranges").collect();
+    if (rows.length === 0) return "0";
+    return String(Math.max(...rows.map((r) => r.updatedAt)));
+  },
+});
+
 export const findRetryCandidates = internalQuery({
   args: { now: v.number(), staleLockCutoff: v.number() },
-  handler: async (ctx, { now, staleLockCutoff }) => {
+  handler: async (
+    ctx,
+    { now, staleLockCutoff },
+  ): Promise<Doc<"lab_reports">[]> => {
     return await ctx.db
       .query("lab_reports")
       .withIndex("by_next_retry", (q) => q.lte("nextRetryAt", now))

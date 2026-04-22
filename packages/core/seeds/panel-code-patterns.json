@@ -1,0 +1,17 @@
+[
+  {
+    "pattern": "^[A-Z]{2,4}[-\\s]?\\d{2,}$",
+    "flags": "",
+    "description": "Lab code like HEM-401, LAB 72, CBC401"
+  },
+  {
+    "pattern": "^[A-Z]+\\/[A-Z]+[-\\s]?RATIO$",
+    "flags": "i",
+    "description": "Ratio codes like CBC/PLT-RATIO, LDL/HDL Ratio"
+  },
+  {
+    "pattern": "(PANEL|CODE|PROFILE)[-\\s]?\\d+",
+    "flags": "i",
+    "description": "Explicit panel codes like PANEL-12, Profile 5"
+  }
+]
