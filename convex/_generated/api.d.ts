@@ -36,6 +36,7 @@ import type * as biomarker_lib_portalGates from "../biomarker/lib/portalGates.js
 import type * as biomarker_lib_rateLimits from "../biomarker/lib/rateLimits.js";
 import type * as biomarker_lib_reclassifyLock from "../biomarker/lib/reclassifyLock.js";
 import type * as biomarker_parseLabReport from "../biomarker/parseLabReport.js";
+import type * as biomarker_patient_myBiomarkerReports from "../biomarker/patient/myBiomarkerReports.js";
 import type * as biomarker_portal_biomarkerReportsForPatient from "../biomarker/portal/biomarkerReportsForPatient.js";
 import type * as biomarker_portal_labUploadResult from "../biomarker/portal/labUploadResult.js";
 import type * as biomarker_reclassifyAllReports from "../biomarker/reclassifyAllReports.js";
@@ -84,6 +85,7 @@ declare const fullApi: ApiFromModules<{
   "biomarker/lib/rateLimits": typeof biomarker_lib_rateLimits;
   "biomarker/lib/reclassifyLock": typeof biomarker_lib_reclassifyLock;
   "biomarker/parseLabReport": typeof biomarker_parseLabReport;
+  "biomarker/patient/myBiomarkerReports": typeof biomarker_patient_myBiomarkerReports;
   "biomarker/portal/biomarkerReportsForPatient": typeof biomarker_portal_biomarkerReportsForPatient;
   "biomarker/portal/labUploadResult": typeof biomarker_portal_labUploadResult;
   "biomarker/reclassifyAllReports": typeof biomarker_reclassifyAllReports;
