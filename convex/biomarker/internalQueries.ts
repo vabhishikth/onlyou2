@@ -1,9 +1,29 @@
 import { v } from "convex/values";
 
+import unitConversionsRaw from "../../packages/core/seeds/unit-conversions.json";
 import type { Doc } from "../_generated/dataModel";
 import { internalQuery } from "../_generated/server";
 
 import type { ReferenceRange } from "./internal/classifyRow";
+
+const UNIT_CONVERSIONS: Array<{
+  from: string;
+  to: string;
+  canonicalId: string;
+  factor: number;
+}> = (
+  unitConversionsRaw as Array<{
+    canonicalId: string;
+    rawUnitPattern: string;
+    canonicalUnit: string;
+    factor: number;
+  }>
+).map((r) => ({
+  from: r.rawUnitPattern,
+  to: r.canonicalUnit,
+  canonicalId: r.canonicalId,
+  factor: r.factor,
+}));
 
 export const getLabReportById = internalQuery({
   args: { labReportId: v.id("lab_reports") },
@@ -56,24 +76,7 @@ export const getActiveRanges = internalQuery({
 
 export const getUnitConversions = internalQuery({
   args: {},
-  handler: async () => {
-    // Static import; conversions are data, not schema.
-    // JSON uses rawUnitPattern/canonicalUnit; normalizeUnit expects from/to.
-    const raw = (
-      await import("../../packages/core/seeds/unit-conversions.json")
-    ).default as Array<{
-      canonicalId: string;
-      rawUnitPattern: string;
-      canonicalUnit: string;
-      factor: number;
-    }>;
-    return raw.map((r) => ({
-      from: r.rawUnitPattern,
-      to: r.canonicalUnit,
-      canonicalId: r.canonicalId,
-      factor: r.factor,
-    }));
-  },
+  handler: async () => UNIT_CONVERSIONS,
 });
 
 export const findReferenceRangeId = internalQuery({
