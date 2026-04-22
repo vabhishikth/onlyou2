@@ -1,7 +1,7 @@
 # Checkpoint
 
-**Current phase:** Phase 2.5C — Ingestion + curation + portal contracts. **Waves 1 + 2 + 3 + 4 + 5 complete** on branch `feature/phase-2.5c-ingestion-automation-reclassify` (worktree: `D:/onlyou2-phase-2.5c`). Wave 6 remaining.
-**Status:** 2.5A + 2.5B shipped to master earlier. 2.5C is in-flight on a feature branch; not yet merged.
+**Current phase:** Phase 2.5C — **✅ MERGED to master `970f0d5` on 2026-04-22**. All 6 waves shipped. Plan 2.5D (Mobile UI for biomarker foundation) queued next — this is the one that triggers the Phase 2.5 approval gate.
+**Status:** 2.5A + 2.5B + 2.5C all on master. Feature branch + worktree cleaned up post-merge.
 
 ## Phase 2.5C progress
 
@@ -116,7 +116,41 @@ Automated via `scripts/run-manual-e2e.ts` (`pnpm e2e:manual`) against dev deploy
 
 Driver is reusable — future manual E2E runs against dev are `pnpm e2e:manual` with optional `E2E_USER_ID` / `E2E_FIXTURE` env overrides.
 
-**Remaining Wave 6:** Task 33 (phase-level code review), Task 34 (merge to master + as-built + worktree cleanup).
+**Wave 6 completion additions (post-checkpoint tip `e3a275b`):**
+
+- `e835151` — Task 33 phase-level code review report (APPROVED_WITH_MINORS: 0 critical, 2 important, 5 minor).
+- `1428422` — I-1 fix: `admin.generateUploadUrl` + `admin.getE2EStatus` switched from public to `internalMutation`/`internalQuery`; driver script shells out via `npx convex run`.
+- `cb3fec5` — I-2 fix: `simulateLabUpload` now calls `assertPortalEnabled("LAB", …)` when `source === "lab_upload"`.
+- `17f9905` — M-4 fix: `PROD_DEPLOYMENT_PATTERNS` + `isProdDeployment` extracted to `packages/core/src/deployment/prod-patterns.ts`; `convex/lib/envGuards.ts` re-exports; both Node scripts now import from the shared source.
+- `c53fcbc` — review doc appended with review-fix pass outcome (APPROVED).
+- `970f0d5` — **merge commit on master.** Feature branch merged with `--no-ff`. 56 commits total.
+
+**Phase 2.5C artifacts on master:**
+
+- Plan: `docs/superpowers/plans/2026-04-20-phase-2.5c-ingestion-automation-reclassify.md`
+- Spec: `docs/superpowers/specs/2026-04-20-phase-2.5c-ingestion-automation-reclassify-design.md`
+- Phase review: `docs/superpowers/reviews/2026-04-22-phase-2.5c-ingestion-automation-reclassify-review.md`
+- Wave 5 review: `docs/superpowers/reviews/2026-04-21-phase-2.5c-wave-5-review.md`
+- As-built retro: `docs/decisions/2026-04-22-phase-2.5c-as-built.md`
+- Decisions logged mid-execution:
+  - `docs/decisions/2026-04-20-session-token-auth-in-2-5c-mutations.md`
+  - `docs/decisions/2026-04-20-proceeding-on-draft-ranges.md`
+  - `docs/decisions/2026-04-21-plan-verbatim-cross-check-siblings.md`
+
+**Test counts at merge (2026-04-22):**
+
+- `pnpm test:convex`: **196 passed / 1 skipped** (Task 18 placeholder deferred)
+- `pnpm -w typecheck --force`: clean across 6 packages
+- `pnpm -w lint`: clean
+- `pnpm e2e:manual` (live Convex + Claude): **`status=ready` in 38.7s** against dev deployment `aromatic-labrador-938`
+- `pnpm test:claude` (last run Wave 4): 8/8 golden fixtures pass in 80s
+
+**⚠️ Carry-forward items before Phase 2.5D approval:**
+
+- 45 reference-range rows remain `DRAFT — pending review`. Clinical advisor sign-off is a **Phase 2.5 approval prerequisite** before any prod seed.
+- Rotate the dev `ANTHROPIC_API_KEY` — pasted into chat on 2026-04-19; exposed again in `npx convex env list` output on 2026-04-22. Entry in `docs/DEFERRED.md`.
+- `LAB_PORTAL_ENABLED=1` is now required on the dev Convex deployment for `pnpm e2e:manual` to run (set via `npx convex env set`) — consequence of post-review I-2 fix.
+- Phase-level review minor findings M-1, M-2, M-3, M-5 tracked as post-merge cleanup (below Minor severity).
 
 ---
 
