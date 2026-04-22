@@ -31,6 +31,8 @@ const STATE_COPY: Record<PatientState, { label: string; desc: string }> = {
 export function ScenarioSwitcher({ visible, onClose }: Props) {
   const active = useDevScenarioStore((s) => s.activeScenario);
   const setScenario = useDevScenarioStore((s) => s.setScenario);
+  const hasUnreadReport = useDevScenarioStore((s) => s.hasUnreadReport);
+  const setHasUnreadReport = useDevScenarioStore((s) => s.setHasUnreadReport);
 
   if (!__DEV__) return null;
 
@@ -108,6 +110,78 @@ export function ScenarioSwitcher({ visible, onClose }: Props) {
             </Pressable>
           );
         })}
+
+        <View
+          style={{
+            marginTop: 16,
+            paddingTop: 16,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 10,
+              color: colors.textTertiary,
+              letterSpacing: 1.2,
+              textTransform: "uppercase",
+              fontWeight: "700",
+              marginBottom: 10,
+            }}
+          >
+            Phase 2.5D · Biomarker
+          </Text>
+          <Pressable
+            onPress={() => setHasUnreadReport(!hasUnreadReport)}
+            style={{
+              borderWidth: 1.5,
+              borderColor: hasUnreadReport ? colors.accent : colors.border,
+              backgroundColor: hasUnreadReport
+                ? colors.accentLight
+                : colors.white,
+              borderRadius: 14,
+              padding: 14,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: "700",
+                  color: colors.textPrimary,
+                }}
+              >
+                New report banner
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: hasUnreadReport ? colors.accent : colors.textTertiary,
+                  letterSpacing: 0.5,
+                  textTransform: "uppercase",
+                  fontWeight: "700",
+                }}
+              >
+                {hasUnreadReport ? "ON" : "OFF"}
+              </Text>
+            </View>
+            <Text
+              style={{
+                fontSize: 12,
+                color: colors.textSecondary,
+                marginTop: 4,
+              }}
+            >
+              Toggle the home screen banner that routes to /lab-results.
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </BottomSheet>
   );
