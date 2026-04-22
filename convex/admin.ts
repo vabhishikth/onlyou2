@@ -18,8 +18,7 @@ import {
   action,
   internalAction,
   internalMutation,
-  mutation,
-  query,
+  internalQuery,
 } from "./_generated/server";
 import { createLabReportFromAction } from "./biomarker/lib/createLabReport";
 import { isProdDeployment } from "./lib/envGuards";
@@ -83,11 +82,11 @@ type SeedAdminUserResult =
 
 /**
  * Dev-only upload URL generator for the E2E driver script
- * (scripts/run-manual-e2e.ts). Public because ConvexHttpClient cannot call
- * internal mutations from outside Convex; `assertNotProd()` is the real gate.
- * Revert-candidate once a real admin portal exists (Phase 5).
+ * (scripts/run-manual-e2e.ts). Internal — script invokes it via
+ * `npx convex run admin:generateUploadUrl`, which uses the admin deploy key.
+ * `assertNotProd()` is the defense-in-depth gate.
  */
-export const generateUploadUrl = mutation({
+export const generateUploadUrl = internalMutation({
   args: {},
   handler: async (ctx) => {
     assertNotProd();
@@ -99,10 +98,11 @@ export const generateUploadUrl = mutation({
  * Dev-only E2E status probe. Returns the lab_report row plus any
  * biomarker_report + biomarker_values + notifications for the owning user,
  * all in one round-trip. Used by scripts/run-manual-e2e.ts to poll until the
- * parse pipeline reaches a terminal state. Public for the same reason as
- * generateUploadUrl above; `assertNotProd()` is the real gate.
+ * parse pipeline reaches a terminal state. Internal — script invokes via
+ * `npx convex run admin:getE2EStatus`. `assertNotProd()` is the
+ * defense-in-depth gate.
  */
-export const getE2EStatus = query({
+export const getE2EStatus = internalQuery({
   args: { labReportId: v.id("lab_reports") },
   handler: async (ctx, { labReportId }) => {
     assertNotProd();

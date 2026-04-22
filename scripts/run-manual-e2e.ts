@@ -8,8 +8,15 @@
 //
 // Prod guard: hard-fails on any CONVEX_DEPLOYMENT matching the prod pattern.
 //
+// `generateUploadUrl` and `getE2EStatus` are `internalMutation`/`internalQuery`
+// — not callable from ConvexHttpClient. We shell out to `npx convex run`,
+// which authenticates via the admin deploy key baked into the local dev env.
+// `simulateLabUpload` stays as a public `action` (gated server-side by
+// `assertNotProd()`) and is still invoked via ConvexHttpClient.
+//
 // Run: `pnpm e2e:manual` (package.json script uses tsx --env-file=.env.local).
 
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -27,6 +34,54 @@ const TERMINAL_STATUSES = new Set([
   "rejected",
   "not_a_lab_report",
 ]);
+
+/**
+ * Shells out to `npx convex run <functionRef> <jsonArgs>` and parses the
+ * JSON result. Used because internal mutations/queries aren't callable from
+ * ConvexHttpClient — the CLI authenticates via the admin deploy key.
+ *
+ * The CLI pretty-prints objects across multiple lines, so we concatenate
+ * from the first JSON-token line through end-of-output, skipping leading
+ * npm/cli noise.
+ */
+function convexRun<T>(functionRef: string, args: unknown): T {
+  // Quote the JSON arg so cmd.exe (shell: true on Windows) preserves inner
+  // double quotes. On POSIX, spawn without shell — no quoting dance needed.
+  const jsonArg = JSON.stringify(args);
+  const isWin = process.platform === "win32";
+  const argv = isWin
+    ? ["convex", "run", functionRef, `"${jsonArg.replace(/"/g, '\\"')}"`]
+    : ["convex", "run", functionRef, jsonArg];
+  const proc = spawnSync("npx", argv, {
+    encoding: "utf8",
+    env: { ...process.env },
+    shell: isWin,
+  });
+  if (proc.status !== 0) {
+    process.stderr.write(proc.stderr ?? "");
+    throw new Error(
+      `convex run ${functionRef} exited with status ${proc.status}`,
+    );
+  }
+  const stdout = proc.stdout ?? "";
+  const lines = stdout.split(/\r?\n/);
+  const startIdx = lines.findIndex((l) =>
+    /^\s*(?:[{\[]|"|-?\d|true\b|false\b|null\b)/.test(l),
+  );
+  if (startIdx === -1) {
+    throw new Error(
+      `convex run ${functionRef} produced no JSON stdout; stderr: ${proc.stderr ?? ""}`,
+    );
+  }
+  const jsonText = lines.slice(startIdx).join("\n").trim();
+  try {
+    return JSON.parse(jsonText) as T;
+  } catch (err) {
+    throw new Error(
+      `convex run ${functionRef} stdout not valid JSON: ${jsonText}\ncause: ${String(err)}`,
+    );
+  }
+}
 
 async function main(): Promise<void> {
   const deployment = process.env.CONVEX_DEPLOYMENT ?? "";
@@ -56,12 +111,12 @@ async function main(): Promise<void> {
   const client = new ConvexHttpClient(url);
   const startMs = Date.now();
 
-  // Step 1: upload URL
-  console.log("\n[1/4] requesting upload URL...");
-  const uploadUrl = await client.mutation(api.admin.generateUploadUrl, {});
+  // Step 1: upload URL (internal mutation — shell out to `convex run`)
+  console.log("\n[1/4] requesting upload URL (internal mutation)...");
+  const uploadUrl = convexRun<string>("admin:generateUploadUrl", {});
   console.log("      got upload URL");
 
-  // Step 2: upload bytes
+  // Step 2: upload bytes (presigned URL; no auth needed)
   console.log("[2/4] uploading bytes to Convex storage...");
   const uploadRes = await fetch(uploadUrl, {
     method: "POST",
@@ -75,7 +130,7 @@ async function main(): Promise<void> {
   const { storageId } = (await uploadRes.json()) as { storageId: string };
   console.log(`      uploaded. storageId=${storageId}`);
 
-  // Step 3: kick off parse via simulateLabUpload
+  // Step 3: kick off parse via simulateLabUpload (still public action)
   console.log("[3/4] calling admin.simulateLabUpload (source=lab_upload)...");
   const sim = (await client.action(api.admin.simulateLabUpload, {
     userId,
@@ -90,15 +145,24 @@ async function main(): Promise<void> {
     throw new Error("simulateLabUpload did not return a labReportId");
   }
 
-  // Step 4: poll getE2EStatus until terminal
+  // Step 4: poll getE2EStatus (internal query — shell out each tick)
   console.log("[4/4] polling getE2EStatus (2-min cap, 3s interval)...");
   const deadline = Date.now() + 120_000;
   let lastStatus = "";
-  let finalStatus: Awaited<
-    ReturnType<typeof client.query<typeof api.admin.getE2EStatus>>
-  > | null = null;
+  type StatusShape = {
+    labReport: {
+      status?: string;
+      errorCode?: string | null;
+      errorMessage?: string | null;
+      userId: Id<"users">;
+    } | null;
+    biomarkerReport: unknown;
+    values: unknown[];
+    notifications: Array<{ kind: string }>;
+  };
+  let finalStatus: StatusShape | null = null;
   while (Date.now() < deadline) {
-    const status = await client.query(api.admin.getE2EStatus, {
+    const status = convexRun<StatusShape>("admin:getE2EStatus", {
       labReportId,
     });
     const s = status.labReport?.status ?? "missing";
