@@ -36,6 +36,7 @@ import type * as biomarker_lib_portalGates from "../biomarker/lib/portalGates.js
 import type * as biomarker_lib_rateLimits from "../biomarker/lib/rateLimits.js";
 import type * as biomarker_lib_reclassifyLock from "../biomarker/lib/reclassifyLock.js";
 import type * as biomarker_parseLabReport from "../biomarker/parseLabReport.js";
+import type * as biomarker_patient_myBiomarkerReports from "../biomarker/patient/myBiomarkerReports.js";
 import type * as biomarker_portal_biomarkerReportsForPatient from "../biomarker/portal/biomarkerReportsForPatient.js";
 import type * as biomarker_portal_labUploadResult from "../biomarker/portal/labUploadResult.js";
 import type * as biomarker_reclassifyAllReports from "../biomarker/reclassifyAllReports.js";
@@ -46,6 +47,7 @@ import type * as featureFlags from "../featureFlags.js";
 import type * as lib_claude from "../lib/claude.js";
 import type * as lib_envGuards from "../lib/envGuards.js";
 import type * as lib_telemetry from "../lib/telemetry.js";
+import type * as seed_devBiomarkerReport from "../seed/devBiomarkerReport.js";
 import type * as seed_fakeUsers from "../seed/fakeUsers.js";
 import type * as users from "../users.js";
 
@@ -84,6 +86,7 @@ declare const fullApi: ApiFromModules<{
   "biomarker/lib/rateLimits": typeof biomarker_lib_rateLimits;
   "biomarker/lib/reclassifyLock": typeof biomarker_lib_reclassifyLock;
   "biomarker/parseLabReport": typeof biomarker_parseLabReport;
+  "biomarker/patient/myBiomarkerReports": typeof biomarker_patient_myBiomarkerReports;
   "biomarker/portal/biomarkerReportsForPatient": typeof biomarker_portal_biomarkerReportsForPatient;
   "biomarker/portal/labUploadResult": typeof biomarker_portal_labUploadResult;
   "biomarker/reclassifyAllReports": typeof biomarker_reclassifyAllReports;
@@ -94,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   "lib/claude": typeof lib_claude;
   "lib/envGuards": typeof lib_envGuards;
   "lib/telemetry": typeof lib_telemetry;
+  "seed/devBiomarkerReport": typeof seed_devBiomarkerReport;
   "seed/fakeUsers": typeof seed_fakeUsers;
   users: typeof users;
 }>;

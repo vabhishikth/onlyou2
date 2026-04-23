@@ -11,6 +11,22 @@ const Animated = {
   createAnimatedComponent: (component) => component,
 };
 
+// Entry animation factory — returns a chainable object that no-ops in tests.
+// Covers FadeInUp and any other entry animation variant created via this factory.
+const makeEntryAnimation = () => {
+  const chain = {
+    delay: () => chain,
+    duration: () => chain,
+    easing: () => chain,
+    springify: () => chain,
+  };
+  return chain;
+};
+
+const FadeInUp = makeEntryAnimation();
+const FadeInDown = makeEntryAnimation();
+const FadeIn = makeEntryAnimation();
+
 const useSharedValue = (init) => ({ value: init });
 const useAnimatedStyle = (fn) => fn();
 const withTiming = (toValue) => toValue;
@@ -68,4 +84,8 @@ module.exports = {
   useAnimatedGestureHandler,
   cancelAnimation,
   measure,
+  // Entry animations
+  FadeInUp,
+  FadeInDown,
+  FadeIn,
 };
