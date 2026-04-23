@@ -1,16 +1,15 @@
 import { router } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 
+// Cross-register handoff: NewReportBanner lives in the Biomarker Editorial
+// register but the home screen is its intentional entry point. This is the
+// ONE permitted cross-boundary import per docs/decisions/2026-04-17-biomarker-design-register.md.
 import { NewReportBanner } from "@/components/biomarker/NewReportBanner";
 import { ActiveTreatmentCard } from "@/components/home/ActiveTreatmentCard";
 import { DeliveryTrackingBanner } from "@/components/home/DeliveryTrackingBanner";
 import { MedicationReminder } from "@/components/home/MedicationReminder";
 import { PlanReadyCard } from "@/components/home/PlanReadyCard";
 import { UnderReviewCard } from "@/components/home/UnderReviewCard";
-// Cross-register handoff: NewReportBanner lives in the Biomarker Editorial
-// register but the home screen is its intentional entry point. This is the
-// ONE permitted cross-boundary import per docs/decisions/2026-04-17-biomarker-design-register.md.
-
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useDisplayUser } from "@/hooks/use-display-user";
 import { usePatientState } from "@/hooks/use-patient-state";
