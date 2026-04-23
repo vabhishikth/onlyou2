@@ -20,6 +20,13 @@ jest.mock("expo-status-bar", () => ({
   StatusBar: () => null,
 }));
 
+// Mock convex/react — dashboard's hook calls useQuery unconditionally and
+// then short-circuits via the __DEV__ mock branch, but useQuery still needs
+// to resolve without a ConvexProvider in the test tree.
+jest.mock("convex/react", () => ({
+  useQuery: () => undefined,
+}));
+
 // SafeAreaContext insets — provide defaults so SafeAreaView renders correctly.
 jest.mock("react-native-safe-area-context", () => {
   const RN = require("react-native");

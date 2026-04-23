@@ -23,6 +23,13 @@ jest.mock("expo-status-bar", () => ({
   StatusBar: () => null,
 }));
 
+// Mock convex/react — detail screen's hook calls useQuery unconditionally
+// and then short-circuits via the __DEV__ mock branch, but useQuery still
+// needs to resolve without a ConvexProvider in the test tree.
+jest.mock("convex/react", () => ({
+  useQuery: () => undefined,
+}));
+
 // SafeAreaContext insets are already globally mocked in jest.setup.ts,
 // but the detail screen imports SafeAreaView directly from the package,
 // so we override here to use a plain View (same as the index screen test).
