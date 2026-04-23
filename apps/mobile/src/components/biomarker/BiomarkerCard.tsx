@@ -3,11 +3,9 @@
  *
  * Ported from the Claude Design Bundle web prototype (dashboard.jsx:160-217).
  *
- * Animation note: the web source applied a CSS `rise` class with `animationDelay`
- * and `opacity: 0` so cards fade-in sequentially. The `delay` prop is accepted
- * here for API compatibility but is intentionally unused — Wave 5 will wire
- * up react-native-reanimated entry animations (FadeInDown with configurable
- * delay). Opacity is set to 1 by default so cards are visible without animation.
+ * Animation: cards rise-in sequentially via FadeInUp entry animation from
+ * react-native-reanimated. The `delay` prop (index × 30 ms) staggers each
+ * card so they cascade upward as the list mounts.
  */
 
 import {
@@ -16,6 +14,7 @@ import {
 } from "@onlyou/core/tokens/biomarker";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, FadeInUp } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 
 import {
@@ -38,9 +37,8 @@ export interface BiomarkerCardProps {
   /** Called when the card is pressed. */
   onPress: () => void;
   /**
-   * Entry animation delay in ms.
-   * Accepted for API compatibility but unused in Phase 2.5D.
-   * Wave 5 will wire react-native-reanimated FadeInDown with this value.
+   * Entry animation stagger delay in ms (index × 30).
+   * Drives the FadeInUp rise animation so cards cascade sequentially.
    */
   delay?: number;
 }
@@ -104,13 +102,7 @@ const DOWN_IS_GOOD = new Set([
 // Component
 // ---------------------------------------------------------------------------
 
-export function BiomarkerCard({
-  b,
-  onPress,
-  delay: _delay,
-}: BiomarkerCardProps) {
-  // _delay is intentionally unused; Wave 5 will add reanimated entry animation.
-
+export function BiomarkerCard({ b, onPress, delay }: BiomarkerCardProps) {
   const statusCol = statusColor(b.status);
   const cat = CATEGORIES.find((c) => c.id === b.cat);
 
@@ -129,67 +121,73 @@ export function BiomarkerCard({
   const trendColor = goodTrend ? biomarkerPalette.sage : biomarkerPalette.honey;
 
   return (
-    <Pressable testID="biomarker-card" onPress={onPress} style={styles.card}>
-      {/* ── Top row: name/category + value/delta ── */}
-      <View style={styles.topRow}>
-        {/* Left: category dot + name */}
-        <View style={styles.nameCol}>
-          <View style={styles.catRow}>
-            <View
-              style={[
-                styles.catDot,
-                { backgroundColor: cat?.color ?? biomarkerPalette.muted },
-              ]}
+    <Animated.View
+      entering={FadeInUp.delay(delay ?? 0)
+        .duration(500)
+        .easing(Easing.out(Easing.ease))}
+    >
+      <Pressable testID="biomarker-card" onPress={onPress} style={styles.card}>
+        {/* ── Top row: name/category + value/delta ── */}
+        <View style={styles.topRow}>
+          {/* Left: category dot + name */}
+          <View style={styles.nameCol}>
+            <View style={styles.catRow}>
+              <View
+                style={[
+                  styles.catDot,
+                  { backgroundColor: cat?.color ?? biomarkerPalette.muted },
+                ]}
+              />
+              <Text style={styles.catLabel}>{cat?.label ?? b.cat}</Text>
+            </View>
+            <Text style={styles.name}>{b.name}</Text>
+          </View>
+
+          {/* Right: value + unit + delta */}
+          <View style={styles.valueCol}>
+            <View style={styles.valueRow}>
+              <Text style={styles.value}>{b.value}</Text>
+              <Text style={styles.unit}>{b.unit}</Text>
+            </View>
+            <View style={styles.deltaRow}>
+              <ArrowIcon dir={trendDir} color={trendColor} />
+              <Text
+                testID="biomarker-delta"
+                style={[styles.deltaText, { color: trendColor }]}
+              >
+                {deltaSign}
+                {delta.toFixed(1)}%
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ── Range bar + sparkline ── */}
+        <View style={styles.vizRow}>
+          <View style={styles.rangeBarWrapper}>
+            <RangeBar
+              v={b.value}
+              low={b.low}
+              high={b.high}
+              optLow={b.optLow}
+              optHigh={b.optHigh}
+              status={b.status}
+              compact
             />
-            <Text style={styles.catLabel}>{cat?.label ?? b.cat}</Text>
           </View>
-          <Text style={styles.name}>{b.name}</Text>
+          <Sparkline data={b.trend} color={statusCol} w={50} h={16} />
         </View>
 
-        {/* Right: value + unit + delta */}
-        <View style={styles.valueCol}>
-          <View style={styles.valueRow}>
-            <Text style={styles.value}>{b.value}</Text>
-            <Text style={styles.unit}>{b.unit}</Text>
-          </View>
-          <View style={styles.deltaRow}>
-            <ArrowIcon dir={trendDir} color={trendColor} />
-            <Text
-              testID="biomarker-delta"
-              style={[styles.deltaText, { color: trendColor }]}
-            >
-              {deltaSign}
-              {delta.toFixed(1)}%
-            </Text>
-          </View>
+        {/* ── Range labels: low · status · high ── */}
+        <View style={styles.rangeLabels}>
+          <Text style={styles.rangeEdge}>{b.low}</Text>
+          <Text style={[styles.statusLabel, { color: statusCol }]}>
+            {statusLabel(b.status)}
+          </Text>
+          <Text style={styles.rangeEdge}>{b.high}</Text>
         </View>
-      </View>
-
-      {/* ── Range bar + sparkline ── */}
-      <View style={styles.vizRow}>
-        <View style={styles.rangeBarWrapper}>
-          <RangeBar
-            v={b.value}
-            low={b.low}
-            high={b.high}
-            optLow={b.optLow}
-            optHigh={b.optHigh}
-            status={b.status}
-            compact
-          />
-        </View>
-        <Sparkline data={b.trend} color={statusCol} w={50} h={16} />
-      </View>
-
-      {/* ── Range labels: low · status · high ── */}
-      <View style={styles.rangeLabels}>
-        <Text style={styles.rangeEdge}>{b.low}</Text>
-        <Text style={[styles.statusLabel, { color: statusCol }]}>
-          {statusLabel(b.status)}
-        </Text>
-        <Text style={styles.rangeEdge}>{b.high}</Text>
-      </View>
-    </Pressable>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -206,8 +204,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: biomarkerPalette.line,
     gap: 10,
-    // opacity 1 by default; Wave 5 will add reanimated FadeInDown entry.
-    opacity: 1,
   },
 
   // Top row

@@ -14,7 +14,13 @@
  * semi-transparent View sits behind the solid dot (same pattern used by
  * RangeBar and Dial viz primitives).
  *
- * Animation: pulse animation deferred to Wave 5 (react-native-reanimated).
+ * Animation (Wave 5):
+ *   Pulse — the dotGlow ring cycles opacity 0.6↔1 on a 1600 ms infinite loop
+ *   via useSharedValue + withRepeat(withSequence(...)).
+ *   Shimmer — a narrow semi-transparent bar sweeps left→right across the
+ *   gradient on a 2500 ms linear infinite loop via translateX. Clipped by
+ *   overflow:"hidden" already set on the gradient container.
+ *
  * Arrow: rendered as a Unicode › character at amber color for simplicity;
  * matches visual weight of the web prototype's Icon.arrow('right').
  */
@@ -24,8 +30,23 @@ import {
   biomarkerPalette,
 } from "@onlyou/core/tokens/biomarker";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect } from "react";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
+
+// ---------------------------------------------------------------------------
+// Layout constants
+// ---------------------------------------------------------------------------
+
+/** Card width: screen width minus 48 px horizontal margins (matches AreaChart pattern). */
+const CARD_WIDTH = Dimensions.get("window").width - 48;
 
 // ---------------------------------------------------------------------------
 // Gradient colors — derived from biomarkerPalette.amber (#B4641F = rgb(180,100,31))
@@ -60,6 +81,31 @@ export function NewReportBanner({
   subtitle,
   onPress,
 }: NewReportBannerProps) {
+  // ── Pulse animation: dotGlow opacity cycles 1 → 0.6 → 1 on 1600 ms loop ──
+  const glowOpacity = useSharedValue(1);
+  useEffect(() => {
+    glowOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.6, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+    );
+  }, [glowOpacity]);
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glowOpacity.value }));
+
+  // ── Shimmer animation: bar sweeps left→right on 2500 ms linear loop ──
+  const shimmerX = useSharedValue(-CARD_WIDTH);
+  useEffect(() => {
+    shimmerX.value = withRepeat(
+      withTiming(CARD_WIDTH, { duration: 2500, easing: Easing.linear }),
+      -1,
+    );
+  }, [shimmerX]);
+  const shimmerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shimmerX.value }],
+  }));
+
   return (
     <Pressable testID="new-report-banner" onPress={onPress}>
       <LinearGradient
@@ -70,8 +116,8 @@ export function NewReportBanner({
       >
         {/* Pulse dot icon */}
         <View style={styles.iconRing}>
-          {/* Glow approximation: larger semi-transparent circle underneath */}
-          <View style={styles.dotGlow} />
+          {/* Glow ring pulses opacity 0.6↔1 on 1600 ms loop */}
+          <Animated.View style={[styles.dotGlow, glowStyle]} />
           {/* Solid dot */}
           <View style={styles.dot} />
         </View>
@@ -84,6 +130,9 @@ export function NewReportBanner({
 
         {/* Right arrow */}
         <Text style={styles.arrow}>›</Text>
+
+        {/* Shimmer overlay — clipped by overflow:"hidden" on gradient container */}
+        <Animated.View style={[styles.shimmer, shimmerStyle]} />
       </LinearGradient>
     </Pressable>
   );
@@ -153,5 +202,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: biomarkerPalette.amber,
     lineHeight: 24,
+  },
+  shimmer: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: "30%",
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
 });
