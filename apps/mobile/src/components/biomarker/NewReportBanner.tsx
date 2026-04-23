@@ -33,6 +33,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -91,6 +92,7 @@ export function NewReportBanner({
       ),
       -1,
     );
+    return () => cancelAnimation(glowOpacity);
   }, [glowOpacity]);
   const glowStyle = useAnimatedStyle(() => ({ opacity: glowOpacity.value }));
 
@@ -101,6 +103,7 @@ export function NewReportBanner({
       withTiming(CARD_WIDTH, { duration: 2500, easing: Easing.linear }),
       -1,
     );
+    return () => cancelAnimation(shimmerX);
   }, [shimmerX]);
   const shimmerStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shimmerX.value }],
@@ -117,7 +120,10 @@ export function NewReportBanner({
         {/* Pulse dot icon */}
         <View style={styles.iconRing}>
           {/* Glow ring pulses opacity 0.6↔1 on 1600 ms loop */}
-          <Animated.View style={[styles.dotGlow, glowStyle]} />
+          <Animated.View
+            style={[styles.dotGlow, glowStyle]}
+            pointerEvents="none"
+          />
           {/* Solid dot */}
           <View style={styles.dot} />
         </View>
@@ -132,7 +138,10 @@ export function NewReportBanner({
         <Text style={styles.arrow}>›</Text>
 
         {/* Shimmer overlay — clipped by overflow:"hidden" on gradient container */}
-        <Animated.View style={[styles.shimmer, shimmerStyle]} />
+        <Animated.View
+          style={[styles.shimmer, shimmerStyle]}
+          pointerEvents="none"
+        />
       </LinearGradient>
     </Pressable>
   );
