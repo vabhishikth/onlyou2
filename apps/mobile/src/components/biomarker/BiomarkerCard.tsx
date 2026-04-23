@@ -107,7 +107,8 @@ export function BiomarkerCard({ b, onPress, delay }: BiomarkerCardProps) {
   const cat = CATEGORIES.find((c) => c.id === b.cat);
 
   // Delta percentage change vs previous value.
-  const delta = ((b.value - b.prev) / b.prev) * 100;
+  // Guard against prev === 0 (first-ever report) — mirrors DetailHero.tsx:92.
+  const delta = b.prev !== 0 ? ((b.value - b.prev) / b.prev) * 100 : 0;
   const deltaSign = delta > 0 ? "+" : "";
 
   // Trend direction for the arrow icon.
