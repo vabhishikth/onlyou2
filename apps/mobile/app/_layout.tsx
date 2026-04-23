@@ -53,12 +53,17 @@ export default function RootLayout() {
       if (!url) return;
       const { path } = Linking.parse(url);
       if (!path) return;
-      if (path.startsWith("lab-results")) {
-        if (hydrated) {
-          router.push(`/${path}` as never);
-        } else {
-          pendingLinkRef.current = path;
-        }
+      // Only /lab-results and /lab-results/<id> are valid deep-link targets in
+      // Phase 2.5D. Any other path (including path-traversal like
+      // "lab-results/../profile") is silently ignored — quieter failure mode
+      // than routing to an unknown route and avoids trusting raw URL input.
+      const isAllowed =
+        path === "lab-results" || /^lab-results\/[A-Za-z0-9_-]+$/.test(path);
+      if (!isAllowed) return;
+      if (hydrated) {
+        router.push(`/${path}` as never);
+      } else {
+        pendingLinkRef.current = path;
       }
     };
 
