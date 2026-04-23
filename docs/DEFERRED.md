@@ -359,6 +359,57 @@ Items surfaced after merging 2.5B, when running the first live `pnpm test:claude
 
 ---
 
+## Phase 2.5D Waves 1–4 deferrals (2026-04-22/23)
+
+Items surfaced during biomarker mobile UI port (Waves 1–3) and live E2E (Wave 4, Task 4.4). Non-blocking for 2.5D ship; each has an explicit destination.
+
+### Wave 5 — port-level polish
+
+| Item                                                                                                                   | Deferred to | Why                                                         |
+| ---------------------------------------------------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
+| `RangeBar` glow Circle extends 2 px above SVG viewbox → silently clipped (confirmed visible on device during live E2E) | Wave 5      | Cosmetic; expand SVG height or drop the glow radius by 2 px |
+| `RangeBar` tests are smoke-only (`toJSON()).toBeTruthy()`); tighten to assert specific coords                          | Wave 5      | Test-quality; no behaviour change                           |
+| `Sparkline` has no dedicated test for `dashed` prop                                                                    | Wave 5      | Test coverage gap                                           |
+| `Dial` track Circle painted after optimal arc → layer order inverted vs web source                                     | Wave 5      | Visual parity with source                                   |
+| `Dial` optimal-arc dashoffset: no guard for `optLow < low` edge case                                                   | Wave 5      | Defensive one-liner                                         |
+| `AreaChart` halo Circle layers above dot instead of behind                                                             | Wave 5      | Visual parity with source                                   |
+| `CategoryFilterPills` active-pill test assertion vacuous (`backgroundColor: expect.any(String)`)                       | Wave 5      | Tighten assertion                                           |
+| Inactive pill border uses `biomarkerPalette.line2` at low contrast on `bg2`                                            | Wave 5      | Readability polish                                          |
+| `BiomarkerCard` divide-by-zero guard when `prev === 0` (infinite delta)                                                | Wave 5      | One-line fix                                                |
+| `BiomarkerCard` flat trend (`value === prev`) renders as bad trend (honey) regardless of `downIsGood`                  | Wave 5      | Status logic edge case                                      |
+| `statusColor` unreachable fallback branch — add `satisfies never` exhaustiveness assertion                             | Wave 5      | Type safety                                                 |
+| `rangePct` degenerate `low === high` input guard                                                                       | Wave 5      | Defensive                                                   |
+
+### Phase 2.5E — hard gate before next demo
+
+| Item                                                                                                                                                                                                                                                                                                                                                                | Deferred to | Why                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Join real reference-range bounds** (`optimalMin/optimalMax/subOptimalBelowMin/subOptimalAboveMax`) into patient query + hook transform. Replace placeholder `low=0/high=100/optLow=25/optHigh=75` with real values. **MUST ship first in 2.5E** — live E2E 2026-04-23 confirmed this visibly breaks marker positions (cholesterol 185 / LDL 165 clip right edge). | Phase 2.5E  | First-impression visual bug on real data. Blocks any external demo of the patient dashboard until replaced. See `docs/decisions/2026-04-23-phase-2.5d-live-e2e.md` for repro. |
+| Multi-point trend — historical-report join query to replace single-point `trend: [currentValue]`                                                                                                                                                                                                                                                                    | Phase 2.5E  | Sparkline renders as single dot until multiple reports exist per patient. Single-point is the current live-E2E result.                                                        |
+| Prior-report join — replace `prev: currentValue` with real previous-report delta                                                                                                                                                                                                                                                                                    | Phase 2.5E  | Delta display is a no-op (`value - prev === 0`) until joined                                                                                                                  |
+| `action_required` status maps to `"high"` unconditionally (no high-vs-low direction until ranges available)                                                                                                                                                                                                                                                         | Phase 2.5E  | Falls out naturally once real ranges join                                                                                                                                     |
+| `AreaChart` x-label array hardcoded 7 slots (`['6mo','5',...,'now']`) — crashes if variable-length trend data                                                                                                                                                                                                                                                       | Phase 2.5E  | Becomes relevant once multi-point trend ships                                                                                                                                 |
+| Greeting "Good morning, Arjun" + date "MONDAY · 13 APRIL" + avatar "A" hardcoded on Dashboard                                                                                                                                                                                                                                                                       | Phase 2.5E  | Wire to `session.user.displayName` + live Date                                                                                                                                |
+| "— Clinical note, Dr. M. Rao" byline hardcoded on Detail                                                                                                                                                                                                                                                                                                            | Phase 2.5E  | Tie to real doctor if any, else keep as brand voice                                                                                                                           |
+
+### Phase 8 — a11y + polish sweep
+
+| Item                                                                                                    | Deferred to | Why                  |
+| ------------------------------------------------------------------------------------------------------- | ----------- | -------------------- |
+| `NewReportBanner` no `accessibilityRole="button"` on Pressable                                          | Phase 8     | a11y sweep           |
+| `ScrollView.contentContainerStyle.paddingHorizontal: 4` magic number in `CategoryFilterPills`           | Phase 8     | Token cleanup        |
+| Detail top bar not sticky (`stickyHeaderIndices` skipped)                                               | Phase 8     | UX polish            |
+| Detail dashed divider rendered as 1px solid line (CSS `background-image` has no RN equivalent)          | Phase 8     | Visual parity polish |
+| `AreaChart` width uses `Dimensions.get('window').width - 48 - 34` (device-specific — tablets, rotation) | Phase 8     | Responsive width     |
+
+### Wave 6 env-config verification
+
+| Item                                                                                               | Deferred to                     | Why                                                            |
+| -------------------------------------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------- |
+| `EXPO_PUBLIC_USE_MOCK_BIOMARKERS` default is `__DEV__`-mock. Production must set to `0` explicitly | Wave 6 / 2.5E verify env config | Operational — confirm EAS env profiles before first live build |
+
+---
+
 ## Phase 4+ — later phases
 
 _(populated when each phase's brainstorm begins)_

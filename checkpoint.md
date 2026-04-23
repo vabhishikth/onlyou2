@@ -1,7 +1,37 @@
 # Checkpoint
 
-**Current phase:** Phase 2.5C — **✅ MERGED to master `970f0d5` on 2026-04-22**. All 6 waves shipped. Plan 2.5D (Mobile UI for biomarker foundation) queued next — this is the one that triggers the Phase 2.5 approval gate.
-**Status:** 2.5A + 2.5B + 2.5C all on master. Feature branch + worktree cleaned up post-merge.
+**Current phase:** Phase 2.5D — **🔨 IN PROGRESS (Wave 4 complete, Task 4.4 live E2E ✅ PASS 2026-04-23)** on branch `phase-2.5d` in worktree `D:/onlyou2-phase-2.5d`. Dashboard + Detail + Convex patient query + hook + deep-link all verified end-to-end against real Convex data on physical iPhone via Expo Go. Ready for Wave 5 (polish + animations + register lint) next session.
+**Phase 2.5C:** ✅ merged to master `970f0d5` on 2026-04-22 (upstream state below, left intact).
+
+## Phase 2.5D progress (as of 2026-04-23)
+
+**Spec + plan:** `docs/superpowers/specs/2026-04-22-phase-2.5d-biomarker-mobile-ui-design.md` (`a66641e`) · `docs/superpowers/plans/2026-04-22-phase-2.5d-biomarker-mobile-ui.md` (`d566595`) — both on master already. Worktree branched off master at the plan commit.
+
+**Waves 1–4 complete.** 18 feature commits (tip `645548a`), all biomarker UI + Convex query + deep-link wiring in place. Test counts at end of wave 4: Mobile 218/218 jest green · Convex 206/206 vitest green · `pnpm typecheck` clean.
+
+**Task 4.4 — live E2E verdict:** PASS. Decision doc: `docs/decisions/2026-04-23-phase-2.5d-live-e2e.md`.
+
+- Seed helper: `convex/seed/devBiomarkerReport.ts` (idempotent seedArjunReport + clearArjunReports, prod-guarded).
+- Deployed via `npx convex dev --once` → ran `seed/devBiomarkerReport:seedArjunReport` → 1 report + 5 values inserted for Arjun.
+- `apps/mobile/.env.local` flipped: `EXPO_PUBLIC_USE_MOCK_BIOMARKERS=0`.
+- Founder on physical iPhone via Expo Go, signed in as Arjun (dev-bypass OTP `000000`). Dashboard showed the 5 expected cards (Total/HDL/LDL/Hgb/Vit D) with correct values + status colours. Detail screen rendered Dial + Hero + trend card + reference card + explainer.
+- Deep-link tests: `exp://<host>/--/lab-results` → Dashboard ✅, `exp://<host>/--/lab-results/<value._id>` → Detail ✅. (`onlyou://` custom scheme requires dev-build; Phase 8 retest.)
+- Known visual issues observed (all pre-logged in DEFERRED, no mid-gate fixes): sparkline single-dot (2.5E historical-report join); RangeBar marker clipping top + right (Wave 5 viewbox + 2.5E real ranges).
+
+## Open items — Phase 2.5D (resume next session)
+
+1. **Wave 5 — polish + animations + register lint.** ESLint register re-check, reanimated `rise`/`pulse-ring`/`shimmer` animations, Clinical Luxe feel checklist, Android + iOS parity screenshots, port-level DEFERRED fixes (RangeBar viewbox, Dial layer order, AreaChart halo, divide-by-zero, etc. — see `docs/DEFERRED.md` §Phase 2.5D Wave 5).
+2. **Wave 6 — ship.** Full CI sweep, `superpowers:requesting-code-review`, address findings, final DEFERRED + checkpoint updates, merge to master + tag.
+
+## Hard gate for Phase 2.5E
+
+Before any further patient-visible biomarker work or external demos: **join real reference-range bounds** (`optimalMin/optimalMax/subOptimalBelowMin/subOptimalAboveMax`) into the patient query + hook transform. Live E2E 2026-04-23 confirmed the current placeholder ranges (`low=0/high=100/optLow=25/optHigh=75`) visibly break marker positions on real values like cholesterol 185 or LDL 165. See `docs/decisions/2026-04-23-phase-2.5d-live-e2e.md` and `docs/DEFERRED.md` §Phase 2.5E for details.
+
+---
+
+## Upstream (master) state at fork time — preserved below for reference
+
+## Phase 2.5C (merged 2026-04-22, `970f0d5`)
 
 ## Phase 2.5C progress
 

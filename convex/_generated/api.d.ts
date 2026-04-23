@@ -47,6 +47,7 @@ import type * as featureFlags from "../featureFlags.js";
 import type * as lib_claude from "../lib/claude.js";
 import type * as lib_envGuards from "../lib/envGuards.js";
 import type * as lib_telemetry from "../lib/telemetry.js";
+import type * as seed_devBiomarkerReport from "../seed/devBiomarkerReport.js";
 import type * as seed_fakeUsers from "../seed/fakeUsers.js";
 import type * as users from "../users.js";
 
@@ -96,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   "lib/claude": typeof lib_claude;
   "lib/envGuards": typeof lib_envGuards;
   "lib/telemetry": typeof lib_telemetry;
+  "seed/devBiomarkerReport": typeof seed_devBiomarkerReport;
   "seed/fakeUsers": typeof seed_fakeUsers;
   users: typeof users;
 }>;
