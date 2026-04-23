@@ -138,9 +138,27 @@ export function AreaChart({
   const last = pts[pts.length - 1];
 
   // ---------------------------------------------------------------------------
-  // X-axis labels — always 7 slots matching the 7 data points
+  // X-axis labels — derived from data.length so variable-length series
+  // (e.g. single-point real data from the hook) don't render misaligned text.
+  //
+  // Rules:
+  //  length === 1  → ["now"]
+  //  length 2..6   → first slot = "Nmo" (N = length-1), last = "now",
+  //                  middle slots blank — only first and last rendered.
+  //  length >= 7   → classic 7-slot cadence (backward-compatible).
   // ---------------------------------------------------------------------------
-  const labels = ["6mo", "5", "4", "3", "2", "1", "now"];
+  function xLabelFor(i: number, len: number): string {
+    if (len === 1) return "now";
+    if (len >= 7) {
+      // Original 7-slot labels: 6mo, 5, 4, 3, 2, 1, now
+      const seven = ["6mo", "5", "4", "3", "2", "1", "now"];
+      return seven[i] ?? "";
+    }
+    // 2..6: show label only at first and last index; blank in between
+    if (i === 0) return `${len - 1}mo`;
+    if (i === len - 1) return "now";
+    return "";
+  }
 
   return (
     <Svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
@@ -267,7 +285,7 @@ export function AreaChart({
       {/* -------------------------------------------------------------------- */}
       {/* X-axis labels                                                          */}
       {/* -------------------------------------------------------------------- */}
-      {labels.map((label, i) => (
+      {data.map((_, i) => (
         <Text
           key={i}
           x={toX(i)}
@@ -277,7 +295,7 @@ export function AreaChart({
           textAnchor="middle"
           fontFamily={biomarkerFonts.mono}
         >
-          {label}
+          {xLabelFor(i, data.length)}
         </Text>
       ))}
     </Svg>
