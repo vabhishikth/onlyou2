@@ -1,37 +1,73 @@
 # Checkpoint
 
-**Current phase:** Phase 2.5D — **🔨 IN PROGRESS (Wave 4 complete, Task 4.4 live E2E ✅ PASS 2026-04-23)** on branch `phase-2.5d` in worktree `D:/onlyou2-phase-2.5d`. Dashboard + Detail + Convex patient query + hook + deep-link all verified end-to-end against real Convex data on physical iPhone via Expo Go. Ready for Wave 5 (polish + animations + register lint) next session.
+**Current phase:** Phase 2.5D — ✅ **COMPLETE on branch `phase-2.5d` tip `7a36089` (pending merge to master).** All six waves shipped: Dashboard + Detail screens visual-approved on device 2026-04-22, Task 4.4 live E2E PASS `b09c97b` on 2026-04-23 am, Wave 5 code-side + Android device parity, Wave 6 code review (0 Critical, 3 Important all fixed in `fcd8983` / `918c9de` / `7a36089`, 11 Minor → DEFERRED). Mobile jest 218/218, Convex 206/206, seed 19/19, monorepo typecheck clean. iOS parity flagged as 2.5E-setup follow-up. **Next action: user-confirmed merge** via `git checkout master && git merge --no-ff phase-2.5d`.
 **Phase 2.5C:** ✅ merged to master `970f0d5` on 2026-04-22 (upstream state below, left intact).
 
-## Phase 2.5D progress (as of 2026-04-23)
+## Phase 2.5D progress (as of 2026-04-22, end of session 1)
 
 **Spec + plan:** `docs/superpowers/specs/2026-04-22-phase-2.5d-biomarker-mobile-ui-design.md` (`a66641e`) · `docs/superpowers/plans/2026-04-22-phase-2.5d-biomarker-mobile-ui.md` (`d566595`) — both on master already. Worktree branched off master at the plan commit.
 
-**Waves 1–4 complete.** 18 feature commits (tip `645548a`), all biomarker UI + Convex query + deep-link wiring in place. Test counts at end of wave 4: Mobile 218/218 jest green · Convex 206/206 vitest green · `pnpm typecheck` clean.
+**Commits on `phase-2.5d` (28, branch tip `7a36089`):**
 
-**Task 4.4 — live E2E verdict:** PASS. Decision doc: `docs/decisions/2026-04-23-phase-2.5d-live-e2e.md`.
+| Wave | Commit    | Task                                                                                                                                                                                                                                 |
+| ---- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | `8708ba0` | Task 1.1 — `react-native-svg@15.12.1` + smoke test                                                                                                                                                                                   |
+| 1    | `bf95544` | Task 1.2 — `status-helpers.ts` (statusColor/statusLabel/rangePct) + fix missing `./tokens/biomarker` export in `packages/core/package.json`                                                                                          |
+| 1    | `037a868` | Task 1.3 — `RangeBar` port (react-native-svg, `useId()` gradient, glow via opacity layer)                                                                                                                                            |
+| 1    | `5c006b3` | Task 1.4 — `Sparkline` port                                                                                                                                                                                                          |
+| 1    | `64b7e7c` | Task 1.5 — `Dial` port (60 tick marks, optimal arc, progress arc, needle; drop-shadow → opacity layer)                                                                                                                               |
+| 1    | `22b9744` | Task 1.6 — `AreaChart` port (static halo; `<animate>` dropped)                                                                                                                                                                       |
+| 2    | `35357bf` | Task 2.1 — 24 biomarker mock dataset + 7 categories (verbatim port)                                                                                                                                                                  |
+| 2    | `0d8069e` | Task 2.2 — `SummaryStat` + `CategoryFilterPills` + `NewReportBanner` + `expo-linear-gradient` jest mock                                                                                                                              |
+| 2    | `8a49a9d` | Task 2.3 — `BiomarkerCard` with delta colouring (downIsGood rule)                                                                                                                                                                    |
+| 2    | `e2d4135` | Task 2.4 — `app/lab-results/_layout.tsx` + `index.tsx` (Dashboard) + root `Stack.Screen`                                                                                                                                             |
+| 2    | `253fe22` | Task 2.5 — `hasUnreadReport` flag on dev-scenario store + home `NewReportBanner` entry (cross-register handoff)                                                                                                                      |
+| 2    | `9175bf7` | Task 2.5.1 — dev scenario-switcher toggle UI + `[id].tsx` route stub (to unblock Expo Router typed-routes)                                                                                                                           |
+| 3    | `6078615` | Task 3.1 — `RefRow` + `DetailHero` + `biomarker-explainers.ts` map                                                                                                                                                                   |
+| 3    | `7006f3d` | Task 3.2 — `app/lab-results/[id].tsx` full Detail screen                                                                                                                                                                             |
+| 3    | `a9f70e8` | Fix — AreaChart width shrunk by 34px to fit inside trend card (founder-reported overflow)                                                                                                                                            |
+| 4    | `8e8258b` | Task 4.1 — `convex/biomarker/patient/myBiomarkerReports.ts` + 7 test cases                                                                                                                                                           |
+| 4    | `f2b3081` | Task 4.2 — canonical join added to query + `use-biomarker-reports` hook + Dashboard/Detail wiring (mock default, `EXPO_PUBLIC_USE_MOCK_BIOMARKERS=0` opts into real data)                                                            |
+| 4    | `645548a` | Task 4.3 — `onlyou://lab-results[/:id]` deep-link handler in root `_layout.tsx` (queues pre-hydration)                                                                                                                               |
+| 4    | `b09c97b` | Task 4.4 — live E2E PASS on device-seeded Convex round-trip (2026-04-23)                                                                                                                                                             |
+| 5    | `7278d50` | Task 5.2 — reanimated rise/pulse/shimmer animations (BiomarkerCard + NewReportBanner + jest mock extension for FadeInUp)                                                                                                             |
+| 5    | `631e63d` | Task 5.2 fix — cancel animations on unmount + shimmer pointerEvents (code-review findings)                                                                                                                                           |
+| 5    | `7c1625b` | Fix — restore lab-results test suites to green (jest `^react$` moduleNameMapper → hoisted copy collapses convex's nested React 19.2.x; per-file `jest.mock("convex/react")` in detail + index tests bypasses missing ConvexProvider) |
+| 5    | `b76fe95` | Wave 5 Step 2-4 — Android device parity screenshots + README at `docs/superpowers/phases/2.5d/wave-5-parity/` (iOS flagged as 2.5E-setup follow-up)                                                                                  |
+| 6    | `b16e83e` | Task 6.1 — fix `(tabs)/home/index.tsx` import/order warning introduced by cross-register comment placement                                                                                                                           |
+| 6    | `61b732a` | Task 6.2 — code review report at `docs/superpowers/reviews/2026-04-23-phase-2.5d-review.md` (0 Critical, 3 Important, 11 Minor)                                                                                                      |
+| 6    | `fcd8983` | Task 6.2 I-1 — guard BiomarkerCard delta against `prev=0` (one-line guard mirroring DetailHero pattern)                                                                                                                              |
+| 6    | `918c9de` | Task 6.2 I-2 — derive AreaChart x-labels from `data.length` (1 → "now"; 2-6 → "Nmo"+blank+"now"; ≥7 → original 7-slot cadence)                                                                                                       |
+| 6    | `7a36089` | Task 6.2 I-3 — validate deep-link path against `/lab-results` allowlist before `router.push`                                                                                                                                         |
 
-- Seed helper: `convex/seed/devBiomarkerReport.ts` (idempotent seedArjunReport + clearArjunReports, prod-guarded).
-- Deployed via `npx convex dev --once` → ran `seed/devBiomarkerReport:seedArjunReport` → 1 report + 5 values inserted for Arjun.
-- `apps/mobile/.env.local` flipped: `EXPO_PUBLIC_USE_MOCK_BIOMARKERS=0`.
-- Founder on physical iPhone via Expo Go, signed in as Arjun (dev-bypass OTP `000000`). Dashboard showed the 5 expected cards (Total/HDL/LDL/Hgb/Vit D) with correct values + status colours. Detail screen rendered Dial + Hero + trend card + reference card + explainer.
-- Deep-link tests: `exp://<host>/--/lab-results` → Dashboard ✅, `exp://<host>/--/lab-results/<value._id>` → Detail ✅. (`onlyou://` custom scheme requires dev-build; Phase 8 retest.)
-- Known visual issues observed (all pre-logged in DEFERRED, no mid-gate fixes): sparkline single-dot (2.5E historical-report join); RangeBar marker clipping top + right (Wave 5 viewbox + 2.5E real ranges).
+Task 5.1 (register lint check) — clean, no commits needed. Task 5.3 (feel checklist code-side) — all checks PASS (24 px padding, SafeArea, no bottom-sheets, no hardcoded hex in runtime biomarker paths).
 
-## Open items — Phase 2.5D (resume next session)
+**Test counts (2026-04-23, end Wave 6):** Mobile **218/218 jest** · Convex **206/206 vitest** · Seed **19/19 vitest** · Monorepo `pnpm typecheck` clean (6 workspaces) · Monorepo `pnpm lint` clean except 4 × pre-existing `@onlyou/ui` `import/order` warnings (pre-date Phase 2.5D).
 
-1. **Wave 5 — polish + animations + register lint.** ESLint register re-check, reanimated `rise`/`pulse-ring`/`shimmer` animations, Clinical Luxe feel checklist, Android + iOS parity screenshots, port-level DEFERRED fixes (RangeBar viewbox, Dial layer order, AreaChart halo, divide-by-zero, etc. — see `docs/DEFERRED.md` §Phase 2.5D Wave 5).
-2. **Wave 6 — ship.** Full CI sweep, `superpowers:requesting-code-review`, address findings, final DEFERRED + checkpoint updates, merge to master + tag.
+**Visual approval gates passed on device (2026-04-22 evening):**
 
-## Hard gate for Phase 2.5E
+- ✅ Wave 2 — Dashboard. Founder tested banner toggle → Dashboard route → 24-card filter list. Approved.
+- ✅ Wave 3 — Detail. Approved after `a9f70e8` fix for last-point halo overflow.
 
-Before any further patient-visible biomarker work or external demos: **join real reference-range bounds** (`optimalMin/optimalMax/subOptimalBelowMin/subOptimalAboveMax`) into the patient query + hook transform. Live E2E 2026-04-23 confirmed the current placeholder ranges (`low=0/high=100/optLow=25/optHigh=75`) visibly break marker positions on real values like cholesterol 185 or LDL 165. See `docs/decisions/2026-04-23-phase-2.5d-live-e2e.md` and `docs/DEFERRED.md` §Phase 2.5E for details.
+**Pre-existing infra reused (not rebuilt):**
+
+- `packages/core/src/tokens/biomarker.ts` — palette + font map already shipped in 2.5A.
+- `apps/mobile/app/_layout.tsx` — Instrument Serif + JetBrains Mono already loaded.
+- Decision record `docs/decisions/2026-04-17-biomarker-design-register.md` — two-register guardrail (ESLint `no-restricted-imports`). All biomarker UI stays inside `lab-results/**` + `components/biomarker/**` paths; the single permitted cross-register import is `NewReportBanner` into `(tabs)/home/index.tsx` (disabled with inline comment + rationale).
+
+## Open items — Phase 2.5D
+
+1. **Merge `phase-2.5d` → `master`** — awaiting user go-ahead. Irreversible. Command:
+   ```
+   git checkout master && git merge --no-ff phase-2.5d -m "Merge phase-2.5d: biomarker mobile UI (Dashboard + Detail)"
+   ```
+2. **iOS parity follow-up** — capture `ios-dashboard.png` + `ios-detail.png` on same seeded Arjun dataset when Mac access is available; commit into `docs/superpowers/phases/2.5d/wave-5-parity/`. Not a merge blocker.
+
+## DEFERRED — Phase 2.5D items
+
+All ~30 deferrals from Waves 1–6 are now cataloged in `docs/DEFERRED.md` §"Phase 2.5D Waves 1–6 deferrals" with per-row destinations (2.5E, Phase 8, etc.). Shipped items struck through with commit references. See that file for the authoritative list.
 
 ---
-
-## Upstream (master) state at fork time — preserved below for reference
-
-## Phase 2.5C (merged 2026-04-22, `970f0d5`)
 
 ## Phase 2.5C progress
 
