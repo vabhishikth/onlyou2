@@ -1,6 +1,6 @@
 # Checkpoint
 
-**Current phase:** Phase 2.5D — ✅ **COMPLETE on branch `phase-2.5d` tip `7a36089` (pending merge to master).** All six waves shipped: Dashboard + Detail screens visual-approved on device 2026-04-22, Task 4.4 live E2E PASS `b09c97b` on 2026-04-23 am, Wave 5 code-side + Android device parity, Wave 6 code review (0 Critical, 3 Important all fixed in `fcd8983` / `918c9de` / `7a36089`, 11 Minor → DEFERRED). Mobile jest 218/218, Convex 206/206, seed 19/19, monorepo typecheck clean. iOS parity flagged as 2.5E-setup follow-up. **Next action: user-confirmed merge** via `git checkout master && git merge --no-ff phase-2.5d`.
+**Current phase:** Phase 2.5D — ✅ **MERGED to master `82e6f46` on 2026-04-23.** All six waves shipped: Dashboard + Detail screens visual-approved on device 2026-04-22, Task 4.4 live E2E PASS `b09c97b` on 2026-04-23 am, Wave 5 code-side + Android device parity, Wave 6 code review (0 Critical, 3 Important all fixed in `fcd8983` / `918c9de` / `7a36089`, 11 Minor → DEFERRED). Post-merge: doc update `9b229fc` (DEFERRED strikes + phase-complete). Mobile jest 218/218, Convex 206/206, seed 19/19, monorepo typecheck clean. iOS parity flagged as 2.5E-setup follow-up. **Next action:** Phase 2.5E brainstorm — hard-gated on real reference-range join before any external demo (clinical advisor sign-off on 45 DRAFT rows).
 **Phase 2.5C:** ✅ merged to master `970f0d5` on 2026-04-22 (upstream state below, left intact).
 
 ## Phase 2.5D progress (as of 2026-04-22, end of session 1)
@@ -57,11 +57,9 @@ Task 5.1 (register lint check) — clean, no commits needed. Task 5.3 (feel chec
 
 ## Open items — Phase 2.5D
 
-1. **Merge `phase-2.5d` → `master`** — awaiting user go-ahead. Irreversible. Command:
-   ```
-   git checkout master && git merge --no-ff phase-2.5d -m "Merge phase-2.5d: biomarker mobile UI (Dashboard + Detail)"
-   ```
-2. **iOS parity follow-up** — capture `ios-dashboard.png` + `ios-detail.png` on same seeded Arjun dataset when Mac access is available; commit into `docs/superpowers/phases/2.5d/wave-5-parity/`. Not a merge blocker.
+1. ~~**Merge `phase-2.5d` → `master`**~~ — ✅ merged `82e6f46` on 2026-04-23.
+2. **iOS parity follow-up** — capture `ios-dashboard.png` + `ios-detail.png` on same seeded Arjun dataset when Mac access is available; commit into `docs/superpowers/phases/2.5d/wave-5-parity/`. Non-blocking.
+3. **Push master to origin** — 34 commits ahead of `origin/master` as of 2026-04-23 (2.5C merge + 2.5D merge + doc commits).
 
 ## DEFERRED — Phase 2.5D items
 
