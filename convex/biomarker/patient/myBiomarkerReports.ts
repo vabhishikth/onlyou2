@@ -92,6 +92,44 @@ export const myBiomarkerReports = query({
           };
         }
 
+        // Trend + prev: multi-point history for this (user, canonical).
+        // Uses by_user_canonical_date index, excludes soft-deleted rows,
+        // sorts ascending by collectionDate, and drops non-numeric rows.
+        let trend: { value: number; collectionDate: string }[] = [];
+        let prev: { value: number; collectionDate: string } | null = null;
+
+        if (val.canonicalId && val.numericValue !== undefined) {
+          const history = await ctx.db
+            .query("biomarker_values")
+            .withIndex("by_user_canonical_date", (q) =>
+              q
+                .eq("userId", session.userId)
+                .eq("canonicalId", val.canonicalId as string),
+            )
+            .filter((q) => q.eq(q.field("deletedAt"), undefined))
+            .collect();
+
+          trend = history
+            .filter(
+              (h) =>
+                h.numericValue !== undefined && h.collectionDate !== undefined,
+            )
+            .sort((a, b) =>
+              (a.collectionDate as string).localeCompare(
+                b.collectionDate as string,
+              ),
+            )
+            .map((h) => ({
+              value: h.numericValue as number,
+              collectionDate: h.collectionDate as string,
+            }));
+
+          const idx = trend.findIndex(
+            (p) => p.collectionDate === val.collectionDate,
+          );
+          prev = idx > 0 ? trend[idx - 1] : null;
+        }
+
         projectedValues.push({
           _id: val._id,
           canonicalId: val.canonicalId,
@@ -104,6 +142,8 @@ export const myBiomarkerReports = query({
           classifiedAt: val.classifiedAt,
           canonical,
           range,
+          trend,
+          prev,
         });
       }
 
