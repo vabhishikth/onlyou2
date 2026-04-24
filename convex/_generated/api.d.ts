@@ -27,6 +27,7 @@ import type * as biomarker_internal_upsertCurationRow from "../biomarker/interna
 import type * as biomarker_lib_auditValidators from "../biomarker/lib/auditValidators.js";
 import type * as biomarker_lib_autoDraftRange from "../biomarker/lib/autoDraftRange.js";
 import type * as biomarker_lib_createLabReport from "../biomarker/lib/createLabReport.js";
+import type * as biomarker_lib_findByContentHash from "../biomarker/lib/findByContentHash.js";
 import type * as biomarker_lib_fuzzyAliasMatch from "../biomarker/lib/fuzzyAliasMatch.js";
 import type * as biomarker_lib_jaroWinkler from "../biomarker/lib/jaroWinkler.js";
 import type * as biomarker_lib_normalizeCollectionDate from "../biomarker/lib/normalizeCollectionDate.js";
@@ -79,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   "biomarker/lib/auditValidators": typeof biomarker_lib_auditValidators;
   "biomarker/lib/autoDraftRange": typeof biomarker_lib_autoDraftRange;
   "biomarker/lib/createLabReport": typeof biomarker_lib_createLabReport;
+  "biomarker/lib/findByContentHash": typeof biomarker_lib_findByContentHash;
   "biomarker/lib/fuzzyAliasMatch": typeof biomarker_lib_fuzzyAliasMatch;
   "biomarker/lib/jaroWinkler": typeof biomarker_lib_jaroWinkler;
   "biomarker/lib/normalizeCollectionDate": typeof biomarker_lib_normalizeCollectionDate;

@@ -36,6 +36,9 @@ importers:
       convex-test:
         specifier: ^0.0.48
         version: 0.0.48(convex@1.35.1(react@19.2.5))
+      fast-glob:
+        specifier: ^3.3.3
+        version: 3.3.3
       husky:
         specifier: 9.1.7
         version: 9.1.7
