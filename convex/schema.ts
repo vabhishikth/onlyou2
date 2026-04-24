@@ -8,6 +8,12 @@ import {
   adminAuditActionValidator,
   adminAuditTargetTableValidator,
 } from "./biomarker/lib/auditValidators";
+import {
+  consultations as consultationsFields,
+  questionnaire_responses as questionnaireResponsesFields,
+  photos as photosFields,
+  consultation_status_history as statusHistoryFields,
+} from "./consultations/schema";
 
 const roleValidator = v.union(...ROLES.map((r) => v.literal(r)));
 const genderValidator = v.union(
@@ -336,4 +342,24 @@ export default defineSchema({
   })
     .index("by_admin", ["adminUserId", "timestamp"])
     .index("by_target", ["targetTable", "targetId", "timestamp"]),
+
+  // ─── Phase 3B new tables ───────────────────────────────────────────
+  consultations: defineTable(consultationsFields)
+    .index("by_user_status", ["userId", "status"])
+    .index("by_status_updated", ["status", "statusUpdatedAt"])
+    .index("by_vertical_status", ["vertical", "status"])
+    .index("by_deleted", ["deletedAt"]),
+
+  questionnaire_responses: defineTable(questionnaireResponsesFields)
+    .index("by_consultation", ["consultationId"])
+    .index("by_user", ["userId"]),
+
+  photos: defineTable(photosFields)
+    .index("by_consultation_slot", ["consultationId", "slot"])
+    .index("by_user", ["userId"])
+    .index("by_deleted", ["deletedAt"]),
+
+  consultation_status_history: defineTable(statusHistoryFields)
+    .index("by_consultation", ["consultationId"])
+    .index("by_consultation_changed", ["consultationId", "changedAt"]),
 });
