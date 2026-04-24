@@ -134,7 +134,7 @@ export default function BiomarkerDetail() {
 
   const color = statusColor(b.status);
   const cat = CATEGORIES.find((c) => c.id === b.cat);
-  const explainerText = explainerFor(b.id, b.name);
+  const explainerText = explainerFor(b.id, b.name, b.status);
 
   // AreaChart Y-axis bounds — slightly wider than the data range for breathing room.
   const trendMin = Math.min(b.low, ...b.trend);
@@ -279,6 +279,7 @@ export default function BiomarkerDetail() {
                   optLow={b.optLow}
                   optHigh={b.optHigh}
                   status={b.status}
+                  direction={b.rangeDirection}
                   width={110}
                 />
               </View>
@@ -296,7 +297,8 @@ export default function BiomarkerDetail() {
               "{explainerText}"
             </Text>
             <Text style={styles.explainerFootnote}>
-              — Clinical note, Dr. M. Rao
+              {/* DEFERRED(phase-4): real doctor attribution when biomarker_reports.doctorId ships */}
+              — Your care team
             </Text>
           </View>
         </View>

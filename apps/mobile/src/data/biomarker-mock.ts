@@ -37,6 +37,7 @@ export type BiomarkerMock = {
   trend: number[];
   status: BiomarkerStatus;
   prev: number;
+  rangeDirection: "bidirectional" | "unboundedLow" | "unboundedHigh";
 };
 
 export type Category = {
@@ -60,6 +61,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [88, 91, 94, 90, 89, 92, 92],
     status: "optimal",
     prev: 94,
+    rangeDirection: "bidirectional",
   },
   {
     id: "hba1c",
@@ -74,6 +76,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [5.5, 5.4, 5.4, 5.3, 5.3, 5.2, 5.3],
     status: "optimal",
     prev: 5.4,
+    rangeDirection: "bidirectional",
   },
   {
     id: "insulin",
@@ -88,6 +91,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [9.1, 8.4, 7.9, 7.6, 7.3, 7.1, 7.2],
     status: "optimal",
     prev: 7.5,
+    rangeDirection: "bidirectional",
   },
 
   // Lipids
@@ -104,6 +108,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [132, 128, 125, 122, 120, 119, 118],
     status: "high",
     prev: 125,
+    rangeDirection: "bidirectional",
   },
   {
     id: "hdl",
@@ -118,6 +123,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [52, 54, 55, 56, 57, 57, 58],
     status: "watch",
     prev: 56,
+    rangeDirection: "bidirectional",
   },
   {
     id: "trig",
@@ -132,6 +138,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [102, 98, 95, 92, 90, 89, 88],
     status: "optimal",
     prev: 92,
+    rangeDirection: "bidirectional",
   },
   {
     id: "apob",
@@ -146,6 +153,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [92, 90, 88, 87, 86, 85, 84],
     status: "watch",
     prev: 86,
+    rangeDirection: "bidirectional",
   },
 
   // Hormones
@@ -162,6 +170,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [540, 560, 580, 590, 600, 605, 612],
     status: "optimal",
     prev: 598,
+    rangeDirection: "bidirectional",
   },
   {
     id: "cortisol",
@@ -176,6 +185,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [16.1, 15.8, 15.4, 15.1, 14.9, 14.8, 14.8],
     status: "optimal",
     prev: 15.1,
+    rangeDirection: "bidirectional",
   },
   {
     id: "tsh",
@@ -190,6 +200,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [2.8, 2.7, 2.6, 2.5, 2.5, 2.4, 2.4],
     status: "optimal",
     prev: 2.5,
+    rangeDirection: "bidirectional",
   },
   {
     id: "dhea",
@@ -204,6 +215,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [310, 320, 328, 334, 338, 340, 342],
     status: "optimal",
     prev: 335,
+    rangeDirection: "bidirectional",
   },
 
   // Inflammation
@@ -220,6 +232,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [1.4, 1.2, 1.1, 0.9, 0.9, 0.8, 0.8],
     status: "optimal",
     prev: 0.9,
+    rangeDirection: "bidirectional",
   },
   {
     id: "homo",
@@ -234,6 +247,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [10.2, 10.0, 9.8, 9.6, 9.5, 9.4, 9.4],
     status: "watch",
     prev: 9.6,
+    rangeDirection: "bidirectional",
   },
 
   // Vitamins
@@ -250,6 +264,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [28, 31, 33, 35, 36, 37, 38],
     status: "watch",
     prev: 35,
+    rangeDirection: "bidirectional",
   },
   {
     id: "b12",
@@ -264,6 +279,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [580, 590, 598, 605, 609, 610, 612],
     status: "optimal",
     prev: 608,
+    rangeDirection: "bidirectional",
   },
   {
     id: "folate",
@@ -278,6 +294,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [12.8, 13.1, 13.4, 13.7, 13.9, 14.0, 14.2],
     status: "optimal",
     prev: 13.8,
+    rangeDirection: "bidirectional",
   },
   {
     id: "ferritin",
@@ -292,6 +309,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [128, 132, 135, 138, 140, 141, 142],
     status: "optimal",
     prev: 138,
+    rangeDirection: "bidirectional",
   },
 
   // Kidney & Liver
@@ -308,6 +326,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [1.02, 1.01, 1.0, 0.99, 0.99, 0.98, 0.98],
     status: "optimal",
     prev: 0.99,
+    rangeDirection: "bidirectional",
   },
   {
     id: "alt",
@@ -322,6 +341,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [28, 26, 25, 24, 23, 22, 22],
     status: "optimal",
     prev: 24,
+    rangeDirection: "bidirectional",
   },
   {
     id: "ast",
@@ -336,6 +356,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [24, 23, 22, 21, 21, 20, 20],
     status: "optimal",
     prev: 22,
+    rangeDirection: "bidirectional",
   },
 
   // Blood
@@ -352,6 +373,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [14.6, 14.7, 14.8, 14.9, 15.0, 15.0, 15.1],
     status: "optimal",
     prev: 14.9,
+    rangeDirection: "bidirectional",
   },
   {
     id: "rbc",
@@ -366,6 +388,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [5.0, 5.0, 5.1, 5.1, 5.1, 5.1, 5.1],
     status: "optimal",
     prev: 5.1,
+    rangeDirection: "bidirectional",
   },
   {
     id: "wbc",
@@ -380,6 +403,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [6.8, 6.6, 6.5, 6.4, 6.3, 6.2, 6.2],
     status: "optimal",
     prev: 6.4,
+    rangeDirection: "bidirectional",
   },
   {
     id: "plt",
@@ -394,6 +418,7 @@ export const BIOMARKERS_MOCK: BiomarkerMock[] = [
     trend: [242, 244, 245, 246, 247, 248, 248],
     status: "optimal",
     prev: 246,
+    rangeDirection: "bidirectional",
   },
 ];
 

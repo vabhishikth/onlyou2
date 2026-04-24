@@ -17,6 +17,12 @@ import { ConvexError, v } from "convex/values";
 
 import { query } from "../../_generated/server";
 
+// M-3 (phase-2.5e): soft-delete remains a .filter() rather than an
+// index-only read. Swapping to by_deleted would lose the by_user_analyzed /
+// by_report primary index lookup, which is the dominant cost driver. At
+// patient scale the deletedAt filter is cheap and correct. Revisit if
+// soft-deleted rows become a material fraction of per-user volume.
+
 export const myBiomarkerReports = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
@@ -40,6 +46,11 @@ export const myBiomarkerReports = query({
 
     // Project minimal fields — any new schema field must be explicitly added
     // here to become patient-visible, rather than auto-leaking.
+    //
+    // M-4 (phase 2.5e): fan out canonical/range lookup + trend history via
+    // Promise.all per marker. Convex reads within a single query are
+    // transactional, so parallelising them preserves consistency while
+    // cutting serial waterfall latency.
     const result = [];
     for (const report of reports) {
       const values = await ctx.db
@@ -48,20 +59,58 @@ export const myBiomarkerReports = query({
         .filter((q) => q.eq(q.field("deletedAt"), undefined))
         .collect();
 
-      const projectedValues = [];
-      for (const val of values) {
-        // Canonical join: prefer the direct referenceRangeId pointer, then
-        // fall back to querying by_canonical_id string. Returns null for
-        // unclassified markers that have no matching reference range.
-        let canonical: {
-          _id: string;
-          displayName: string;
-          category: string;
-          canonicalUnit: string;
-        } | null = null;
+      type HistoryRow = (typeof values)[number];
 
-        if (val.referenceRangeId) {
-          const row = await ctx.db.get(val.referenceRangeId);
+      const projectedValues = await Promise.all(
+        values.map(async (val) => {
+          // Canonical join: prefer the direct referenceRangeId pointer, then
+          // fall back to querying by_canonical_id string. Returns null for
+          // unclassified markers that have no matching reference range.
+          const rowLookup = val.referenceRangeId
+            ? ctx.db.get(val.referenceRangeId)
+            : val.canonicalId
+              ? ctx.db
+                  .query("biomarker_reference_ranges")
+                  .withIndex("by_canonical_id", (q) =>
+                    q.eq("canonicalId", val.canonicalId as string),
+                  )
+                  .first()
+              : Promise.resolve(null);
+
+          // Trend + prev: multi-point history for this (user, canonical).
+          // Uses by_user_canonical_date index, excludes soft-deleted rows,
+          // sorts ascending by collectionDate (string localeCompare — the
+          // field is v.optional(v.string())), and drops non-numeric rows.
+          const historyLookup: Promise<HistoryRow[]> =
+            val.canonicalId &&
+            val.numericValue !== undefined &&
+            val.collectionDate !== undefined
+              ? ctx.db
+                  .query("biomarker_values")
+                  .withIndex("by_user_canonical_date", (q) =>
+                    q
+                      .eq("userId", session.userId)
+                      .eq("canonicalId", val.canonicalId as string),
+                  )
+                  .filter((q) => q.eq(q.field("deletedAt"), undefined))
+                  .collect()
+              : Promise.resolve([] as HistoryRow[]);
+
+          const [row, history] = await Promise.all([rowLookup, historyLookup]);
+
+          let canonical: {
+            _id: string;
+            displayName: string;
+            category: string;
+            canonicalUnit: string;
+          } | null = null;
+          let range: {
+            optimalMin: number;
+            optimalMax: number;
+            actionBelow: number | null;
+            actionAbove: number | null;
+          } | null = null;
+
           if (row) {
             canonical = {
               _id: row._id,
@@ -69,40 +118,52 @@ export const myBiomarkerReports = query({
               category: row.category,
               canonicalUnit: row.canonicalUnit,
             };
+            range = {
+              optimalMin: row.optimalMin,
+              optimalMax: row.optimalMax,
+              actionBelow: row.actionBelow ?? null,
+              actionAbove: row.actionAbove ?? null,
+            };
           }
-        } else if (val.canonicalId) {
-          // Fallback: first active range for this canonicalId (sex-agnostic
-          // pick — good enough for display; ranges join with patient profile
-          // is deferred to Phase 3 personalised ranges).
-          const row = await ctx.db
-            .query("biomarker_reference_ranges")
-            .withIndex("by_canonical_id", (q) =>
-              q.eq("canonicalId", val.canonicalId as string),
+
+          const trend: { value: number; collectionDate: string }[] = history
+            .filter(
+              (h) =>
+                h.numericValue !== undefined && h.collectionDate !== undefined,
             )
-            .first();
-          if (row) {
-            canonical = {
-              _id: row._id,
-              displayName: row.displayName,
-              category: row.category,
-              canonicalUnit: row.canonicalUnit,
-            };
-          }
-        }
+            .sort((a, b) =>
+              (a.collectionDate as string).localeCompare(
+                b.collectionDate as string,
+              ),
+            )
+            .map((h) => ({
+              value: h.numericValue as number,
+              collectionDate: h.collectionDate as string,
+            }));
 
-        projectedValues.push({
-          _id: val._id,
-          canonicalId: val.canonicalId,
-          nameOnReport: val.nameOnReport,
-          valueType: val.valueType,
-          rawValue: val.rawValue,
-          rawUnit: val.rawUnit,
-          numericValue: val.numericValue,
-          status: val.status,
-          classifiedAt: val.classifiedAt,
-          canonical,
-        });
-      }
+          const idx = trend.findIndex(
+            (p) => p.collectionDate === val.collectionDate,
+          );
+          const prev: { value: number; collectionDate: string } | null =
+            idx > 0 ? trend[idx - 1] : null;
+
+          return {
+            _id: val._id,
+            canonicalId: val.canonicalId,
+            nameOnReport: val.nameOnReport,
+            valueType: val.valueType,
+            rawValue: val.rawValue,
+            rawUnit: val.rawUnit,
+            numericValue: val.numericValue,
+            status: val.status,
+            classifiedAt: val.classifiedAt,
+            canonical,
+            range,
+            trend,
+            prev,
+          };
+        }),
+      );
 
       result.push({
         report: {

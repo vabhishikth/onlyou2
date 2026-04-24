@@ -27,6 +27,11 @@ jest.mock("convex/react", () => ({
   useQuery: () => undefined,
 }));
 
+// Mock display user so greeting is deterministic regardless of signed-in state.
+jest.mock("@/hooks/use-display-user", () => ({
+  useDisplayUser: () => ({ name: "Arjun Mehta", phone: null, gender: null }),
+}));
+
 // SafeAreaContext insets — provide defaults so SafeAreaView renders correctly.
 jest.mock("react-native-safe-area-context", () => {
   const RN = require("react-native");
@@ -46,8 +51,8 @@ describe("Lab-Results Dashboard screen", () => {
 
   it("displays the greeting", () => {
     const { getByText } = render(<LabResultsDashboard />);
-    // Header greeting contains "Good morning"
-    expect(getByText(/Good morning/i)).toBeTruthy();
+    // Greeting is time-of-day dependent (IST); match any valid variant.
+    expect(getByText(/Good (morning|afternoon|evening), /i)).toBeTruthy();
   });
 
   it("renders the NewReportBanner", () => {

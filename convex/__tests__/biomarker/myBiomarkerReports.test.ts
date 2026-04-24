@@ -293,6 +293,9 @@ describe("myBiomarkerReports", () => {
         "status",
         "classifiedAt",
         "canonical",
+        "range",
+        "trend",
+        "prev",
       ].sort(),
     );
 
@@ -357,6 +360,78 @@ describe("myBiomarkerReports", () => {
     expect(canonical!.category).toBe("hormones");
   });
 
+  it("projects range block with optimalMin/Max/actionBelow/actionAbove when stamped", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+
+    const refId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reference_ranges", {
+        canonicalId: "ldl",
+        displayName: "LDL Cholesterol",
+        aliases: [],
+        category: "Lipids",
+        canonicalUnit: "mg/dL",
+        ageMin: 18,
+        ageMax: 120,
+        sex: "any",
+        pregnancySensitive: false,
+        optimalMin: 70,
+        optimalMax: 100,
+        actionBelow: 40,
+        actionAbove: 160,
+        explainer: "",
+        source: "test",
+        isActive: true,
+        updatedAt: Date.now(),
+      }),
+    );
+
+    const labReportId = await seedLabReport(t, userId);
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "n",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 1,
+        unclassifiedCount: 0,
+        analyzedAt: Date.now(),
+        narrativeModel: "test",
+      }),
+    );
+    await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_values", {
+        userId,
+        biomarkerReportId: reportId,
+        canonicalId: "ldl",
+        referenceRangeId: refId,
+        nameOnReport: "LDL",
+        valueType: "numeric",
+        rawValue: "165",
+        numericValue: 165,
+        collectionDate: String(Date.now()),
+        normalizedKey: "ldl|mg/dl",
+        status: "action_required",
+        classifiedAt: Date.now(),
+      }),
+    );
+
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    expect(res).toHaveLength(1);
+    const v = res[0].values[0];
+    expect(v.range).toEqual({
+      optimalMin: 70,
+      optimalMax: 100,
+      actionBelow: 40,
+      actionAbove: 160,
+    });
+  });
+
   it("returns canonical: null when no matching reference range exists", async () => {
     const t = convexTest(schema, modules);
     const patientId = await seedUser(t, "PATIENT");
@@ -376,5 +451,407 @@ describe("myBiomarkerReports", () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].values[0].canonical).toBeNull();
+  });
+
+  it("returns range = null when value has no canonicalId or referenceRangeId", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+    const labReportId = await seedLabReport(t, userId);
+
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 1,
+        analyzedAt: Date.now(),
+        narrativeModel: "test",
+      }),
+    );
+    await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_values", {
+        userId,
+        biomarkerReportId: reportId,
+        nameOnReport: "Novel Marker",
+        valueType: "numeric",
+        rawValue: "5.0",
+        numericValue: 5,
+        collectionDate: String(Date.now()),
+        normalizedKey: "novel|mg/dl",
+        status: "unclassified",
+        classifiedAt: Date.now(),
+      }),
+    );
+
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    expect(res[0].values[0].range).toBeNull();
+    expect(res[0].values[0].canonical).toBeNull();
+  });
+
+  it("projects trend ascending by collectionDate and prev = second-most-recent", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+    const labReportId = await seedLabReport(t, userId);
+
+    const now = Date.now();
+    const refId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reference_ranges", {
+        canonicalId: "ldl",
+        displayName: "LDL",
+        aliases: [],
+        category: "Lipids",
+        canonicalUnit: "mg/dL",
+        ageMin: 18,
+        ageMax: 120,
+        sex: "any",
+        pregnancySensitive: false,
+        optimalMin: 70,
+        optimalMax: 100,
+        explainer: "",
+        source: "test",
+        isActive: true,
+        updatedAt: now,
+      }),
+    );
+
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 0,
+        analyzedAt: now,
+        narrativeModel: "test",
+      }),
+    );
+
+    for (const [, v] of [
+      [90, 130],
+      [60, 125],
+      [0, 118],
+    ].entries()) {
+      await t.run(async (ctx) =>
+        ctx.db.insert("biomarker_values", {
+          userId,
+          biomarkerReportId: reportId,
+          canonicalId: "ldl",
+          referenceRangeId: refId,
+          nameOnReport: "LDL",
+          valueType: "numeric",
+          rawValue: String(v[1]),
+          numericValue: v[1],
+          collectionDate: String(now - v[0] * 86_400_000),
+          normalizedKey: "ldl|mg/dl",
+          status: "sub_optimal",
+          classifiedAt: now - v[0] * 86_400_000,
+        }),
+      );
+    }
+
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    const current = res[0].values.find(
+      (v: { numericValue?: number }) => v.numericValue === 118,
+    ) as { trend: { value: number }[]; prev: unknown };
+    expect(current.trend.map((p: { value: number }) => p.value)).toEqual([
+      130, 125, 118,
+    ]);
+    expect(current.prev).toEqual({
+      value: 125,
+      collectionDate: String(now - 60 * 86_400_000),
+    });
+  });
+
+  it("projects trend in chronological order when collectionDate is ISO-8601", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+    const labReportId = await seedLabReport(t, userId);
+
+    const refId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reference_ranges", {
+        canonicalId: "ldl",
+        displayName: "LDL",
+        aliases: [],
+        category: "Lipids",
+        canonicalUnit: "mg/dL",
+        ageMin: 18,
+        ageMax: 120,
+        sex: "any",
+        pregnancySensitive: false,
+        optimalMin: 70,
+        optimalMax: 100,
+        explainer: "",
+        source: "test",
+        isActive: true,
+        updatedAt: Date.now(),
+      }),
+    );
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 0,
+        analyzedAt: Date.now(),
+        narrativeModel: "test",
+      }),
+    );
+
+    for (const [iso, v] of [
+      ["2026-01-15", 130],
+      ["2026-02-20", 125],
+      ["2026-04-10", 118],
+    ] as const) {
+      await t.run(async (ctx) =>
+        ctx.db.insert("biomarker_values", {
+          userId,
+          biomarkerReportId: reportId,
+          canonicalId: "ldl",
+          referenceRangeId: refId,
+          nameOnReport: "LDL",
+          valueType: "numeric",
+          rawValue: String(v),
+          numericValue: v,
+          collectionDate: iso,
+          normalizedKey: "ldl|mg/dl",
+          status: "sub_optimal",
+          classifiedAt: Date.now(),
+        }),
+      );
+    }
+
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    const current = res[0].values.find(
+      (x: { numericValue?: number }) => x.numericValue === 118,
+    ) as { trend: { value: number }[]; prev: unknown };
+    expect(current.trend.map((p: { value: number }) => p.value)).toEqual([
+      130, 125, 118,
+    ]);
+    expect(current.prev).toEqual({ value: 125, collectionDate: "2026-02-20" });
+  });
+
+  it("returns prev = null for the first-ever report", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+    const labReportId = await seedLabReport(t, userId);
+    const refId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reference_ranges", {
+        canonicalId: "ldl",
+        displayName: "LDL",
+        aliases: [],
+        category: "Lipids",
+        canonicalUnit: "mg/dL",
+        ageMin: 18,
+        ageMax: 120,
+        sex: "any",
+        pregnancySensitive: false,
+        optimalMin: 70,
+        optimalMax: 100,
+        explainer: "",
+        source: "test",
+        isActive: true,
+        updatedAt: Date.now(),
+      }),
+    );
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 0,
+        analyzedAt: Date.now(),
+        narrativeModel: "test",
+      }),
+    );
+    await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_values", {
+        userId,
+        biomarkerReportId: reportId,
+        canonicalId: "ldl",
+        referenceRangeId: refId,
+        nameOnReport: "LDL",
+        valueType: "numeric",
+        rawValue: "100",
+        numericValue: 100,
+        collectionDate: String(Date.now()),
+        normalizedKey: "ldl|mg/dl",
+        status: "optimal",
+        classifiedAt: Date.now(),
+      }),
+    );
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    expect(res[0].values[0].prev).toBeNull();
+    expect(res[0].values[0].trend).toHaveLength(1);
+  });
+
+  it("fetches canonical + range + trend in a single batched pass per marker", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+    const labReportId = await seedLabReport(t, userId);
+    const now = Date.now();
+
+    const refId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reference_ranges", {
+        canonicalId: "ldl",
+        displayName: "LDL",
+        aliases: [],
+        category: "Lipids",
+        canonicalUnit: "mg/dL",
+        ageMin: 18,
+        ageMax: 120,
+        sex: "any",
+        pregnancySensitive: false,
+        optimalMin: 70,
+        optimalMax: 100,
+        explainer: "",
+        source: "test",
+        isActive: true,
+        updatedAt: now,
+      }),
+    );
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 0,
+        analyzedAt: now,
+        narrativeModel: "test",
+      }),
+    );
+    for (const cid of ["ldl", "hdl", "tg"]) {
+      await t.run(async (ctx) =>
+        ctx.db.insert("biomarker_values", {
+          userId,
+          biomarkerReportId: reportId,
+          canonicalId: cid,
+          referenceRangeId: refId,
+          nameOnReport: cid.toUpperCase(),
+          valueType: "numeric",
+          rawValue: "100",
+          numericValue: 100,
+          collectionDate: String(now),
+          normalizedKey: `${cid}|mg/dl`,
+          status: "optimal",
+          classifiedAt: now,
+        }),
+      );
+    }
+
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    expect(res[0].values).toHaveLength(3);
+  });
+
+  it("excludes soft-deleted history rows from trend", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+    const labReportId = await seedLabReport(t, userId);
+    const now = Date.now();
+    const refId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reference_ranges", {
+        canonicalId: "ldl",
+        displayName: "LDL",
+        aliases: [],
+        category: "Lipids",
+        canonicalUnit: "mg/dL",
+        ageMin: 18,
+        ageMax: 120,
+        sex: "any",
+        pregnancySensitive: false,
+        optimalMin: 70,
+        optimalMax: 100,
+        explainer: "",
+        source: "test",
+        isActive: true,
+        updatedAt: now,
+      }),
+    );
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 0,
+        analyzedAt: now,
+        narrativeModel: "test",
+      }),
+    );
+    await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_values", {
+        userId,
+        biomarkerReportId: reportId,
+        canonicalId: "ldl",
+        referenceRangeId: refId,
+        nameOnReport: "LDL",
+        valueType: "numeric",
+        rawValue: "100",
+        numericValue: 100,
+        collectionDate: String(now),
+        normalizedKey: "ldl|mg/dl",
+        status: "optimal",
+        classifiedAt: now,
+      }),
+    );
+    await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_values", {
+        userId,
+        biomarkerReportId: reportId,
+        canonicalId: "ldl",
+        referenceRangeId: refId,
+        nameOnReport: "LDL",
+        valueType: "numeric",
+        rawValue: "95",
+        numericValue: 95,
+        collectionDate: String(now - 30 * 86_400_000),
+        normalizedKey: "ldl|mg/dl",
+        status: "optimal",
+        classifiedAt: now - 30 * 86_400_000,
+        deletedAt: now - 29 * 86_400_000,
+      }),
+    );
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    expect(res[0].values[0].trend).toHaveLength(1);
+    expect(res[0].values[0].prev).toBeNull();
   });
 });

@@ -31,6 +31,8 @@ import { NewReportBanner } from "@/components/biomarker/NewReportBanner";
 import { SummaryStat } from "@/components/biomarker/SummaryStat";
 import { CATEGORIES } from "@/data/biomarker-mock";
 import { useBiomarkerReports } from "@/hooks/use-biomarker-reports";
+import { useDisplayUser } from "@/hooks/use-display-user";
+import { getIstDateLine, getIstGreeting } from "@/lib/ist-greeting";
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -39,6 +41,13 @@ import { useBiomarkerReports } from "@/hooks/use-biomarker-reports";
 export default function LabResultsDashboard() {
   const [filter, setFilter] = useState<string>("All");
   const { isLoading, isEmpty, isError, rows } = useBiomarkerReports();
+  const displayUser = useDisplayUser();
+  const firstName = (displayUser?.name ?? "").split(" ")[0] || "there";
+  const avatarLetter =
+    (displayUser?.name ?? "").trim().charAt(0).toUpperCase() || "?";
+  const now = new Date();
+  const greeting = getIstGreeting(now);
+  const dateLine = getIstDateLine(now);
 
   // Derived counts from live (or mock) data.
   const toWatchCount = rows.filter((b) => b.status !== "optimal").length;
@@ -167,7 +176,7 @@ export default function LabResultsDashboard() {
                 textTransform: "uppercase",
               }}
             >
-              MONDAY · 13 APRIL
+              {dateLine}
             </Text>
             <Text
               style={{
@@ -178,9 +187,9 @@ export default function LabResultsDashboard() {
                 lineHeight: 34,
               }}
             >
-              {"Good morning, "}
+              {`Good ${greeting}, `}
               <Text style={{ fontFamily: biomarkerFonts.displayItalic }}>
-                {"Arjun"}
+                {firstName}
               </Text>
             </Text>
           </View>
@@ -206,7 +215,7 @@ export default function LabResultsDashboard() {
                 lineHeight: 20,
               }}
             >
-              A
+              {avatarLetter}
             </Text>
           </View>
         </View>

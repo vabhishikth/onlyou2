@@ -43,7 +43,8 @@ export type ParseEvent =
   | "extract_retried_max_tokens"
   | "extract_retried_refusal"
   | "intake_uploaded"
-  | "intake_retried";
+  | "intake_retried"
+  | "collection_date_malformed";
 
 export interface ParseLogFields {
   level: ParseLogLevel;
