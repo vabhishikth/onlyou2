@@ -25,12 +25,14 @@
     "./tokens/biomarker": "./src/tokens/biomarker.ts"
   },
   "scripts": {
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "clean": "rm -rf .turbo *.tsbuildinfo"
   },
   "devDependencies": {
     "@onlyou/config": "workspace:*",
-    "typescript": "6.0.2"
+    "typescript": "6.0.2",
+    "vitest": "^4.1.4"
   }
 }
