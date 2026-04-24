@@ -33,5 +33,7 @@ android/
 
 # Founder walkthrough screenshots — kept locally for review, not versioned
 app test images/
+Android Screenshots/
+Android Screenshot */
 .claude/scheduled_tasks.lock
 .playwright-mcp/
