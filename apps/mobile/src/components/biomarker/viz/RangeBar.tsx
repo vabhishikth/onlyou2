@@ -56,6 +56,12 @@ export interface RangeBarProps {
    * Pass the actual measured width from onLayout when used in BiomarkerCard.
    */
   width?: number;
+  /**
+   * Range direction. "bidirectional" is the default original gradient.
+   * "unboundedHigh" (e.g. HDL) suppresses the honey/rose stops on the right
+   * side — gradient terminates in sage. "unboundedLow" mirrors on the left.
+   */
+  direction?: "bidirectional" | "unboundedLow" | "unboundedHigh";
 }
 
 // ---------------------------------------------------------------------------
@@ -71,6 +77,7 @@ export function RangeBar({
   status = "optimal",
   compact = false,
   width: widthProp,
+  direction = "bidirectional",
 }: RangeBarProps) {
   // Allow parent to override width via onLayout; fall back to prop or 200.
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
@@ -112,38 +119,74 @@ export function RangeBar({
     >
       <Svg width={width} height={svgH}>
         <Defs>
-          {/* Track gradient: rose → honey → sage (centre) → honey → rose */}
+          {/* Track gradient: rose → honey → sage (centre) → honey → rose.
+              Direction variants suppress the honey/rose stops on the
+              unbounded side and terminate in sage instead.
+              Built as an array so conditional nulls can be filtered out —
+              react-native-svg's LinearGradient crashes on null children. */}
           <LinearGradient id={trackGradId} x1="0" y1="0" x2="1" y2="0">
-            <Stop
-              offset="0%"
-              stopColor={biomarkerPalette.rose}
-              stopOpacity={0.35}
-            />
-            <Stop
-              offset="18%"
-              stopColor={biomarkerPalette.honey}
-              stopOpacity={0.3}
-            />
-            <Stop
-              offset="30%"
-              stopColor={biomarkerPalette.sage}
-              stopOpacity={0.3}
-            />
-            <Stop
-              offset="70%"
-              stopColor={biomarkerPalette.sage}
-              stopOpacity={0.3}
-            />
-            <Stop
-              offset="82%"
-              stopColor={biomarkerPalette.honey}
-              stopOpacity={0.3}
-            />
-            <Stop
-              offset="100%"
-              stopColor={biomarkerPalette.rose}
-              stopOpacity={0.35}
-            />
+            {[
+              direction === "unboundedLow" ? (
+                <Stop
+                  key="s-low-sage"
+                  offset="0%"
+                  stopColor={biomarkerPalette.sage}
+                  stopOpacity={0.3}
+                />
+              ) : null,
+              direction !== "unboundedLow" ? (
+                <Stop
+                  key="s-low-rose"
+                  offset="0%"
+                  stopColor={biomarkerPalette.rose}
+                  stopOpacity={0.35}
+                />
+              ) : null,
+              direction !== "unboundedLow" ? (
+                <Stop
+                  key="s-low-honey"
+                  offset="18%"
+                  stopColor={biomarkerPalette.honey}
+                  stopOpacity={0.3}
+                />
+              ) : null,
+              <Stop
+                key="s-mid-l"
+                offset="30%"
+                stopColor={biomarkerPalette.sage}
+                stopOpacity={0.3}
+              />,
+              <Stop
+                key="s-mid-r"
+                offset="70%"
+                stopColor={biomarkerPalette.sage}
+                stopOpacity={0.3}
+              />,
+              direction !== "unboundedHigh" ? (
+                <Stop
+                  key="s-high-honey"
+                  offset="82%"
+                  stopColor={biomarkerPalette.honey}
+                  stopOpacity={0.3}
+                />
+              ) : null,
+              direction === "unboundedHigh" ? (
+                <Stop
+                  key="s-high-sage"
+                  offset="100%"
+                  stopColor={biomarkerPalette.sage}
+                  stopOpacity={0.3}
+                />
+              ) : null,
+              direction !== "unboundedHigh" ? (
+                <Stop
+                  key="s-high-rose"
+                  offset="100%"
+                  stopColor={biomarkerPalette.rose}
+                  stopOpacity={0.35}
+                />
+              ) : null,
+            ].filter((node): node is React.ReactElement => node !== null)}
           </LinearGradient>
 
           {/* Optimal window gradient: sage with higher opacity in the centre */}
