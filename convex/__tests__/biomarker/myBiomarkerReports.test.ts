@@ -450,4 +450,46 @@ describe("myBiomarkerReports", () => {
     expect(result).toHaveLength(1);
     expect(result[0].values[0].canonical).toBeNull();
   });
+
+  it("returns range = null when value has no canonicalId or referenceRangeId", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+    const labReportId = await seedLabReport(t, userId);
+
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 1,
+        analyzedAt: Date.now(),
+        narrativeModel: "test",
+      }),
+    );
+    await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_values", {
+        userId,
+        biomarkerReportId: reportId,
+        nameOnReport: "Novel Marker",
+        valueType: "numeric",
+        rawValue: "5.0",
+        numericValue: 5,
+        collectionDate: String(Date.now()),
+        normalizedKey: "novel|mg/dl",
+        status: "unclassified",
+        classifiedAt: Date.now(),
+      }),
+    );
+
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    expect(res[0].values[0].range).toBeNull();
+    expect(res[0].values[0].canonical).toBeNull();
+  });
 });
