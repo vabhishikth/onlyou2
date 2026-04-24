@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(claude mcp:*)",
-      "Bash(claude plugin:*)"
+      "Bash(claude plugin:*)",
+      "Bash(npm install *)",
+      "Bash(npx skills *)"
     ]
   }
 }
