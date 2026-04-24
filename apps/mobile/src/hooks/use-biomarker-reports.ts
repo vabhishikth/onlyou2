@@ -181,6 +181,8 @@ function transform(data: ConvexReport[]): BiomarkerMock[] {
         status: mapStatus(v.status),
         // DEFERRED(phase-3): prior-report join
         prev: numericVal,
+        // DEFERRED(phase-3): real rangeDirection from biomarker_reference_ranges
+        rangeDirection: "bidirectional",
       });
     }
   }
