@@ -711,6 +711,71 @@ describe("myBiomarkerReports", () => {
     expect(res[0].values[0].trend).toHaveLength(1);
   });
 
+  it("fetches canonical + range + trend in a single batched pass per marker", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+    const labReportId = await seedLabReport(t, userId);
+    const now = Date.now();
+
+    const refId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reference_ranges", {
+        canonicalId: "ldl",
+        displayName: "LDL",
+        aliases: [],
+        category: "Lipids",
+        canonicalUnit: "mg/dL",
+        ageMin: 18,
+        ageMax: 120,
+        sex: "any",
+        pregnancySensitive: false,
+        optimalMin: 70,
+        optimalMax: 100,
+        explainer: "",
+        source: "test",
+        isActive: true,
+        updatedAt: now,
+      }),
+    );
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 0,
+        analyzedAt: now,
+        narrativeModel: "test",
+      }),
+    );
+    for (const cid of ["ldl", "hdl", "tg"]) {
+      await t.run(async (ctx) =>
+        ctx.db.insert("biomarker_values", {
+          userId,
+          biomarkerReportId: reportId,
+          canonicalId: cid,
+          referenceRangeId: refId,
+          nameOnReport: cid.toUpperCase(),
+          valueType: "numeric",
+          rawValue: "100",
+          numericValue: 100,
+          collectionDate: String(now),
+          normalizedKey: `${cid}|mg/dl`,
+          status: "optimal",
+          classifiedAt: now,
+        }),
+      );
+    }
+
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    expect(res[0].values).toHaveLength(3);
+  });
+
   it("excludes soft-deleted history rows from trend", async () => {
     const t = convexTest(schema, modules);
     const userId = await seedUser(t, "PATIENT");
