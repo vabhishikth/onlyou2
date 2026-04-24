@@ -17,6 +17,12 @@ import { ConvexError, v } from "convex/values";
 
 import { query } from "../../_generated/server";
 
+// M-3 (phase-2.5e): soft-delete remains a .filter() rather than an
+// index-only read. Swapping to by_deleted would lose the by_user_analyzed /
+// by_report primary index lookup, which is the dominant cost driver. At
+// patient scale the deletedAt filter is cheap and correct. Revisit if
+// soft-deleted rows become a material fraction of per-user volume.
+
 export const myBiomarkerReports = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
