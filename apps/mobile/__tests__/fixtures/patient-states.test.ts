@@ -15,10 +15,10 @@ describe("patient-states fixtures", () => {
   });
 
   it("seeds the expected phone numbers", () => {
-    expect(FIXTURES.new.phone).toBe("+91 99999 00001");
-    expect(FIXTURES.reviewing.phone).toBe("+91 99999 00002");
-    expect(FIXTURES.ready.phone).toBe("+91 99999 00003");
-    expect(FIXTURES.active.phone).toBe("+91 99999 00004");
+    expect(FIXTURES.new.phone).toBe("+919999900001");
+    expect(FIXTURES.reviewing.phone).toBe("+919999900002");
+    expect(FIXTURES.ready.phone).toBe("+919999900003");
+    expect(FIXTURES.active.phone).toBe("+919999900004");
   });
 
   it("gives every fixture user a name and age", () => {

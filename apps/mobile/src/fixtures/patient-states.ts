@@ -105,7 +105,7 @@ const now = Date.now();
 
 const arjun: FixtureUser = {
   userId: "user_arjun_001",
-  phone: "+91 99999 00001",
+  phone: "+919999900001",
   name: "Arjun Sharma",
   gender: "male",
   age: 28,
@@ -120,7 +120,7 @@ const arjun: FixtureUser = {
 
 const priya: FixtureUser = {
   userId: "user_priya_002",
-  phone: "+91 99999 00002",
+  phone: "+919999900002",
   name: "Priya Iyer",
   gender: "female",
   age: 32,
@@ -162,7 +162,7 @@ const priya: FixtureUser = {
 
 const rahul: FixtureUser = {
   userId: "user_rahul_003",
-  phone: "+91 99999 00003",
+  phone: "+919999900003",
   name: "Rahul Mehta",
   gender: "male",
   age: 35,
@@ -231,7 +231,7 @@ const rahul: FixtureUser = {
 
 const sanjana: FixtureUser = {
   userId: "user_sanjana_004",
-  phone: "+91 99999 00004",
+  phone: "+919999900004",
   name: "Sanjana Rao",
   gender: "female",
   age: 30,
