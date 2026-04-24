@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 
 import { ROLES } from "../packages/core/src/enums/roles";
+import { normalizePhoneE164 } from "../packages/core/src/phone/e164";
 import {
   computeAgeYears,
   MIN_AGE_YEARS,
@@ -58,7 +59,8 @@ export const completeProfile = mutation({
 
 export const getUserByPhone = internalQuery({
   args: { phone: v.string() },
-  handler: async (ctx, { phone }) => {
+  handler: async (ctx, { phone: rawPhone }) => {
+    const phone = normalizePhoneE164(rawPhone);
     return await ctx.db
       .query("users")
       .withIndex("by_phone", (q) => q.eq("phone", phone))
@@ -74,8 +76,9 @@ export const createUser = internalMutation({
     profileComplete: v.boolean(),
   },
   handler: async (ctx, args) => {
+    const phone = normalizePhoneE164(args.phone);
     return await ctx.db.insert("users", {
-      phone: args.phone,
+      phone,
       role: args.role,
       phoneVerified: args.phoneVerified,
       profileComplete: args.profileComplete,

@@ -29,7 +29,7 @@ export default function PhoneVerify() {
     setSubmitting(true);
     setError(undefined);
     try {
-      const phone = `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+      const phone = `+91${digits}`;
       await sendOtp(phone);
       router.push({
         pathname: "/(auth)/otp-entry" as never,

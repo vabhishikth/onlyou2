@@ -41,6 +41,7 @@
     "@vitest/coverage-v8": "^4.1.4",
     "convex": "1.35.1",
     "convex-test": "^0.0.48",
+    "fast-glob": "^3.3.3",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
     "pdf-lib": "^1.17.1",

@@ -28,7 +28,7 @@ import {
 } from "../_generated/server";
 import { assertNotProd } from "../admin";
 
-const ARJUN_PHONE = "+91 99999 00001";
+const ARJUN_PHONE = "+919999900001";
 const SEED_MARKER = "[DEV SEED]";
 const SEED_CONTENT_HASH_PREFIX = "dev-seed-";
 

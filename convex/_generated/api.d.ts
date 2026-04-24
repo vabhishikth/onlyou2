@@ -27,6 +27,7 @@ import type * as biomarker_internal_upsertCurationRow from "../biomarker/interna
 import type * as biomarker_lib_auditValidators from "../biomarker/lib/auditValidators.js";
 import type * as biomarker_lib_autoDraftRange from "../biomarker/lib/autoDraftRange.js";
 import type * as biomarker_lib_createLabReport from "../biomarker/lib/createLabReport.js";
+import type * as biomarker_lib_findByContentHash from "../biomarker/lib/findByContentHash.js";
 import type * as biomarker_lib_fuzzyAliasMatch from "../biomarker/lib/fuzzyAliasMatch.js";
 import type * as biomarker_lib_jaroWinkler from "../biomarker/lib/jaroWinkler.js";
 import type * as biomarker_lib_normalizeCollectionDate from "../biomarker/lib/normalizeCollectionDate.js";
@@ -48,6 +49,7 @@ import type * as featureFlags from "../featureFlags.js";
 import type * as lib_claude from "../lib/claude.js";
 import type * as lib_envGuards from "../lib/envGuards.js";
 import type * as lib_telemetry from "../lib/telemetry.js";
+import type * as migrations_phase3a_normalizePhones from "../migrations/phase3a/normalizePhones.js";
 import type * as seed_devBiomarkerReport from "../seed/devBiomarkerReport.js";
 import type * as seed_fakeUsers from "../seed/fakeUsers.js";
 import type * as users from "../users.js";
@@ -78,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   "biomarker/lib/auditValidators": typeof biomarker_lib_auditValidators;
   "biomarker/lib/autoDraftRange": typeof biomarker_lib_autoDraftRange;
   "biomarker/lib/createLabReport": typeof biomarker_lib_createLabReport;
+  "biomarker/lib/findByContentHash": typeof biomarker_lib_findByContentHash;
   "biomarker/lib/fuzzyAliasMatch": typeof biomarker_lib_fuzzyAliasMatch;
   "biomarker/lib/jaroWinkler": typeof biomarker_lib_jaroWinkler;
   "biomarker/lib/normalizeCollectionDate": typeof biomarker_lib_normalizeCollectionDate;
@@ -99,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   "lib/claude": typeof lib_claude;
   "lib/envGuards": typeof lib_envGuards;
   "lib/telemetry": typeof lib_telemetry;
+  "migrations/phase3a/normalizePhones": typeof migrations_phase3a_normalizePhones;
   "seed/devBiomarkerReport": typeof seed_devBiomarkerReport;
   "seed/fakeUsers": typeof seed_fakeUsers;
   users: typeof users;
