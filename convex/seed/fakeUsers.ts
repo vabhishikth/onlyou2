@@ -15,25 +15,25 @@ export const seedFakeUsers = internalMutation({
     const users = [
       {
         name: "Arjun Sharma",
-        phone: "+91 99999 00001",
+        phone: "+919999900001",
         gender: "male" as const,
         dob: "1993-06-12",
       },
       {
         name: "Priya Iyer",
-        phone: "+91 99999 00002",
+        phone: "+919999900002",
         gender: "female" as const,
         dob: "1996-02-24",
       },
       {
         name: "Rahul Mehta",
-        phone: "+91 99999 00003",
+        phone: "+919999900003",
         gender: "male" as const,
         dob: "1990-11-03",
       },
       {
         name: "Sanjana Rao",
-        phone: "+91 99999 00004",
+        phone: "+919999900004",
         gender: "female" as const,
         dob: "1997-09-18",
       },

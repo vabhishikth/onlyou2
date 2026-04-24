@@ -36,7 +36,7 @@ async function signIn(t: ReturnType<typeof convexTest>, phone: string) {
 describe("users.completeProfile — 18+ enforcement", () => {
   it("rejects a DOB that is 17 years ago today", async () => {
     const t = convexTest(schema, modules);
-    const { token } = await signIn(t, "+91 99999 00020");
+    const { token } = await signIn(t, "+919999900020");
     const dob = isoYearsAgo(new Date(), 17);
 
     await expect(
@@ -55,7 +55,7 @@ describe("users.completeProfile — 18+ enforcement", () => {
 
   it("accepts a DOB that is exactly 18 years ago today", async () => {
     const t = convexTest(schema, modules);
-    const { token, userId } = await signIn(t, "+91 99999 00021");
+    const { token, userId } = await signIn(t, "+919999900021");
     const dob = isoYearsAgo(new Date(), 18);
 
     await t.mutation(api.users.completeProfile, {
@@ -79,7 +79,7 @@ describe("users.completeProfile — 18+ enforcement", () => {
 
   it("rejects a malformed DOB string", async () => {
     const t = convexTest(schema, modules);
-    const { token } = await signIn(t, "+91 99999 00022");
+    const { token } = await signIn(t, "+919999900022");
 
     await expect(
       t.mutation(api.users.completeProfile, {

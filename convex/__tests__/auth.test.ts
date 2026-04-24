@@ -19,7 +19,7 @@ describe("auth.otp — OTP lockout (MAX_ATTEMPTS = 3)", () => {
   // up on the 4th verify call.
   it("rejects the 4th wrong OTP with 'Too many attempts'", async () => {
     const t = convexTest(schema, modules);
-    const phone = "+91 98765 43210";
+    const phone = "+919876543210";
 
     await t.action(api.auth.otp.sendOtp, { phone });
 
@@ -47,7 +47,7 @@ describe("auth.otp — OTP lockout (MAX_ATTEMPTS = 3)", () => {
 describe("auth.otp — OTP expiry", () => {
   it("rejects a verify after the TTL has elapsed", async () => {
     const t = convexTest(schema, modules);
-    const phone = "+91 98765 43211";
+    const phone = "+919876543211";
 
     await t.action(api.auth.otp.sendOtp, { phone });
 
@@ -170,7 +170,7 @@ describe("auth.otp — finalizeSignIn idempotency", () => {
 describe("auth.otp — phone normalisation", () => {
   it("spaced and unspaced callers resolve to the same user row", async () => {
     const t = convexTest(schema, modules);
-    const spaced = "+91 99999 00050";
+    const spaced = "+919999900050";
     const e164 = "+919999900050";
 
     // Use the spaced number (dev-bypass fires) for the first sign-in.
@@ -203,7 +203,7 @@ describe("auth.otp — phone normalisation", () => {
 describe("auth.sessions — signOut", () => {
   it("deletes the sessions row and getCurrentUser returns null", async () => {
     const t = convexTest(schema, modules);
-    const phone = "+91 99999 00004";
+    const phone = "+919999900004";
 
     await t.action(api.auth.otp.sendOtp, { phone });
     const { token } = await t.action(api.auth.otp.verifyOtp, {
