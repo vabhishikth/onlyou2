@@ -5,15 +5,16 @@
 // Strategy:
 //   1. Scan users. For each row whose phone !== normalizePhoneE164(phone):
 //      - If no row exists at the canonical phone: patch in place.
-//      - Else: merge — reassign child rows (sessions) to the canonical
-//        user, delete the legacy row.
+//      - Else: merge — reassign child rows (all userId-scoped tables) to
+//        the canonical user, delete the legacy row.
 //   2. Scan otpAttempts. Normalise phone in place. If a canonical-form
 //      row already exists, drop it first to avoid the transient state
 //      where two rows share the same phone (index is non-unique but
 //      downstream code assumes uniqueness via `.unique()`).
 
 import { normalizePhoneE164 } from "../../../packages/core/src/phone/e164";
-import { internalMutation } from "../../_generated/server";
+import { Id } from "../../_generated/dataModel";
+import { internalMutation, MutationCtx } from "../../_generated/server";
 
 type MigrationResult = {
   usersUpdated: number;
@@ -21,6 +22,77 @@ type MigrationResult = {
   usersDeleted: number;
   otpAttemptsUpdated: number;
 };
+
+/**
+ * Reassigns every userId-scoped child row from one user to another.
+ * Called during the merge path when a legacy (un-normalised phone) user
+ * already has a canonical counterpart. All seven tables that carry
+ * `userId: v.id("users")` are covered here.
+ *
+ * NOTE: collect() on each table is scoped to a single userId via index —
+ * this is fine at MVP scale. Revisit if per-user row counts grow very large.
+ */
+async function reassignUserReferences(
+  ctx: MutationCtx,
+  fromUserId: Id<"users">,
+  toUserId: Id<"users">,
+): Promise<void> {
+  // sessions
+  for (const s of await ctx.db
+    .query("sessions")
+    .withIndex("by_user", (q) => q.eq("userId", fromUserId))
+    .collect()) {
+    await ctx.db.patch(s._id, { userId: toUserId });
+  }
+
+  // lab_reports
+  for (const r of await ctx.db
+    .query("lab_reports")
+    .withIndex("by_user_created", (q) => q.eq("userId", fromUserId))
+    .collect()) {
+    await ctx.db.patch(r._id, { userId: toUserId });
+  }
+
+  // biomarker_reports
+  for (const r of await ctx.db
+    .query("biomarker_reports")
+    .withIndex("by_user_analyzed", (q) => q.eq("userId", fromUserId))
+    .collect()) {
+    await ctx.db.patch(r._id, { userId: toUserId });
+  }
+
+  // biomarker_values
+  for (const v of await ctx.db
+    .query("biomarker_values")
+    .filter((q) => q.eq(q.field("userId"), fromUserId))
+    .collect()) {
+    await ctx.db.patch(v._id, { userId: toUserId });
+  }
+
+  // lab_orders
+  for (const o of await ctx.db
+    .query("lab_orders")
+    .withIndex("by_user", (q) => q.eq("userId", fromUserId))
+    .collect()) {
+    await ctx.db.patch(o._id, { userId: toUserId });
+  }
+
+  // parse_rate_limits
+  for (const l of await ctx.db
+    .query("parse_rate_limits")
+    .filter((q) => q.eq(q.field("userId"), fromUserId))
+    .collect()) {
+    await ctx.db.patch(l._id, { userId: toUserId });
+  }
+
+  // notifications
+  for (const n of await ctx.db
+    .query("notifications")
+    .withIndex("by_user_created", (q) => q.eq("userId", fromUserId))
+    .collect()) {
+    await ctx.db.patch(n._id, { userId: toUserId });
+  }
+}
 
 export const run = internalMutation({
   args: {},
@@ -30,6 +102,8 @@ export const run = internalMutation({
     let usersDeleted = 0;
     let otpAttemptsUpdated = 0;
 
+    // NOTE: collect() on the entire users table is fine for MVP scale. Revisit
+    // with pagination when the table crosses ~50k rows.
     const users = await ctx.db.query("users").collect();
     for (const u of users) {
       // Skip users without a phone (optional field in schema)
@@ -43,7 +117,7 @@ export const run = internalMutation({
         normalized = normalizePhoneE164(u.phone);
       } catch {
         console.warn(
-          `[phase3a] skipping user ${u._id} — unparseable phone ${u.phone}`,
+          `[phase3a] skipping user ${u._id} — unparseable phone (prefix: ${u.phone.slice(0, 4)})`,
         );
         continue;
       }
@@ -64,14 +138,11 @@ export const run = internalMutation({
         continue;
       }
 
-      // Merge: reassign sessions to the canonical user, then delete the legacy row
-      const sessions = await ctx.db
-        .query("sessions")
-        .withIndex("by_user", (q) => q.eq("userId", u._id))
-        .collect();
-      for (const s of sessions) {
-        await ctx.db.patch(s._id, { userId: canonical._id });
-      }
+      // Merge policy: canonical row is authoritative. Profile fields on the
+      // legacy row (name/dob/gender/address) are discarded — rely on the user
+      // re-completing their profile if it got cleared. Bidirectional merge is
+      // tracked in docs/DEFERRED.md under Phase 8.
+      await reassignUserReferences(ctx, u._id, canonical._id);
       await ctx.db.delete(u._id);
       usersDeleted++;
     }
