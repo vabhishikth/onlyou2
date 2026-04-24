@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 
+import { normalizePhoneE164 } from "../../packages/core/src/phone/e164";
 import { mutation, query } from "../_generated/server";
 
 /**
@@ -25,9 +26,10 @@ export const upsertOtpAttempt = mutation({
     expiresAt: v.number(),
   },
   handler: async (ctx, args) => {
+    const phone = normalizePhoneE164(args.phone);
     const existing = await ctx.db
       .query("otpAttempts")
-      .withIndex("by_phone", (q) => q.eq("phone", args.phone))
+      .withIndex("by_phone", (q) => q.eq("phone", phone))
       .unique();
 
     if (existing) {
@@ -35,7 +37,9 @@ export const upsertOtpAttempt = mutation({
     }
 
     await ctx.db.insert("otpAttempts", {
-      ...args,
+      phone,
+      hashedOtp: args.hashedOtp,
+      expiresAt: args.expiresAt,
       attempts: 0,
       createdAt: Date.now(),
     });
@@ -45,7 +49,8 @@ export const upsertOtpAttempt = mutation({
 /** Read the attempt row for a phone. */
 export const getAttempt = query({
   args: { phone: v.string() },
-  handler: async (ctx, { phone }) => {
+  handler: async (ctx, { phone: rawPhone }) => {
+    const phone = normalizePhoneE164(rawPhone);
     return ctx.db
       .query("otpAttempts")
       .withIndex("by_phone", (q) => q.eq("phone", phone))
@@ -55,7 +60,8 @@ export const getAttempt = query({
 
 export const incrementAttempt = mutation({
   args: { phone: v.string() },
-  handler: async (ctx, { phone }) => {
+  handler: async (ctx, { phone: rawPhone }) => {
+    const phone = normalizePhoneE164(rawPhone);
     const row = await ctx.db
       .query("otpAttempts")
       .withIndex("by_phone", (q) => q.eq("phone", phone))
@@ -72,7 +78,8 @@ export const incrementAttempt = mutation({
  */
 export const finalizeSignIn = mutation({
   args: { phone: v.string() },
-  handler: async (ctx, { phone }) => {
+  handler: async (ctx, { phone: rawPhone }) => {
+    const phone = normalizePhoneE164(rawPhone);
     let user = await ctx.db
       .query("users")
       .withIndex("by_phone", (q) => q.eq("phone", phone))

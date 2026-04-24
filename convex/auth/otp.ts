@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { v } from "convex/values";
 
+import { normalizePhoneE164 } from "../../packages/core/src/phone/e164";
 import { api } from "../_generated/api";
 import { action } from "../_generated/server";
 
@@ -32,7 +33,8 @@ function randomSixDigit(): string {
  */
 export const sendOtp = action({
   args: { phone: v.string() },
-  handler: async (ctx, { phone }) => {
+  handler: async (ctx, { phone: rawPhone }) => {
+    const phone = normalizePhoneE164(rawPhone);
     const otp = randomSixDigit();
     const hashed = await bcrypt.hash(otp, 10);
     const expiresAt = Date.now() + OTP_TTL_MS;
@@ -62,10 +64,11 @@ export const verifyOtp = action({
   args: { phone: v.string(), otp: v.string() },
   handler: async (
     ctx,
-    { phone, otp },
+    { phone: rawPhone, otp },
   ): Promise<{ token: string; userId: string; profileComplete: boolean }> => {
+    const phone = normalizePhoneE164(rawPhone);
     const isDevBypass =
-      phone.startsWith(DEV_BYPASS_PREFIX) && otp === DEV_BYPASS_OTP;
+      rawPhone.startsWith(DEV_BYPASS_PREFIX) && otp === DEV_BYPASS_OTP;
 
     if (!isDevBypass) {
       const attempt = await ctx.runQuery(api.auth.otpDb.getAttempt, { phone });

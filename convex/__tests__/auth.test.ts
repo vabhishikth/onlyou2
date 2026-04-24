@@ -2,6 +2,7 @@
 import { convexTest } from "convex-test";
 import { describe, expect, it } from "vitest";
 
+import { normalizePhoneE164 } from "../../packages/core/src/phone/e164";
 import { api } from "../_generated/api";
 import schema from "../schema";
 
@@ -35,7 +36,7 @@ describe("auth.otp — OTP lockout (MAX_ATTEMPTS = 3)", () => {
     const attempt = await t.run(async (ctx) => {
       return ctx.db
         .query("otpAttempts")
-        .withIndex("by_phone", (q) => q.eq("phone", phone))
+        .withIndex("by_phone", (q) => q.eq("phone", normalizePhoneE164(phone)))
         .unique();
     });
     expect(attempt).not.toBeNull();
@@ -54,7 +55,7 @@ describe("auth.otp — OTP expiry", () => {
     await t.run(async (ctx) => {
       const row = await ctx.db
         .query("otpAttempts")
-        .withIndex("by_phone", (q) => q.eq("phone", phone))
+        .withIndex("by_phone", (q) => q.eq("phone", normalizePhoneE164(phone)))
         .unique();
       if (!row) throw new Error("expected otpAttempts row");
       await ctx.db.patch(row._id, { expiresAt: Date.now() - 1000 });
@@ -83,7 +84,7 @@ describe("auth.otp — dev bypass", () => {
     const { users, sessions } = await t.run(async (ctx) => {
       const users = await ctx.db
         .query("users")
-        .withIndex("by_phone", (q) => q.eq("phone", phone))
+        .withIndex("by_phone", (q) => q.eq("phone", normalizePhoneE164(phone)))
         .collect();
       const sessions = await ctx.db.query("sessions").collect();
       return { users, sessions };
@@ -140,7 +141,7 @@ describe("auth.otp — finalizeSignIn idempotency", () => {
     const { users, sessions } = await t.run(async (ctx) => {
       const users = await ctx.db
         .query("users")
-        .withIndex("by_phone", (q) => q.eq("phone", phone))
+        .withIndex("by_phone", (q) => q.eq("phone", normalizePhoneE164(phone)))
         .collect();
       const sessions = await ctx.db
         .query("sessions")
@@ -152,6 +153,39 @@ describe("auth.otp — finalizeSignIn idempotency", () => {
     });
     expect(users).toHaveLength(1);
     expect(sessions).toHaveLength(2);
+  });
+});
+
+describe("auth.otp — phone normalisation", () => {
+  it("spaced and unspaced callers resolve to the same user row", async () => {
+    const t = convexTest(schema, modules);
+    const spaced = "+91 99999 00050";
+    const e164 = "+919999900050";
+
+    // Use the spaced number (dev-bypass fires) for the first sign-in.
+    await t.action(api.auth.otp.sendOtp, { phone: spaced });
+    const a = await t.action(api.auth.otp.verifyOtp, {
+      phone: spaced,
+      otp: "000000",
+    });
+
+    // Use finalizeSignIn directly with the E.164 form — the OTP layer has
+    // already normalised and stored the user under E.164; this call must
+    // find that same row rather than creating a second one.
+    const b = await t.mutation(api.auth.otpDb.finalizeSignIn, {
+      phone: e164,
+    });
+
+    expect(a.userId).toBe(b.userId);
+
+    const users = await t.run(async (ctx) =>
+      ctx.db
+        .query("users")
+        .withIndex("by_phone", (q) => q.eq("phone", e164))
+        .collect(),
+    );
+    expect(users).toHaveLength(1);
+    expect(users[0].phone).toBe(e164);
   });
 });
 
