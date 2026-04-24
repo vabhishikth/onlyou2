@@ -4,6 +4,7 @@ export const edQuestions: Question[] = [
   {
     id: "age-gate",
     type: "single",
+    section: "basics",
     title: "Are you 18 or older?",
     options: [
       { value: "yes", label: "Yes" },
@@ -14,6 +15,7 @@ export const edQuestions: Question[] = [
   {
     id: "iief-1",
     type: "single",
+    section: "current_symptoms",
     title: "How often were you able to maintain an erection?",
     helper: "Over the last 4 weeks.",
     options: [
@@ -26,7 +28,8 @@ export const edQuestions: Question[] = [
   },
   {
     id: "medications",
-    type: "text",
+    type: "freetext",
+    section: "medical_history",
     title: "Any medications you currently take?",
     helper: "Include dosage if you remember.",
     required: false,
@@ -34,6 +37,7 @@ export const edQuestions: Question[] = [
   {
     id: "health",
     type: "multi",
+    section: "medical_history",
     title: "Do any of these apply to you?",
     options: [
       { value: "diabetes", label: "Diabetes" },

@@ -28,9 +28,11 @@ describe("Questionnaire review screen", () => {
 
   it("lists all questions from the bank with stored answers", () => {
     useQuestionnaireStore.getState().start("hair-loss");
-    useQuestionnaireStore.getState().setAnswer("gender", "male");
-    useQuestionnaireStore.getState().setAnswer("duration", "6-12");
-    useQuestionnaireStore.getState().setAnswer("areas", ["temples", "crown"]);
+    useQuestionnaireStore.getState().setAnswer("q2_sex", "male");
+    useQuestionnaireStore.getState().setAnswer("q10_duration", "6_12m");
+    useQuestionnaireStore
+      .getState()
+      .setAnswer("q13_scalp_symptoms", ["itching", "flaking"]);
 
     mockParams.condition = "hair-loss";
     const { getByText } = render(
@@ -39,12 +41,10 @@ describe("Questionnaire review screen", () => {
       </TestProvider>,
     );
     expect(getByText("Review your answers")).toBeTruthy();
-    expect(getByText("How do you identify?")).toBeTruthy();
+    expect(getByText("What is your biological sex?")).toBeTruthy();
     expect(getByText("Male")).toBeTruthy();
     expect(getByText("6–12 months")).toBeTruthy();
-    expect(getByText("Temples / receding hairline, Crown")).toBeTruthy();
-    // Photo placeholder
-    expect(getByText("Photos to upload")).toBeTruthy();
+    expect(getByText("Itching, Flaking or dandruff")).toBeTruthy();
   });
 
   it("Submit dismisses the modal stack and pushes to /treatment/confirmation", () => {

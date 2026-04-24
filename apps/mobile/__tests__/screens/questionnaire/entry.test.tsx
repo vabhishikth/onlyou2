@@ -29,7 +29,7 @@ describe("Questionnaire entry screen", () => {
     expect(getByText("Your Hair Loss assessment")).toBeTruthy();
     expect(getByText("Hair & Scalp")).toBeTruthy();
     fireEvent.press(getByText("Start assessment"));
-    expect(router.push).toHaveBeenCalledWith("/questionnaire/hair-loss/gender");
+    expect(router.push).toHaveBeenCalledWith("/questionnaire/hair-loss/q1_age");
   });
 
   it("shows the Plan 4+ not-available state for female hair-loss", () => {

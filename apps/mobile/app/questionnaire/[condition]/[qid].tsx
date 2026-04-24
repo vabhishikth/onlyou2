@@ -58,7 +58,7 @@ export default function QuestionScreen() {
       ? !!single
       : question.type === "multi"
         ? multi.size > 0
-        : question.type === "text"
+        : question.type === "freetext"
           ? !question.required || text.trim().length > 0
           : question.type === "photo"
             ? true
@@ -71,7 +71,7 @@ export default function QuestionScreen() {
       setAnswer(question.id, single);
     } else if (question.type === "multi") {
       setAnswer(question.id, Array.from(multi));
-    } else if (question.type === "text") {
+    } else if (question.type === "freetext") {
       setAnswer(question.id, text);
     }
 
@@ -130,7 +130,7 @@ export default function QuestionScreen() {
         </View>
       )}
 
-      {question.type === "text" && (
+      {question.type === "freetext" && (
         <PremiumInput
           label={question.title}
           value={text}
