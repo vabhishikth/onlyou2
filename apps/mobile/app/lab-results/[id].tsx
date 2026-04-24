@@ -134,7 +134,7 @@ export default function BiomarkerDetail() {
 
   const color = statusColor(b.status);
   const cat = CATEGORIES.find((c) => c.id === b.cat);
-  const explainerText = explainerFor(b.id, b.name);
+  const explainerText = explainerFor(b.id, b.name, b.status);
 
   // AreaChart Y-axis bounds — slightly wider than the data range for breathing room.
   const trendMin = Math.min(b.low, ...b.trend);
