@@ -1,5 +1,6 @@
 // convex/__tests__/biomarker/vitest.claude.config.ts
-import { defineConfig, loadEnv } from "vitest/config";
+import { loadEnv } from "vite";
+import { defineConfig } from "vitest/config";
 
 // Load `.env.local` so `pnpm test:claude` works out of the box after a
 // key rotation. Previously callers had to `$env:ANTHROPIC_API_KEY="..."`
