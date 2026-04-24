@@ -118,4 +118,16 @@ describe("transitionStatus", () => {
       }),
     ).rejects.toThrow(/invalid system transition/i);
   });
+
+  it("systemTransition rejects from terminal state", async () => {
+    const t = convexTest(schema, modules);
+    const { consultationId } = await setupConsultation(t, "DECLINED");
+    await expect(
+      t.mutation(internal.consultations.transitions.systemTransition, {
+        consultationId,
+        toStatus: "ABANDONED",
+        reason: "should not work",
+      }),
+    ).rejects.toThrow(/terminal/i);
+  });
 });

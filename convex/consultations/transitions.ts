@@ -73,14 +73,12 @@ const TERMINAL_STATES = new Set<Status>([
 async function applyTransition(
   ctx: MutationCtx,
   consultationId: Id<"consultations">,
+  fromStatus: Status,
   toStatus: Status,
   kind: "user" | "doctor" | "admin" | "system",
   actorUserId?: Id<"users">,
   reason?: string,
 ) {
-  const row = await ctx.db.get(consultationId);
-  if (!row) throw new Error(`consultation ${consultationId} not found`);
-  const fromStatus = row.status;
   const now = Date.now();
   await ctx.db.patch(consultationId, {
     status: toStatus,
@@ -122,6 +120,7 @@ export const transitionStatus = internalMutation({
     await applyTransition(
       ctx,
       args.consultationId,
+      row.status,
       args.toStatus,
       args.kind,
       args.actorUserId,
@@ -139,6 +138,11 @@ export const systemTransition = internalMutation({
   handler: async (ctx, args) => {
     const row = await ctx.db.get(args.consultationId);
     if (!row) throw new Error(`consultation ${args.consultationId} not found`);
+    if (TERMINAL_STATES.has(row.status)) {
+      throw new Error(
+        `invalid system transition: ${row.status} is terminal (attempted → ${args.toStatus})`,
+      );
+    }
     const rule = systemTransitions.find(
       ([froms, to]) => to === args.toStatus && froms.includes(row.status),
     );
@@ -150,6 +154,7 @@ export const systemTransition = internalMutation({
     await applyTransition(
       ctx,
       args.consultationId,
+      row.status,
       args.toStatus,
       "system",
       undefined,
