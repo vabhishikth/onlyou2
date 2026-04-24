@@ -4,9 +4,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { QUESTION_BANKS } from "@/data/questionnaires";
+import { HAIR_LOSS_SCHEMA_VERSION } from "@/data/questionnaires/hair-loss";
 import type { Vertical } from "@/fixtures/patient-states";
 import { VERTICALS } from "@/fixtures/verticals";
 import { useGender } from "@/hooks/use-gender";
+import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
 
 export default function QuestionnaireEntry() {
@@ -20,9 +22,17 @@ export default function QuestionnaireEntry() {
   const hairLossFemaleBlocked =
     condition === "hair-loss" && gender === "female";
 
+  const startHL = useQuestionnaireStore((s) => s.startHL);
+  const startGeneric = useQuestionnaireStore((s) => s.start);
+
   const start = () => {
     const firstId = questions[0]?.id;
     if (!firstId) return;
+    if (condition === "hair-loss") {
+      startHL(HAIR_LOSS_SCHEMA_VERSION, firstId);
+    } else {
+      startGeneric(condition);
+    }
     router.push(`/questionnaire/${condition}/${firstId}`);
   };
 

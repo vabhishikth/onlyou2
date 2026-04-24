@@ -1,14 +1,33 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
 
 import { QuestionShell } from "@/components/questionnaire/QuestionShell";
 import { SelectionCard } from "@/components/questionnaire/SelectionCard";
 import { PremiumInput } from "@/components/ui/PremiumInput";
-import { QUESTION_BANKS } from "@/data/questionnaires";
+import {
+  type Option,
+  type Question,
+  QUESTION_BANKS,
+} from "@/data/questionnaires";
 import type { Vertical } from "@/fixtures/patient-states";
+import { type AnswersMap, getNextQid } from "@/questionnaire/skipLogic";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
+
+function resolveOptions(q: Question, answers: AnswersMap): Option[] {
+  const sex = typeof answers.q2_sex === "string" ? answers.q2_sex : null;
+  let opts: Option[] | undefined = q.options;
+  if (!opts) {
+    opts = sex === "female" ? q.femaleOptions : q.maleOptions;
+  }
+  if (!opts) return [];
+  return opts.filter((o) => {
+    if (o.maleOnly && sex !== "male") return false;
+    if (o.femaleOnly && sex !== "female") return false;
+    return true;
+  });
+}
 
 export default function QuestionScreen() {
   const { condition, qid } = useLocalSearchParams<{
@@ -24,16 +43,9 @@ export default function QuestionScreen() {
   const question = questions[index];
 
   const setAnswer = useQuestionnaireStore((s) => s.setAnswer);
-  const storedCondition = useQuestionnaireStore((s) => s.condition);
-  const start = useQuestionnaireStore((s) => s.start);
+  const advance = useQuestionnaireStore((s) => s.advance);
+  const storeAnswers = useQuestionnaireStore((s) => s.answers);
   const existing = useQuestionnaireStore((s) => s.answers[qid]);
-
-  // Ensure the store's active condition matches this route.
-  useEffect(() => {
-    if (storedCondition !== condition) {
-      start(condition);
-    }
-  }, [condition, storedCondition, start]);
 
   const [single, setSingle] = useState<string | undefined>(
     typeof existing === "string" ? existing : undefined,
@@ -42,6 +54,9 @@ export default function QuestionScreen() {
     new Set(Array.isArray(existing) ? existing : []),
   );
   const [text, setText] = useState<string>(
+    typeof existing === "string" ? existing : "",
+  );
+  const [num, setNum] = useState<string>(
     typeof existing === "string" ? existing : "",
   );
 
@@ -53,25 +68,42 @@ export default function QuestionScreen() {
     );
   }
 
+  const parsedNum = Number.parseInt(num, 10);
+  const numValid =
+    Number.isInteger(parsedNum) &&
+    parsedNum >= (question.min ?? Number.NEGATIVE_INFINITY) &&
+    parsedNum <= (question.max ?? Number.POSITIVE_INFINITY);
+
   const canProceed =
-    question.type === "single"
-      ? !!single
-      : question.type === "multi"
-        ? multi.size > 0
-        : question.type === "freetext"
-          ? !question.required || text.trim().length > 0
-          : question.type === "photo"
-            ? true
-            : false;
+    question.type === "number"
+      ? numValid
+      : question.type === "single"
+        ? !!single
+        : question.type === "multi"
+          ? multi.size > 0
+          : question.type === "freetext"
+            ? !question.required || text.trim().length > 0
+            : question.type === "photo"
+              ? true
+              : false;
+
+  const resolvedOptions = resolveOptions(question, storeAnswers);
 
   function onNext() {
     if (!question) return;
-    // Persist this question's answer to the store.
-    if (question.type === "single" && single) {
+
+    let justSetValue: string | string[] | undefined;
+    if (question.type === "number" && numValid) {
+      justSetValue = String(parsedNum);
+      setAnswer(question.id, justSetValue);
+    } else if (question.type === "single" && single) {
+      justSetValue = single;
       setAnswer(question.id, single);
     } else if (question.type === "multi") {
-      setAnswer(question.id, Array.from(multi));
+      justSetValue = Array.from(multi);
+      setAnswer(question.id, justSetValue);
     } else if (question.type === "freetext") {
+      justSetValue = text;
       setAnswer(question.id, text);
     }
 
@@ -81,11 +113,17 @@ export default function QuestionScreen() {
       router.push(`/photo-upload/${condition}`);
       return;
     }
-    const nextQ = questions[index + 1];
-    if (nextQ) {
-      router.push(`/questionnaire/${condition}/${nextQ.id}`);
-    } else {
+
+    const newAnswers: AnswersMap =
+      justSetValue !== undefined
+        ? { ...storeAnswers, [question.id]: justSetValue }
+        : storeAnswers;
+    const next = getNextQid(questions, newAnswers, question.id);
+    advance(question.id, next);
+    if (next === null) {
       router.push(`/questionnaire/${condition}/review`);
+    } else {
+      router.push(`/questionnaire/${condition}/${next}`);
     }
   }
 
@@ -98,9 +136,18 @@ export default function QuestionScreen() {
       canProceed={canProceed}
       onNext={onNext}
     >
+      {question.type === "number" && (
+        <PremiumInput
+          label={question.title}
+          value={num}
+          onChangeText={setNum}
+          keyboardType="number-pad"
+        />
+      )}
+
       {question.type === "single" && (
         <View>
-          {question.options?.map((opt) => (
+          {resolvedOptions.map((opt) => (
             <SelectionCard
               key={opt.value}
               label={opt.label}
@@ -113,7 +160,7 @@ export default function QuestionScreen() {
 
       {question.type === "multi" && (
         <View>
-          {question.options?.map((opt) => (
+          {resolvedOptions.map((opt) => (
             <SelectionCard
               key={opt.value}
               multi
