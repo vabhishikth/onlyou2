@@ -92,6 +92,25 @@ async function reassignUserReferences(
     .collect()) {
     await ctx.db.patch(n._id, { userId: toUserId });
   }
+
+  // biomarker_curation_queue — optional resolvedByUserId FK
+  // No index on resolvedByUserId; use filter scan (table empty at MVP scale).
+  for (const row of await ctx.db
+    .query("biomarker_curation_queue")
+    .filter((q) => q.eq(q.field("resolvedByUserId"), fromUserId))
+    .collect()) {
+    await ctx.db.patch(row._id, { resolvedByUserId: toUserId });
+  }
+
+  // lab_orders — optional orderedByUserId FK (admin/doctor who placed the order;
+  // distinct from the patient userId already covered by the main lab_orders loop above).
+  // No index on orderedByUserId; use filter scan.
+  for (const row of await ctx.db
+    .query("lab_orders")
+    .filter((q) => q.eq(q.field("orderedByUserId"), fromUserId))
+    .collect()) {
+    await ctx.db.patch(row._id, { orderedByUserId: toUserId });
+  }
 }
 
 export const run = internalMutation({

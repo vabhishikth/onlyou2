@@ -199,6 +199,29 @@ describe("migrations.phase3a.normalizePhones", () => {
         createdAt: Date.now(),
       });
 
+      // biomarker_curation_queue — resolvedByUserId optional FK
+      await ctx.db.insert("biomarker_curation_queue", {
+        normalizedKey: "tsh",
+        nameOnReport: "TSH",
+        firstSeenBiomarkerReportId: biomarkerReportId,
+        occurrenceCount: 1,
+        lastSeenAt: Date.now(),
+        status: "resolved",
+        resolvedByUserId: legacy,
+        resolvedAt: Date.now(),
+      });
+
+      // lab_orders — orderedByUserId optional FK (admin/doctor who ordered;
+      // distinct from the patient userId already inserted above)
+      await ctx.db.insert("lab_orders", {
+        userId: canonical, // patient is canonical; orderedByUserId is the legacy admin
+        requestedMarkers: ["tsh"],
+        status: "draft",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        orderedByUserId: legacy,
+      });
+
       return { canonical, legacy };
     });
 
@@ -251,7 +274,9 @@ describe("migrations.phase3a.normalizePhones", () => {
         .withIndex("by_user", (q) => q.eq("userId", canonical))
         .collect(),
     );
-    expect(childLabOrders).toHaveLength(1);
+    // 2 rows: the original patient row (userId: legacy → reassigned) +
+    // the admin-ordered row (userId: canonical from the start)
+    expect(childLabOrders).toHaveLength(2);
 
     const childParseRateLimits = await t.run((ctx) =>
       ctx.db
@@ -268,6 +293,26 @@ describe("migrations.phase3a.normalizePhones", () => {
         .collect(),
     );
     expect(childNotifications).toHaveLength(1);
+
+    // biomarker_curation_queue — resolvedByUserId reassigned
+    const curationRows = await t.run((ctx) =>
+      ctx.db
+        .query("biomarker_curation_queue")
+        .filter((q) => q.eq(q.field("resolvedByUserId"), canonical))
+        .collect(),
+    );
+    expect(curationRows).toHaveLength(1);
+    expect(curationRows[0].resolvedByUserId).toBe(canonical);
+
+    // lab_orders — orderedByUserId reassigned (the admin/doctor row, patient is canonical)
+    const orderedByRows = await t.run((ctx) =>
+      ctx.db
+        .query("lab_orders")
+        .filter((q) => q.eq(q.field("orderedByUserId"), canonical))
+        .collect(),
+    );
+    expect(orderedByRows).toHaveLength(1);
+    expect(orderedByRows[0].orderedByUserId).toBe(canonical);
 
     // No orphaned rows remain under legacy
     const orphanedSessions = await t.run((ctx) =>
