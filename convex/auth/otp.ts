@@ -6,6 +6,7 @@ import { v } from "convex/values";
 import { normalizePhoneE164 } from "../../packages/core/src/phone/e164";
 import { api } from "../_generated/api";
 import { action } from "../_generated/server";
+import { isProdDeployment } from "../lib/envGuards";
 
 import { ConsoleLogSender } from "./sender";
 
@@ -18,8 +19,14 @@ import { ConsoleLogSender } from "./sender";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 3;
-const DEV_BYPASS_PREFIX = "+91 99999 000";
+const DEV_BYPASS_PREFIX = "+9199999000"; // E.164: covers +919999900000..99
 const DEV_BYPASS_OTP = "000000";
+
+function isDevBypassAllowed(): boolean {
+  if (process.env.NODE_ENV === "production") return false;
+  if (isProdDeployment(process.env.CONVEX_DEPLOYMENT ?? "")) return false;
+  return true;
+}
 
 function randomSixDigit(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -68,7 +75,9 @@ export const verifyOtp = action({
   ): Promise<{ token: string; userId: string; profileComplete: boolean }> => {
     const phone = normalizePhoneE164(rawPhone);
     const isDevBypass =
-      rawPhone.startsWith(DEV_BYPASS_PREFIX) && otp === DEV_BYPASS_OTP;
+      isDevBypassAllowed() &&
+      phone.startsWith(DEV_BYPASS_PREFIX) &&
+      otp === DEV_BYPASS_OTP;
 
     if (!isDevBypass) {
       const attempt = await ctx.runQuery(api.auth.otpDb.getAttempt, { phone });
