@@ -163,6 +163,26 @@ test("single-report history produces trend = [current]", () => {
   expect(rows[0].prev).toBe(165); // fallback to current
 });
 
+test("rows[0].id uses canonicalId (not Convex doc _id) when present", () => {
+  const rows = transformForTest([
+    {
+      report: {
+        analyzedAt: 3,
+        _id: "r",
+        userId: "u",
+        labReportId: "l",
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 1,
+        unclassifiedCount: 0,
+      },
+      values: [{ ...base, status: "action_required" }],
+    },
+  ]);
+  expect(rows[0].id).toBe("ldl");
+});
+
 test("unclassified + no canonical is skipped", () => {
   const rows = transformForTest([
     {

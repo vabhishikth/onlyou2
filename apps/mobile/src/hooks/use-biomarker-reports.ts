@@ -193,7 +193,7 @@ function transform(data: ConvexReport[]): BiomarkerMock[] {
     const status = mapStatusDirection(v.status, numericVal, r);
 
     rows.push({
-      id: v._id,
+      id: v.canonicalId ?? v._id,
       name: v.canonical?.displayName ?? v.nameOnReport,
       cat: mapCategory(v.canonical?.category),
       unit: v.canonical?.canonicalUnit ?? v.rawUnit ?? "",
