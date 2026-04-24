@@ -87,35 +87,27 @@ function mapCategory(category: string | undefined): CategoryId {
 }
 
 // ---------------------------------------------------------------------------
-// Status mapping: Convex markerStatus → BiomarkerStatus
+// Status mapping: Convex markerStatus → BiomarkerStatus (direction-aware)
 //
 // Convex schema:  'optimal' | 'sub_optimal' | 'action_required' | 'unclassified'
 // UI status type: 'optimal' | 'watch'       | 'high'/'low'      | 'watch'
 //
-// Note: Convex does not distinguish high vs low in status — it uses
-// action_required for both. We map action_required → 'high' as a safe
-// display default. The low/high distinction becomes available when we join
-// reference ranges in Phase 3.
+// action_required is disambiguated into 'low' vs 'high' by comparing the
+// value against the joined reference range's optimalMin.
 // ---------------------------------------------------------------------------
 
-function mapStatus(
-  status: "optimal" | "sub_optimal" | "action_required" | "unclassified",
-): BiomarkerStatus {
-  switch (status) {
-    case "optimal":
-      return "optimal";
-    case "sub_optimal":
-      return "watch";
-    case "action_required":
-      return "high";
-    case "unclassified":
-      return "watch";
-  }
-}
+// ---------------------------------------------------------------------------
+// Types representing entries in the Convex query response
+// ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Type representing one entry in the Convex query response
-// ---------------------------------------------------------------------------
+type ConvexRange = {
+  optimalMin: number;
+  optimalMax: number;
+  actionBelow: number | null;
+  actionAbove: number | null;
+} | null;
+
+type ConvexTrendPoint = { value: number; collectionDate: string };
 
 type ConvexValue = {
   _id: string;
@@ -133,6 +125,9 @@ type ConvexValue = {
     category: string;
     canonicalUnit: string;
   } | null;
+  range: ConvexRange;
+  trend: ConvexTrendPoint[];
+  prev: ConvexTrendPoint | null;
 };
 
 type ConvexReport = {
@@ -150,44 +145,74 @@ type ConvexReport = {
   values: ConvexValue[];
 };
 
+function mapStatusDirection(
+  status: ConvexValue["status"],
+  value: number,
+  r: ConvexRange,
+): BiomarkerStatus {
+  if (status === "optimal") return "optimal";
+  if (status === "sub_optimal" || status === "unclassified") return "watch";
+  if (r && value < r.optimalMin) return "low";
+  return "high";
+}
+
 // ---------------------------------------------------------------------------
 // Transform: Convex response → BiomarkerMock[]
-//
-// Placeholder gaps documented above; deferred to Phase 3.
 // ---------------------------------------------------------------------------
 
 function transform(data: ConvexReport[]): BiomarkerMock[] {
-  const rows: BiomarkerMock[] = [];
-  for (const { values } of data) {
-    for (const v of values) {
-      // Skip unclassified markers that have no canonical info — they have no
-      // name or category to display meaningfully.
-      if (!v.canonical && v.status === "unclassified") continue;
+  // Dashboard shows current state only — take the most-recent report.
+  // Reports from the query come in insertion order; sort defensively.
+  const sorted = [...data].sort(
+    (a, b) => b.report.analyzedAt - a.report.analyzedAt,
+  );
+  const current = sorted[0];
+  if (!current) return [];
 
-      const numericVal = v.numericValue ?? 0;
-      rows.push({
-        id: v._id,
-        name: v.canonical?.displayName ?? v.nameOnReport,
-        cat: mapCategory(v.canonical?.category),
-        unit: v.canonical?.canonicalUnit ?? v.rawUnit ?? "",
-        value: numericVal,
-        // DEFERRED(phase-3): real ranges from biomarker_reference_ranges join
-        low: 0,
-        high: 100,
-        optLow: 25,
-        optHigh: 75,
-        // DEFERRED(phase-3): multi-point trend from historical query
-        trend: [numericVal],
-        status: mapStatus(v.status),
-        // DEFERRED(phase-3): prior-report join
-        prev: numericVal,
-        // DEFERRED(phase-3): real rangeDirection from biomarker_reference_ranges
-        rangeDirection: "bidirectional",
-      });
-    }
+  const rows: BiomarkerMock[] = [];
+  for (const v of current.values) {
+    if (!v.canonical && v.status === "unclassified") continue;
+
+    const numericVal = v.numericValue ?? 0;
+    const r = v.range;
+    const optLow = r?.optimalMin ?? 25;
+    const optHigh = r?.optimalMax ?? 75;
+    const span = optHigh - optLow;
+    const low = r?.actionBelow ?? Math.max(0, optLow - span);
+    const high = r?.actionAbove ?? optHigh + span;
+
+    const rangeDirection: BiomarkerMock["rangeDirection"] =
+      r?.actionBelow == null && r?.actionAbove != null
+        ? "unboundedLow"
+        : r?.actionBelow != null && r?.actionAbove == null
+          ? "unboundedHigh"
+          : "bidirectional";
+
+    const trend =
+      v.trend.length > 1 ? v.trend.map((p) => p.value) : [numericVal];
+    const status = mapStatusDirection(v.status, numericVal, r);
+
+    rows.push({
+      id: v._id,
+      name: v.canonical?.displayName ?? v.nameOnReport,
+      cat: mapCategory(v.canonical?.category),
+      unit: v.canonical?.canonicalUnit ?? v.rawUnit ?? "",
+      value: numericVal,
+      low,
+      high,
+      optLow,
+      optHigh,
+      trend,
+      status,
+      prev: v.prev?.value ?? numericVal,
+      rangeDirection,
+    });
   }
   return rows;
 }
+
+// Test-only export.
+export const transformForTest = transform;
 
 // ---------------------------------------------------------------------------
 // Hook
