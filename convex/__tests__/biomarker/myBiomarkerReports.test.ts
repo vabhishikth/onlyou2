@@ -293,6 +293,7 @@ describe("myBiomarkerReports", () => {
         "status",
         "classifiedAt",
         "canonical",
+        "range",
       ].sort(),
     );
 
@@ -355,6 +356,78 @@ describe("myBiomarkerReports", () => {
     expect(canonical).not.toBeNull();
     expect(canonical!.displayName).toBe("Thyroid Stimulating Hormone");
     expect(canonical!.category).toBe("hormones");
+  });
+
+  it("projects range block with optimalMin/Max/actionBelow/actionAbove when stamped", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+
+    const refId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reference_ranges", {
+        canonicalId: "ldl",
+        displayName: "LDL Cholesterol",
+        aliases: [],
+        category: "Lipids",
+        canonicalUnit: "mg/dL",
+        ageMin: 18,
+        ageMax: 120,
+        sex: "any",
+        pregnancySensitive: false,
+        optimalMin: 70,
+        optimalMax: 100,
+        actionBelow: 40,
+        actionAbove: 160,
+        explainer: "",
+        source: "test",
+        isActive: true,
+        updatedAt: Date.now(),
+      }),
+    );
+
+    const labReportId = await seedLabReport(t, userId);
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "n",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 1,
+        unclassifiedCount: 0,
+        analyzedAt: Date.now(),
+        narrativeModel: "test",
+      }),
+    );
+    await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_values", {
+        userId,
+        biomarkerReportId: reportId,
+        canonicalId: "ldl",
+        referenceRangeId: refId,
+        nameOnReport: "LDL",
+        valueType: "numeric",
+        rawValue: "165",
+        numericValue: 165,
+        collectionDate: String(Date.now()),
+        normalizedKey: "ldl|mg/dl",
+        status: "action_required",
+        classifiedAt: Date.now(),
+      }),
+    );
+
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    expect(res).toHaveLength(1);
+    const v = res[0].values[0];
+    expect(v.range).toEqual({
+      optimalMin: 70,
+      optimalMax: 100,
+      actionBelow: 40,
+      actionAbove: 160,
+    });
   });
 
   it("returns canonical: null when no matching reference range exists", async () => {

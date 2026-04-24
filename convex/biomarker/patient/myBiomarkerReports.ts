@@ -59,35 +59,37 @@ export const myBiomarkerReports = query({
           category: string;
           canonicalUnit: string;
         } | null = null;
+        let range: {
+          optimalMin: number;
+          optimalMax: number;
+          actionBelow: number | null;
+          actionAbove: number | null;
+        } | null = null;
 
-        if (val.referenceRangeId) {
-          const row = await ctx.db.get(val.referenceRangeId);
-          if (row) {
-            canonical = {
-              _id: row._id,
-              displayName: row.displayName,
-              category: row.category,
-              canonicalUnit: row.canonicalUnit,
-            };
-          }
-        } else if (val.canonicalId) {
-          // Fallback: first active range for this canonicalId (sex-agnostic
-          // pick — good enough for display; ranges join with patient profile
-          // is deferred to Phase 3 personalised ranges).
-          const row = await ctx.db
-            .query("biomarker_reference_ranges")
-            .withIndex("by_canonical_id", (q) =>
-              q.eq("canonicalId", val.canonicalId as string),
-            )
-            .first();
-          if (row) {
-            canonical = {
-              _id: row._id,
-              displayName: row.displayName,
-              category: row.category,
-              canonicalUnit: row.canonicalUnit,
-            };
-          }
+        const row = val.referenceRangeId
+          ? await ctx.db.get(val.referenceRangeId)
+          : val.canonicalId
+            ? await ctx.db
+                .query("biomarker_reference_ranges")
+                .withIndex("by_canonical_id", (q) =>
+                  q.eq("canonicalId", val.canonicalId as string),
+                )
+                .first()
+            : null;
+
+        if (row) {
+          canonical = {
+            _id: row._id,
+            displayName: row.displayName,
+            category: row.category,
+            canonicalUnit: row.canonicalUnit,
+          };
+          range = {
+            optimalMin: row.optimalMin,
+            optimalMax: row.optimalMax,
+            actionBelow: row.actionBelow ?? null,
+            actionAbove: row.actionAbove ?? null,
+          };
         }
 
         projectedValues.push({
@@ -101,6 +103,7 @@ export const myBiomarkerReports = query({
           status: val.status,
           classifiedAt: val.classifiedAt,
           canonical,
+          range,
         });
       }
 
