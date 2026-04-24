@@ -297,7 +297,8 @@ export default function BiomarkerDetail() {
               "{explainerText}"
             </Text>
             <Text style={styles.explainerFootnote}>
-              — Clinical note, Dr. M. Rao
+              {/* DEFERRED(phase-4): real doctor attribution when biomarker_reports.doctorId ships */}
+              — Your care team
             </Text>
           </View>
         </View>
