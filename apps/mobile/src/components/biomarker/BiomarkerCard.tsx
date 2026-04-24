@@ -173,6 +173,7 @@ export function BiomarkerCard({ b, onPress, delay }: BiomarkerCardProps) {
               optLow={b.optLow}
               optHigh={b.optHigh}
               status={b.status}
+              direction={b.rangeDirection}
               compact
             />
           </View>

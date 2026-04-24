@@ -279,6 +279,7 @@ export default function BiomarkerDetail() {
                   optLow={b.optLow}
                   optHigh={b.optHigh}
                   status={b.status}
+                  direction={b.rangeDirection}
                   width={110}
                 />
               </View>
