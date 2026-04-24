@@ -13,9 +13,15 @@
    npx convex env set ANTHROPIC_API_KEY sk-ant-…
    ```
 
-   Confirm via `npx convex env list` — the value is redacted; verify by key name + last-4 chars.
+   Confirm via `npx convex env list`. Note: `convex env list` prints values in plaintext — keep that terminal output private.
 
-3. **Verify with the offline suite:**
+3. **Set it in `.env.local` at repo root** (for local test runners + `pnpm e2e:manual`):
+
+   Open `D:\onlyou2-phase-3a\.env.local`. Replace the `ANTHROPIC_API_KEY=` line with the new key. Save. File is gitignored.
+
+   Both `pnpm e2e:manual` (via `tsx --env-file=.env.local`) and `pnpm test:claude` (via `loadEnv` in `vitest.claude.config.ts`) read from this file. No shell-level `$env:` dance required.
+
+4. **Verify with the offline suite:**
 
    ```bash
    pnpm test:convex
@@ -23,7 +29,7 @@
 
    Expected: `convex/__tests__/lib/claude.test.ts` passes with the mock key.
 
-4. **Verify with the live suite:**
+5. **Verify with the live suite:**
 
    ```bash
    pnpm test:claude
@@ -31,7 +37,7 @@
 
    Expected: 8/8 synthetic fixtures pass (Phase 2.5B baseline ~80–130s, ~$0.25 per full run).
 
-5. **Verify via the end-to-end driver:**
+6. **Verify via the end-to-end driver:**
 
    ```bash
    pnpm e2e:manual
@@ -39,9 +45,9 @@
 
    Expected: `lab_report.status → ready` within ~35–40s on `aromatic-labrador-938`.
 
-6. **Revoke the old key** in the Anthropic console. Revocation IS the rotation — do not keep it as a backup.
+7. **Revoke the old key** in the Anthropic console. Revocation IS the rotation — do not keep it as a backup.
 
-7. **Record the rotation** in `checkpoint.md` under Phase 3A Task 7 with the key label + ISO timestamp.
+8. **Record the rotation** in `checkpoint.md` under Phase 3A Task 7 with the key label + ISO timestamp.
 
 ## On failure
 
