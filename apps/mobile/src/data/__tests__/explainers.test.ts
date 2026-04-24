@@ -28,3 +28,36 @@ test("every seeded canonical id has all four status variants", () => {
     }
   }
 });
+
+test("real canonical ids from seed all resolve to status-aware copy", () => {
+  const canonicalIds = [
+    "ldl_cholesterol",
+    "hdl_cholesterol",
+    "triglycerides",
+    "vitamin_d",
+    "total_cholesterol",
+    "fasting_glucose",
+    "fasting_insulin",
+    "folate_b9",
+    "wbc_total",
+    "uric_acid",
+    "alt_sgpt",
+    "ast_sgot",
+    "hba1c",
+    "vitamin_b12",
+    "mcv",
+    "free_t3",
+    "free_t4",
+    "iron_serum",
+    "ferritin",
+    "creatinine",
+    "egfr",
+    "hemoglobin",
+    "platelets",
+  ];
+  for (const id of canonicalIds) {
+    const out = explainerFor(id, id, "optimal");
+    expect(out).not.toMatch(/outside our reference database/i);
+    expect(out.length).toBeGreaterThan(40);
+  }
+});
