@@ -574,4 +574,79 @@ describe("myBiomarkerReports", () => {
       collectionDate: String(now - 60 * 86_400_000),
     });
   });
+
+  it("projects trend in chronological order when collectionDate is ISO-8601", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "PATIENT");
+    const token = await seedSession(t, userId);
+    const labReportId = await seedLabReport(t, userId);
+
+    const refId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reference_ranges", {
+        canonicalId: "ldl",
+        displayName: "LDL",
+        aliases: [],
+        category: "Lipids",
+        canonicalUnit: "mg/dL",
+        ageMin: 18,
+        ageMax: 120,
+        sex: "any",
+        pregnancySensitive: false,
+        optimalMin: 70,
+        optimalMax: 100,
+        explainer: "",
+        source: "test",
+        isActive: true,
+        updatedAt: Date.now(),
+      }),
+    );
+    const reportId = await t.run(async (ctx) =>
+      ctx.db.insert("biomarker_reports", {
+        userId,
+        labReportId,
+        narrative: "",
+        optimalCount: 0,
+        subOptimalCount: 0,
+        actionRequiredCount: 0,
+        unclassifiedCount: 0,
+        analyzedAt: Date.now(),
+        narrativeModel: "test",
+      }),
+    );
+
+    for (const [iso, v] of [
+      ["2026-01-15", 130],
+      ["2026-02-20", 125],
+      ["2026-04-10", 118],
+    ] as const) {
+      await t.run(async (ctx) =>
+        ctx.db.insert("biomarker_values", {
+          userId,
+          biomarkerReportId: reportId,
+          canonicalId: "ldl",
+          referenceRangeId: refId,
+          nameOnReport: "LDL",
+          valueType: "numeric",
+          rawValue: String(v),
+          numericValue: v,
+          collectionDate: iso,
+          normalizedKey: "ldl|mg/dl",
+          status: "sub_optimal",
+          classifiedAt: Date.now(),
+        }),
+      );
+    }
+
+    const res = await t.query(
+      api.biomarker.patient.myBiomarkerReports.myBiomarkerReports,
+      { token },
+    );
+    const current = res[0].values.find(
+      (x: { numericValue?: number }) => x.numericValue === 118,
+    ) as { trend: { value: number }[]; prev: unknown };
+    expect(current.trend.map((p: { value: number }) => p.value)).toEqual([
+      130, 125, 118,
+    ]);
+    expect(current.prev).toEqual({ value: 125, collectionDate: "2026-02-20" });
+  });
 });

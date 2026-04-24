@@ -98,7 +98,11 @@ export const myBiomarkerReports = query({
         let trend: { value: number; collectionDate: string }[] = [];
         let prev: { value: number; collectionDate: string } | null = null;
 
-        if (val.canonicalId && val.numericValue !== undefined) {
+        if (
+          val.canonicalId &&
+          val.numericValue !== undefined &&
+          val.collectionDate !== undefined
+        ) {
           const history = await ctx.db
             .query("biomarker_values")
             .withIndex("by_user_canonical_date", (q) =>
