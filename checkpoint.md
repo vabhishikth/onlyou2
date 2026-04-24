@@ -30,7 +30,15 @@
 
 **Phase review artifact:** `docs/superpowers/reviews/2026-04-24-phase-3a-review.md`.
 
-**Post-merge operator task:** run `npx convex run migrations/phase3a/normalizePhones:run` against dev Convex from master once; record counters in checkpoint.
+**Post-merge migration run (dev Convex `aromatic-labrador-938`, 2026-04-24 18:15 IST):**
+
+- First run: `{ usersUpdated: 9, usersAlreadyCanonical: 0, usersDeleted: 0, otpAttemptsUpdated: 0 }`.
+- Second run (idempotency): `{ usersUpdated: 0, usersAlreadyCanonical: 9, usersDeleted: 0, otpAttemptsUpdated: 0 }` ✓.
+- No duplicate-merge cases hit — all 9 legacy rows were simple patch-in-place.
+
+**Additional post-merge fix:** `0030a62` corrected `loadEnv` import in `vitest.claude.config.ts` from `vitest/config` → `vite` — Convex's push-time tsc caught a TS2305 that the workspace tsc missed.
+
+**Pending (operator):** push `master` to `origin/master`. Master is now ~70 commits ahead of remote (2.5E merge + phase-3a merge + post-merge fix + migration).
 
 ---
 
