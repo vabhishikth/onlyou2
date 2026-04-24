@@ -29,6 +29,7 @@ import type * as biomarker_lib_autoDraftRange from "../biomarker/lib/autoDraftRa
 import type * as biomarker_lib_createLabReport from "../biomarker/lib/createLabReport.js";
 import type * as biomarker_lib_fuzzyAliasMatch from "../biomarker/lib/fuzzyAliasMatch.js";
 import type * as biomarker_lib_jaroWinkler from "../biomarker/lib/jaroWinkler.js";
+import type * as biomarker_lib_normalizeCollectionDate from "../biomarker/lib/normalizeCollectionDate.js";
 import type * as biomarker_lib_normalizeKey from "../biomarker/lib/normalizeKey.js";
 import type * as biomarker_lib_notifications from "../biomarker/lib/notifications.js";
 import type * as biomarker_lib_panelCodeDetect from "../biomarker/lib/panelCodeDetect.js";
@@ -79,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   "biomarker/lib/createLabReport": typeof biomarker_lib_createLabReport;
   "biomarker/lib/fuzzyAliasMatch": typeof biomarker_lib_fuzzyAliasMatch;
   "biomarker/lib/jaroWinkler": typeof biomarker_lib_jaroWinkler;
+  "biomarker/lib/normalizeCollectionDate": typeof biomarker_lib_normalizeCollectionDate;
   "biomarker/lib/normalizeKey": typeof biomarker_lib_normalizeKey;
   "biomarker/lib/notifications": typeof biomarker_lib_notifications;
   "biomarker/lib/panelCodeDetect": typeof biomarker_lib_panelCodeDetect;
