@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { FIXTURES, type PatientState } from "@/fixtures/patient-states";
@@ -15,6 +16,14 @@ export default function Welcome() {
   const insets = useSafeAreaInsets();
   const [quickLoginOpen, setQuickLoginOpen] = useState(false);
   const { sendOtp, verifyOtp } = useSignIn();
+
+  function onGoogleSuccess(profileComplete: boolean) {
+    if (!profileComplete) {
+      router.replace("/(auth)/profile-setup" as never);
+    } else {
+      router.replace("/(tabs)/home" as never);
+    }
+  }
 
   async function quickLoginAs(state: PatientState) {
     const fixture = FIXTURES[state];
@@ -108,6 +117,7 @@ export default function Welcome() {
       </View>
 
       <View style={{ gap: 12 }}>
+        <GoogleSignInButton onSuccess={onGoogleSuccess} />
         <PremiumButton
           label="Continue with phone"
           onPress={() => router.push("/(auth)/phone-verify" as never)}

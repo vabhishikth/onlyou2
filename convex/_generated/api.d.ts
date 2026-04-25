@@ -13,6 +13,8 @@ import type * as auth_otp from "../auth/otp.js";
 import type * as auth_otpDb from "../auth/otpDb.js";
 import type * as auth_sender from "../auth/sender.js";
 import type * as auth_sessions from "../auth/sessions.js";
+import type * as auth_socialDb from "../auth/socialDb.js";
+import type * as auth_socialSignIn from "../auth/socialSignIn.js";
 import type * as biomarker_intakeUpload from "../biomarker/intakeUpload.js";
 import type * as biomarker_internalMutations from "../biomarker/internalMutations.js";
 import type * as biomarker_internalQueries from "../biomarker/internalQueries.js";
@@ -69,6 +71,8 @@ declare const fullApi: ApiFromModules<{
   "auth/otpDb": typeof auth_otpDb;
   "auth/sender": typeof auth_sender;
   "auth/sessions": typeof auth_sessions;
+  "auth/socialDb": typeof auth_socialDb;
+  "auth/socialSignIn": typeof auth_socialSignIn;
   "biomarker/intakeUpload": typeof biomarker_intakeUpload;
   "biomarker/internalMutations": typeof biomarker_internalMutations;
   "biomarker/internalQueries": typeof biomarker_internalQueries;

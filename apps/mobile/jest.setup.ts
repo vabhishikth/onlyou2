@@ -28,3 +28,11 @@ jest.mock("expo-image-picker", () => ({
     .mockResolvedValue({ granted: true, status: "granted" }),
   MediaTypeOptions: { Images: "Images" },
 }));
+
+jest.mock("expo-auth-session/providers/google", () => ({
+  useIdTokenAuthRequest: () => [
+    {}, // request: truthy so the button is enabled
+    null, // response: null until user signs in
+    jest.fn(), // promptAsync
+  ],
+}));
