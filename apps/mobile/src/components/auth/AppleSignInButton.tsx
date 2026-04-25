@@ -18,6 +18,8 @@ export function AppleSignInButton({ onSuccess }: Props) {
 
   async function onPress() {
     try {
+      // TODO(phase-8): generate + pass nonce — server validates but client
+      // doesn't supply. See docs/DEFERRED.md "Apple Sign-In nonce wiring".
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.EMAIL,

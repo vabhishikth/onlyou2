@@ -2,7 +2,7 @@ import { useConvex } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Camera, Check } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PhotoSlotBottomSheet } from "@/components/questionnaire/PhotoSlotBottomSheet";
@@ -63,7 +63,14 @@ export default function PhotoUploadContainer() {
       // Fire-and-forget: caller stays on the list; the row updates via the
       // store subscription once the picker resolves and the upload finishes.
       if (token && consultationId) {
-        void pickFromLibrary(slot, { convex, token, consultationId });
+        pickFromLibrary(slot, { convex, token, consultationId }).catch(
+          (err: unknown) => {
+            Alert.alert(
+              "Upload failed",
+              err instanceof Error ? err.message : String(err),
+            );
+          },
+        );
       }
     }
   }

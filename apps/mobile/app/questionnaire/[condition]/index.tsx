@@ -1,5 +1,6 @@
 import { useConvex } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -31,22 +32,29 @@ export default function QuestionnaireEntry() {
   const setConsultationId = useQuestionnaireStore((s) => s.setConsultationId);
   const convex = useConvex();
   const token = useAuthStore((s) => s.token);
+  const [starting, setStarting] = useState(false);
 
   const start = async () => {
+    if (starting) return;
     const firstId = questions[0]?.id;
     if (!firstId) return;
-    if (condition === "hair-loss") {
-      if (!token) return;
-      startHL(HAIR_LOSS_SCHEMA_VERSION, firstId);
-      const { consultationId } = await convex.mutation(
-        api.consultations.submitConsultation.startConsultation,
-        { token, vertical: "hair_loss" },
-      );
-      setConsultationId(consultationId);
-    } else {
-      startGeneric(condition);
+    setStarting(true);
+    try {
+      if (condition === "hair-loss") {
+        if (!token) return;
+        startHL(HAIR_LOSS_SCHEMA_VERSION, firstId);
+        const { consultationId } = await convex.mutation(
+          api.consultations.submitConsultation.startConsultation,
+          { token, vertical: "hair_loss" },
+        );
+        setConsultationId(consultationId);
+      } else {
+        startGeneric(condition);
+      }
+      router.push(`/questionnaire/${condition}/${firstId}`);
+    } finally {
+      setStarting(false);
     }
-    router.push(`/questionnaire/${condition}/${firstId}`);
   };
 
   if (hairLossFemaleBlocked) {
@@ -157,7 +165,12 @@ export default function QuestionnaireEntry() {
 
       <View style={{ flex: 1 }} />
 
-      <PremiumButton variant="warm" label="Start assessment" onPress={start} />
+      <PremiumButton
+        variant="warm"
+        label={starting ? "Starting…" : "Start assessment"}
+        onPress={start}
+        disabled={starting}
+      />
     </View>
   );
 }
