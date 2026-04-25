@@ -1,5 +1,26 @@
 # Checkpoint
 
+## Phase 3C — design committed, ready for planning (2026-04-25, tip `5e02f62`)
+
+**Spec:** `docs/superpowers/specs/2026-04-25-phase-3c-ai-pre-assessment-design.md` (commit `5e02f62`).
+**Decision register:** `docs/decisions/2026-04-24-phase-3-decomposition.md` D2 — Option B (questionnaire-only) locked, Option C (vision) deferred to Phase 8.
+**Design choice captured during spec self-review:** skip-AI escape hatch reuses the existing `AI_FAILED → AI_COMPLETE` edge (already in `validTransitions`) — no transition-graph change. Captured at `docs/decisions/2026-04-25-phase-3c-skip-ai-via-existing-edge.md`.
+
+**Brainstorm picks (founder, 2026-04-25):**
+
+- Q1 scope: **B** — backend + patient-facing polish (no doctor-portal preview, that's Phase 4).
+- Q2 failure UX: **A** — silent retry, terminal-skip routes to doctor without raw AI output ever reaching patient.
+- Q3 flag shape: **B** — structured `{code, severity, message}` with controlled vocabulary.
+- Q4 stage shape: **A** — `{scale, value, confidence}` with norwood/ludwig/unclassified enum.
+- Q5 testing: **C** — mocked unit tests in CI + 3-fixture live-API smoke under `pnpm test:claude:ai`.
+- Q6 model: **A** — Sonnet 4.6 with cache_control on system prompt.
+- Q7 storage: **A** — `ai_assessments` table 1:1 latest-only, retries overwrite.
+- Patient transparency: disclosure copy on processing screen, raw AI output never exposed (clinical-safety + regulatory grey area + competitor parity).
+
+**Next session:** invoke `superpowers:writing-plans` against the spec.
+
+---
+
 ## Phase 3B — MERGED to master (2026-04-25, tip `c77bdd8`)
 
 Merge commit `c77bdd8` ("Merge phase-3b: questionnaire + photos + consultations"). Branch `phase-3b` deleted; worktree dir `D:/onlyou2-phase-3b` unregistered (physical dir may linger on disk per Windows file-lock pattern, safe to `rm -rf` after closing processes).
