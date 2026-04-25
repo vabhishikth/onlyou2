@@ -121,7 +121,14 @@ export default function QuestionScreen() {
     const next = getNextQid(questions, newAnswers, question.id);
     advance(question.id, next);
     if (next === null) {
-      router.push(`/questionnaire/${condition}/review`);
+      // End of questions — route to photo-upload first (4 scalp slots
+      // required by submitConsultation guard). Photo-upload's Done button
+      // dismisses + lands on the review screen.
+      if (condition === "hair-loss") {
+        router.push(`/photo-upload/${condition}`);
+      } else {
+        router.push(`/questionnaire/${condition}/review`);
+      }
     } else {
       router.push(`/questionnaire/${condition}/${next}`);
     }
