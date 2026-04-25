@@ -119,7 +119,7 @@ export default function PhotoUploadContainer() {
       </Text>
 
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-        {slots.map((slot) => {
+        {slots.map((slot, idx) => {
           const captured = !!photoUris[slot];
           const label = SLOT_LABELS[slot];
           return (
@@ -132,32 +132,57 @@ export default function PhotoUploadContainer() {
                 flexBasis: "48%",
                 flexGrow: 1,
                 aspectRatio: 1,
-                borderRadius: 14,
-                backgroundColor: captured ? colors.accentLight : colors.white,
-                borderWidth: 1.5,
-                borderColor: captured ? colors.accent : colors.border,
+                borderRadius: 16,
+                backgroundColor: captured ? colors.accentLight : colors.warmBg,
+                borderWidth: captured ? 2 : 1,
+                borderColor: captured ? colors.accent : colors.borderLight,
+                borderStyle: captured ? "solid" : "dashed",
                 alignItems: "center",
                 justifyContent: "center",
+                padding: 12,
               }}
             >
+              <Text
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 12,
+                  fontSize: 10,
+                  fontWeight: "700",
+                  letterSpacing: 1.2,
+                  color: captured ? colors.accent : colors.textTertiary,
+                }}
+              >
+                {`${idx + 1}/${slots.length}`}
+              </Text>
               {captured ? (
-                <Check size={28} color={colors.accent} strokeWidth={2.5} />
+                <Check size={36} color={colors.accent} strokeWidth={2.5} />
               ) : (
                 <Camera
-                  size={28}
+                  size={36}
                   color={colors.textSecondary}
-                  strokeWidth={1.75}
+                  strokeWidth={1.5}
                 />
               )}
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: "700",
                   color: colors.textPrimary,
-                  marginTop: 8,
+                  marginTop: 10,
+                  textAlign: "center",
                 }}
               >
                 {label}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: captured ? colors.accent : colors.textTertiary,
+                  marginTop: 2,
+                }}
+              >
+                {captured ? "Captured" : "Tap to add"}
               </Text>
             </Pressable>
           );

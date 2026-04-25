@@ -194,33 +194,48 @@ export default function QuestionnaireReview() {
           onPress={() => setConsent((c) => !c)}
           style={{
             flexDirection: "row",
-            alignItems: "center",
-            paddingVertical: 12,
+            alignItems: "flex-start",
+            padding: 16,
+            marginTop: 16,
+            borderRadius: 14,
+            borderWidth: 1.5,
+            borderColor: consent ? colors.accentWarm : colors.border,
+            backgroundColor: consent ? colors.accentLight : colors.warmBg,
           }}
         >
           <View
             style={{
-              width: 22,
-              height: 22,
-              borderRadius: 4,
-              borderWidth: 1.5,
-              borderColor: consent ? colors.accentWarm : colors.borderLight,
-              backgroundColor: consent ? colors.accentWarm : "transparent",
-              marginRight: 12,
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              borderWidth: 2,
+              borderColor: consent ? colors.accentWarm : colors.textSecondary,
+              backgroundColor: consent ? colors.accentWarm : colors.white,
+              marginRight: 14,
+              marginTop: 1,
               justifyContent: "center",
               alignItems: "center",
             }}
           >
             {consent ? (
-              <Text style={{ color: "white", fontSize: 14 }}>✓</Text>
+              <Text
+                style={{
+                  color: colors.white,
+                  fontSize: 15,
+                  fontWeight: "900",
+                  lineHeight: 16,
+                }}
+              >
+                ✓
+              </Text>
             ) : null}
           </View>
           <Text
             style={{
               flex: 1,
               fontSize: 13,
-              color: colors.textSecondary,
-              lineHeight: 18,
+              color: colors.textPrimary,
+              lineHeight: 19,
             }}
           >
             I confirm the answers above are accurate and I consent to a doctor
