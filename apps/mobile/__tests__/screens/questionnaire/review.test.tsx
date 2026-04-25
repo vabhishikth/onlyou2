@@ -24,41 +24,74 @@ describe("Questionnaire review screen", () => {
     (router.push as jest.Mock).mockClear();
     (router.dismissAll as jest.Mock).mockClear();
     useQuestionnaireStore.getState().reset();
+    mockParams.condition = "hair-loss";
   });
 
-  it("lists all questions from the bank with stored answers", () => {
-    useQuestionnaireStore.getState().start("hair-loss");
-    useQuestionnaireStore.getState().setAnswer("q2_sex", "male");
-    useQuestionnaireStore.getState().setAnswer("q10_duration", "6_12m");
-    useQuestionnaireStore
-      .getState()
-      .setAnswer("q13_scalp_symptoms", ["itching", "flaking"]);
+  it("renders section headings for HL", () => {
+    const s = useQuestionnaireStore.getState();
+    s.start("hair-loss");
+    s.setAnswer("q1_age", "32");
+    s.setAnswer("q2_sex", "male");
+    s.setAnswer("q10_duration", "6_12m");
+    s.setAnswer("q13_scalp_symptoms", ["itching", "flaking"]);
 
-    mockParams.condition = "hair-loss";
     const { getByText } = render(
       <TestProvider scenario="new">
         <Review />
       </TestProvider>,
     );
-    expect(getByText("Review your answers")).toBeTruthy();
-    expect(getByText("What is your biological sex?")).toBeTruthy();
-    expect(getByText("Male")).toBeTruthy();
-    expect(getByText("6–12 months")).toBeTruthy();
-    expect(getByText("Itching, Flaking or dandruff")).toBeTruthy();
+    expect(getByText("Basics")).toBeTruthy();
+    expect(getByText("Current symptoms")).toBeTruthy();
   });
 
-  it("Submit dismisses the modal stack and pushes to /treatment/confirmation", () => {
-    useQuestionnaireStore.getState().start("hair-loss");
-    mockParams.condition = "hair-loss";
+  it("Q3 male option label resolved", () => {
+    const s = useQuestionnaireStore.getState();
+    s.start("hair-loss");
+    s.setAnswer("q2_sex", "male");
+    s.setAnswer("q3_location", "receding_hairline");
+
     const { getByText } = render(
       <TestProvider scenario="new">
         <Review />
       </TestProvider>,
     );
+    expect(getByText("Receding hairline")).toBeTruthy();
+  });
+
+  it("tapping a row navigates back to that question", () => {
+    const s = useQuestionnaireStore.getState();
+    s.start("hair-loss");
+    s.setAnswer("q2_sex", "male");
+
+    const { getByLabelText } = render(
+      <TestProvider scenario="new">
+        <Review />
+      </TestProvider>,
+    );
+    fireEvent.press(getByLabelText("Edit What is your biological sex?"));
+    expect(router.push).toHaveBeenCalledWith("/questionnaire/hair-loss/q2_sex");
+  });
+
+  it("Submit gated by consent", () => {
+    const s = useQuestionnaireStore.getState();
+    s.start("hair-loss");
+    s.setAnswer("q2_sex", "male");
+
+    const { getByText, getByLabelText } = render(
+      <TestProvider scenario="new">
+        <Review />
+      </TestProvider>,
+    );
+
+    // Submit pressed without consent — no navigation.
+    fireEvent.press(getByText("Submit assessment"));
+    expect(router.dismissAll).not.toHaveBeenCalled();
+    expect(router.push).not.toHaveBeenCalledWith("/treatment/confirmation");
+
+    // Tick consent, then submit.
+    fireEvent.press(getByLabelText("I confirm the answers are accurate"));
     fireEvent.press(getByText("Submit assessment"));
     expect(router.dismissAll).toHaveBeenCalled();
     expect(router.push).toHaveBeenCalledWith("/treatment/confirmation");
-    // Reset should have cleared the store.
-    expect(useQuestionnaireStore.getState().condition).toBeNull();
   });
 });
