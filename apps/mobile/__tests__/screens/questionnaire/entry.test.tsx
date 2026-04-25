@@ -1,5 +1,6 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 
+import { useAuthStore } from "@/stores/auth-store";
 import { TestProvider } from "@/test-utils";
 
 const mockParams: { condition: string } = { condition: "hair-loss" };
@@ -17,9 +18,11 @@ describe("Questionnaire entry screen", () => {
   beforeEach(() => {
     (router.push as jest.Mock).mockClear();
     (router.back as jest.Mock).mockClear();
+    // Phase 3B: start handler calls startConsultation which requires a token.
+    useAuthStore.setState({ token: "test-token", hydrated: true });
   });
 
-  it("renders intro for hair-loss (male) and starts the first question", () => {
+  it("renders intro for hair-loss (male) and starts the first question", async () => {
     mockParams.condition = "hair-loss";
     const { getByText } = render(
       <TestProvider scenario="new">
@@ -29,7 +32,11 @@ describe("Questionnaire entry screen", () => {
     expect(getByText("Your Hair Loss assessment")).toBeTruthy();
     expect(getByText("Hair & Scalp")).toBeTruthy();
     fireEvent.press(getByText("Start assessment"));
-    expect(router.push).toHaveBeenCalledWith("/questionnaire/hair-loss/q1_age");
+    await waitFor(() =>
+      expect(router.push).toHaveBeenCalledWith(
+        "/questionnaire/hair-loss/q1_age",
+      ),
+    );
   });
 
   it("shows the Plan 4+ not-available state for female hair-loss", () => {

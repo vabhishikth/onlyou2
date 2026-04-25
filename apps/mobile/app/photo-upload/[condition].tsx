@@ -1,3 +1,4 @@
+import { useConvex } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Camera, Check } from "lucide-react-native";
 import { useState } from "react";
@@ -8,6 +9,7 @@ import { PhotoSlotBottomSheet } from "@/components/questionnaire/PhotoSlotBottom
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import type { Vertical } from "@/fixtures/patient-states";
 import { pickFromLibrary } from "@/questionnaire/pickFromLibrary";
+import { useAuthStore } from "@/stores/auth-store";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
 import { PHOTO_SLOTS, type PhotoSlot } from "@/types/photo-slot";
@@ -31,6 +33,9 @@ export default function PhotoUploadContainer() {
   const { condition } = useLocalSearchParams<{ condition: Vertical }>();
   const slots = SLOTS_BY_CONDITION[condition] ?? [];
   const photoUris = useQuestionnaireStore((s) => s.photoUris);
+  const consultationId = useQuestionnaireStore((s) => s.consultationId);
+  const token = useAuthStore((s) => s.token);
+  const convex = useConvex();
   const [activeSlot, setActiveSlot] = useState<PhotoSlot | null>(null);
 
   const allCaptured = slots.length > 0 && slots.every((s) => !!photoUris[s]);
@@ -56,8 +61,10 @@ export default function PhotoUploadContainer() {
       });
     } else {
       // Fire-and-forget: caller stays on the list; the row updates via the
-      // store subscription once the picker resolves.
-      void pickFromLibrary(slot);
+      // store subscription once the picker resolves and the upload finishes.
+      if (token && consultationId) {
+        void pickFromLibrary(slot, { convex, token, consultationId });
+      }
     }
   }
 

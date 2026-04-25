@@ -1,7 +1,12 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 
+import type { Id } from "../../../../../convex/_generated/dataModel";
+
+import { useAuthStore } from "@/stores/auth-store";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { TestProvider } from "@/test-utils";
+
+const TEST_CONSULT_ID = "test-consultation-id" as Id<"consultations">;
 
 const mockParams: { condition: string } = { condition: "hair-loss" };
 
@@ -25,6 +30,9 @@ describe("Questionnaire review screen", () => {
     (router.dismissAll as jest.Mock).mockClear();
     useQuestionnaireStore.getState().reset();
     mockParams.condition = "hair-loss";
+    // Phase 3B: real Submit hook needs both an auth token and a server-issued
+    // consultationId on the store before it will fire the mutation.
+    useAuthStore.setState({ token: "test-token", hydrated: true });
   });
 
   it("renders section headings for HL", () => {
@@ -72,10 +80,11 @@ describe("Questionnaire review screen", () => {
     expect(router.push).toHaveBeenCalledWith("/questionnaire/hair-loss/q2_sex");
   });
 
-  it("Submit gated by consent", () => {
+  it("Submit gated by consent", async () => {
     const s = useQuestionnaireStore.getState();
-    s.start("hair-loss");
+    s.startHL("hair-loss-v1", "q1_age");
     s.setAnswer("q2_sex", "male");
+    s.setConsultationId(TEST_CONSULT_ID);
 
     const { getByText, getByLabelText } = render(
       <TestProvider scenario="new">
@@ -91,7 +100,7 @@ describe("Questionnaire review screen", () => {
     // Tick consent, then submit.
     fireEvent.press(getByLabelText("I confirm the answers are accurate"));
     fireEvent.press(getByText("Submit assessment"));
-    expect(router.dismissAll).toHaveBeenCalled();
+    await waitFor(() => expect(router.dismissAll).toHaveBeenCalled());
     expect(router.push).toHaveBeenCalledWith("/treatment/confirmation");
   });
 });

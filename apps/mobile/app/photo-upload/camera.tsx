@@ -1,10 +1,13 @@
+import { useConvex } from "convex/react";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Alert, Image, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PremiumButton } from "@/components/ui/PremiumButton";
+import { uploadAndRecordPhoto } from "@/questionnaire/uploadPhoto";
+import { useAuthStore } from "@/stores/auth-store";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
 import type { PhotoSlot } from "@/types/photo-slot";
@@ -25,7 +28,11 @@ export default function CameraScreen() {
   const [perm, requestPerm] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [captured, setCaptured] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const setPhotoUri = useQuestionnaireStore((s) => s.setPhotoUri);
+  const consultationId = useQuestionnaireStore((s) => s.consultationId);
+  const token = useAuthStore((s) => s.token);
+  const convex = useConvex();
 
   if (!perm) {
     return <View style={{ flex: 1, backgroundColor: colors.textPrimary }} />;
@@ -77,10 +84,22 @@ export default function CameraScreen() {
     if (photo?.uri) setCaptured(photo.uri);
   }
 
-  function confirm() {
-    if (!captured || !slot) return;
-    setPhotoUri(slot, captured);
-    router.back();
+  async function confirm() {
+    if (!captured || !slot || !token || !consultationId || uploading) return;
+    setUploading(true);
+    try {
+      await uploadAndRecordPhoto(
+        { convex, token, consultationId },
+        slot,
+        captured,
+      );
+      setPhotoUri(slot, captured);
+      router.back();
+    } catch (e) {
+      Alert.alert("Upload failed", e instanceof Error ? e.message : String(e));
+    } finally {
+      setUploading(false);
+    }
   }
 
   if (captured) {
@@ -105,13 +124,15 @@ export default function CameraScreen() {
               variant="ghost"
               label="Retake"
               onPress={() => setCaptured(null)}
+              disabled={uploading}
             />
           </View>
           <View style={{ flex: 1 }}>
             <PremiumButton
               variant="warm"
-              label="Use this photo"
+              label={uploading ? "Uploading…" : "Use this photo"}
               onPress={confirm}
+              disabled={uploading}
             />
           </View>
         </View>

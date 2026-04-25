@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import type { Id } from "../../../../convex/_generated/dataModel";
+
 import type { Vertical } from "@/fixtures/patient-states";
 
 export type Answer = string | string[];
@@ -17,6 +19,10 @@ interface QuestionnaireState {
   answers: Record<string, Answer>;
   /** Map of photo slot label -> captured URI (Phase 2 uses mock URIs). */
   photoUris: Record<string, string>;
+  /** Server-issued consultation id for the in-flight flow (Phase 3B). */
+  consultationId: Id<"consultations"> | null;
+  /** Set the server-issued consultation id (called after startConsultation). */
+  setConsultationId: (id: Id<"consultations"> | null) => void;
   /** Start (or restart) a questionnaire for the given condition. */
   start: (condition: Vertical) => void;
   /** Start the hair-loss questionnaire with schema version + first qid. */
@@ -42,6 +48,10 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
   history: [],
   answers: {},
   photoUris: {},
+  consultationId: null,
+  setConsultationId(id) {
+    set({ consultationId: id });
+  },
   start(condition) {
     set({
       condition,
@@ -50,6 +60,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       history: [],
       answers: {},
       photoUris: {},
+      consultationId: null,
     });
   },
   startHL(schemaVersion, firstQid) {
@@ -60,6 +71,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       photoUris: {},
       currentQid: firstQid,
       history: [],
+      consultationId: null,
     });
   },
   advance(currentQid, nextQid) {
@@ -95,6 +107,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>((set, get) => ({
       history: [],
       answers: {},
       photoUris: {},
+      consultationId: null,
     });
   },
 }));

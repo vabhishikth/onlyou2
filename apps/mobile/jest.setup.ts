@@ -37,6 +37,30 @@ jest.mock("expo-auth-session/providers/google", () => ({
   ],
 }));
 
+// Phase 3B: screens now call convex.mutation during interactions
+// (startConsultation, submitConsultation, generatePhotoUploadUrl, recordPhoto).
+// Provide a permissive default so existing UI tests render without crashing.
+// Per-test files can still override via their own `jest.mock("convex/react", …)`.
+jest.mock("convex/react", () => {
+  const actual = jest.requireActual("convex/react");
+  return {
+    ...actual,
+    useConvex: () => ({
+      mutation: jest.fn().mockResolvedValue({
+        ok: true,
+        consultationId: "test-consultation-id",
+        storageId: "test-storage-id",
+        photoId: "test-photo-id",
+      }),
+      action: jest.fn().mockResolvedValue({
+        token: "test-tok",
+        userId: "test-user",
+        profileComplete: false,
+      }),
+    }),
+  };
+});
+
 jest.mock("expo-apple-authentication", () => ({
   AppleAuthenticationScope: { EMAIL: "EMAIL", FULL_NAME: "FULL_NAME" },
   AppleAuthenticationButtonType: { SIGN_IN: "SIGN_IN" },

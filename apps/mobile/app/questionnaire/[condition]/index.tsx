@@ -1,6 +1,9 @@
+import { useConvex } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { api } from "../../../../../convex/_generated/api";
 
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { QUESTION_BANKS } from "@/data/questionnaires";
@@ -8,6 +11,7 @@ import { HAIR_LOSS_SCHEMA_VERSION } from "@/data/questionnaires/hair-loss";
 import type { Vertical } from "@/fixtures/patient-states";
 import { VERTICALS } from "@/fixtures/verticals";
 import { useGender } from "@/hooks/use-gender";
+import { useAuthStore } from "@/stores/auth-store";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
 
@@ -24,12 +28,21 @@ export default function QuestionnaireEntry() {
 
   const startHL = useQuestionnaireStore((s) => s.startHL);
   const startGeneric = useQuestionnaireStore((s) => s.start);
+  const setConsultationId = useQuestionnaireStore((s) => s.setConsultationId);
+  const convex = useConvex();
+  const token = useAuthStore((s) => s.token);
 
-  const start = () => {
+  const start = async () => {
     const firstId = questions[0]?.id;
     if (!firstId) return;
     if (condition === "hair-loss") {
+      if (!token) return;
       startHL(HAIR_LOSS_SCHEMA_VERSION, firstId);
+      const { consultationId } = await convex.mutation(
+        api.consultations.submitConsultation.startConsultation,
+        { token, vertical: "hair_loss" },
+      );
+      setConsultationId(consultationId);
     } else {
       startGeneric(condition);
     }

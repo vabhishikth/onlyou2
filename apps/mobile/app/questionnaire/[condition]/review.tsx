@@ -7,6 +7,7 @@ import { PremiumButton } from "@/components/ui/PremiumButton";
 import type { Option, Question } from "@/data/questionnaires";
 import { QUESTION_BANKS } from "@/data/questionnaires";
 import type { Vertical } from "@/fixtures/patient-states";
+import { useSubmitConsultation } from "@/hooks/use-submit-consultation";
 import { getReachableQids } from "@/questionnaire/skipLogic";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
@@ -46,10 +47,10 @@ export default function QuestionnaireReview() {
   const { condition } = useLocalSearchParams<{ condition: Vertical }>();
   const questions = QUESTION_BANKS[condition] ?? [];
   const answers = useQuestionnaireStore((s) => s.answers);
-  // TODO(phase-3b/Task 14): read schemaVersion from store and include in
-  // submission payload when wiring the real Convex mutation.
+  const consultationId = useQuestionnaireStore((s) => s.consultationId);
   const reset = useQuestionnaireStore((s) => s.reset);
   const [consent, setConsent] = useState(false);
+  const { submit, submitting, error } = useSubmitConsultation();
 
   const sex =
     typeof answers.q2_sex === "string" ? (answers.q2_sex as string) : null;
@@ -70,13 +71,16 @@ export default function QuestionnaireReview() {
     return out;
   }, [questions, reachableSet]);
 
-  function onSubmit() {
-    if (!consent) return;
-    // TODO(phase-3b/Task 14): replace placeholder with real Convex submission
-    // mutation that posts answers + schemaVersion and creates the consultation.
-    reset();
-    router.dismissAll();
-    router.push("/treatment/confirmation");
+  async function onSubmit() {
+    if (!consent || !consultationId || submitting) return;
+    try {
+      await submit(consultationId);
+      reset();
+      router.dismissAll();
+      router.push("/treatment/confirmation");
+    } catch {
+      // error captured in hook state; rendered below the button.
+    }
   }
 
   return (
@@ -230,10 +234,22 @@ export default function QuestionnaireReview() {
       >
         <PremiumButton
           variant="warm"
-          label="Submit assessment"
+          label={submitting ? "Submitting…" : "Submit assessment"}
           onPress={onSubmit}
-          disabled={!consent}
+          disabled={!consent || submitting}
         />
+        {error ? (
+          <Text
+            style={{
+              fontSize: 12,
+              color: colors.error,
+              marginTop: 8,
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
