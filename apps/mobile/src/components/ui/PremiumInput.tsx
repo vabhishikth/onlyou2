@@ -29,6 +29,7 @@ export function PremiumInput({
   defaultValue,
   onFocus,
   onBlur,
+  onChangeText,
   editable = true,
   testID,
   ...rest
@@ -107,7 +108,7 @@ export function PremiumInput({
           defaultValue={defaultValue}
           onChangeText={(t) => {
             setInnerValue(t);
-            rest.onChangeText?.(t);
+            onChangeText?.(t);
           }}
           onFocus={(e) => {
             setFocused(true);
