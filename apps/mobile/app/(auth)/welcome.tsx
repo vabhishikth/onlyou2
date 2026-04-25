@@ -3,8 +3,14 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppleSignInButton } from "@/components/auth/AppleSignInButton";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+// TEMP DISABLED 2026-04-25: expo-auth-session + expo-apple-authentication
+// pull in expo-crypto's native ExpoCryptoAES module which is NOT bundled in
+// Expo Go SDK 54 — crashes the welcome screen on launch with
+// `Cannot find native module 'ExpoCryptoAES'`. Re-enable once dev build infra
+// is set up (npx expo prebuild + EAS build / pnpm android with USB device).
+// Decision logged in docs/DEFERRED.md "Phase 3B post-review deferrals".
+// import { AppleSignInButton } from "@/components/auth/AppleSignInButton";
+// import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { FIXTURES, type PatientState } from "@/fixtures/patient-states";
@@ -18,13 +24,14 @@ export default function Welcome() {
   const [quickLoginOpen, setQuickLoginOpen] = useState(false);
   const { sendOtp, verifyOtp } = useSignIn();
 
-  function onSocialSuccess(profileComplete: boolean) {
-    if (!profileComplete) {
-      router.replace("/(auth)/profile-setup" as never);
-    } else {
-      router.replace("/(tabs)/home" as never);
-    }
-  }
+  // TEMP DISABLED 2026-04-25: re-enable when social buttons are restored.
+  // function onSocialSuccess(profileComplete: boolean) {
+  //   if (!profileComplete) {
+  //     router.replace("/(auth)/profile-setup" as never);
+  //   } else {
+  //     router.replace("/(tabs)/home" as never);
+  //   }
+  // }
 
   async function quickLoginAs(state: PatientState) {
     const fixture = FIXTURES[state];
@@ -118,8 +125,9 @@ export default function Welcome() {
       </View>
 
       <View style={{ gap: 12 }}>
-        <GoogleSignInButton onSuccess={onSocialSuccess} />
-        <AppleSignInButton onSuccess={onSocialSuccess} />
+        {/* TEMP: social buttons disabled in Expo Go — see import-block note. */}
+        {/* <GoogleSignInButton onSuccess={onSocialSuccess} /> */}
+        {/* <AppleSignInButton onSuccess={onSocialSuccess} /> */}
         <PremiumButton
           label="Continue with phone"
           onPress={() => router.push("/(auth)/phone-verify" as never)}
