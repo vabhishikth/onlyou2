@@ -42,11 +42,24 @@ export function UnderReviewCard({ vertical, hoursAgo }: Props) {
           marginBottom: 4,
         }}
       >
-        A doctor is reviewing your {info.displayName} case
+        Your {info.displayName} case is being reviewed
       </Text>
-      <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+      <Text
+        style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 12 }}
+      >
         Submitted {hoursAgo}h ago · SLA 24h
       </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Text style={{ fontSize: 12, color: colors.accent, fontWeight: "700" }}>
+          ✓ AI assessment complete
+        </Text>
+        <Text style={{ fontSize: 12, color: colors.textTertiary }}>·</Text>
+        <Text
+          style={{ fontSize: 12, color: colors.textPrimary, fontWeight: "700" }}
+        >
+          Doctor reviewing now
+        </Text>
+      </View>
     </View>
   );
 }

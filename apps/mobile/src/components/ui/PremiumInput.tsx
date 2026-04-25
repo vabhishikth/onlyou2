@@ -122,7 +122,9 @@ export function PremiumInput({
             color: editable ? colors.textPrimary : colors.textMuted,
             fontSize: 16,
             fontWeight: "500",
-            paddingTop: 18,
+            paddingTop: 22,
+            // Note: floated label sits at top:10 with fontSize:11 (≈y=21).
+            // TextInput needs paddingTop≥22 to keep digits clear of the label.
           }}
           {...rest}
         />

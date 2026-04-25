@@ -113,6 +113,7 @@ describe("Home tab — 4 states", () => {
       </TestProvider>,
     );
     // Priya fixture is hair-loss; override should surface "ED" instead.
-    expect(getByText(/reviewing your ED case/i)).toBeTruthy();
+    // Card now reads "Your ED case is being reviewed" (was "reviewing your ED case").
+    expect(getByText(/Your ED case is being reviewed/i)).toBeTruthy();
   });
 });

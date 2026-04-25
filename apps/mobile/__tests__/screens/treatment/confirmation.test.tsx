@@ -28,9 +28,8 @@ describe("Treatment confirmation screen", () => {
       </TestProvider>,
     );
     expect(getByText("Submitted for review")).toBeTruthy();
-    expect(
-      getByText(/A doctor will review your case within 24 hours/),
-    ).toBeTruthy();
+    expect(getByText(/A doctor will then review within 24 hours/)).toBeTruthy();
+    expect(getByText(/AI is analyzing your symptoms/i)).toBeTruthy();
     fireEvent.press(getByText("Back to home"));
     expect(router.replace).toHaveBeenCalledWith("/(tabs)/home");
   });
