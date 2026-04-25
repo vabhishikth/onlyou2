@@ -1,25 +1,39 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { Camera, Check } from "lucide-react-native";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PhotoSlotBottomSheet } from "@/components/questionnaire/PhotoSlotBottomSheet";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import type { Vertical } from "@/fixtures/patient-states";
+import { pickFromLibrary } from "@/questionnaire/pickFromLibrary";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
+import { PHOTO_SLOTS, type PhotoSlot } from "@/types/photo-slot";
 
-const PHOTOS_BY_CONDITION: Partial<Record<Vertical, string[]>> = {
-  "hair-loss": ["Top of head", "Hairline", "Crown", "Problem areas"],
-  weight: ["Full body front", "Full body side"],
+const SLOT_LABELS: Record<PhotoSlot, string> = {
+  crown: "Crown",
+  hairline: "Hairline",
+  left_temple: "Left temple",
+  right_temple: "Right temple",
+};
+
+// Phase 3B locks the canonical 4-slot vocabulary for hair-loss. Other
+// verticals (weight etc.) are out of scope until their own questionnaires
+// land — drop them rather than keeping placeholder labels.
+const SLOTS_BY_CONDITION: Partial<Record<Vertical, readonly PhotoSlot[]>> = {
+  "hair-loss": PHOTO_SLOTS,
 };
 
 export default function PhotoUploadContainer() {
   const insets = useSafeAreaInsets();
   const { condition } = useLocalSearchParams<{ condition: Vertical }>();
-  const shots = PHOTOS_BY_CONDITION[condition] ?? [];
+  const slots = SLOTS_BY_CONDITION[condition] ?? [];
   const photoUris = useQuestionnaireStore((s) => s.photoUris);
+  const [activeSlot, setActiveSlot] = useState<PhotoSlot | null>(null);
 
-  const allCaptured = shots.length > 0 && shots.every((s) => !!photoUris[s]);
+  const allCaptured = slots.length > 0 && slots.every((s) => !!photoUris[s]);
 
   function onDone() {
     // Pop the photo-upload modal stack and hand off to the review screen.
@@ -28,6 +42,22 @@ export default function PhotoUploadContainer() {
     router.dismissAll();
     if (condition) {
       router.push(`/questionnaire/${condition}/review`);
+    }
+  }
+
+  function handleSelect(source: "camera" | "library") {
+    const slot = activeSlot;
+    if (!slot) return;
+    setActiveSlot(null);
+    if (source === "camera") {
+      router.push({
+        pathname: "/photo-upload/camera",
+        params: { slot },
+      });
+    } else {
+      // Fire-and-forget: caller stays on the list; the row updates via the
+      // store subscription once the picker resolves.
+      void pickFromLibrary(slot);
     }
   }
 
@@ -75,19 +105,15 @@ export default function PhotoUploadContainer() {
       </Text>
 
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-        {shots.map((shot) => {
-          const captured = !!photoUris[shot];
+        {slots.map((slot) => {
+          const captured = !!photoUris[slot];
+          const label = SLOT_LABELS[slot];
           return (
             <Pressable
-              key={shot}
+              key={slot}
               accessibilityRole="button"
-              accessibilityLabel={`Capture ${shot}`}
-              onPress={() =>
-                router.push({
-                  pathname: "/photo-upload/camera",
-                  params: { slot: shot },
-                })
-              }
+              accessibilityLabel={`Capture ${label}`}
+              onPress={() => setActiveSlot(slot)}
               style={{
                 flexBasis: "48%",
                 flexGrow: 1,
@@ -117,7 +143,7 @@ export default function PhotoUploadContainer() {
                   marginTop: 8,
                 }}
               >
-                {shot}
+                {label}
               </Text>
             </Pressable>
           );
@@ -132,6 +158,15 @@ export default function PhotoUploadContainer() {
         disabled={!allCaptured}
         onPress={onDone}
       />
+
+      {activeSlot ? (
+        <PhotoSlotBottomSheet
+          visible={activeSlot !== null}
+          slot={activeSlot}
+          onSelect={handleSelect}
+          onClose={() => setActiveSlot(null)}
+        />
+      ) : null}
     </View>
   );
 }

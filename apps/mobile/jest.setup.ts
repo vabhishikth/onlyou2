@@ -15,3 +15,16 @@ jest.mock("react-native-safe-area-context", () => ({
 
 // Modal mock is wired via moduleNameMapper in jest.config.js to avoid
 // babel-preset-expo codegen crashes in the react-native Modal module tree.
+
+jest.mock("expo-camera", () => ({
+  CameraView: "CameraView",
+  useCameraPermissions: () => [{ granted: true, status: "granted" }, jest.fn()],
+}));
+
+jest.mock("expo-image-picker", () => ({
+  launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: true }),
+  requestMediaLibraryPermissionsAsync: jest
+    .fn()
+    .mockResolvedValue({ granted: true, status: "granted" }),
+  MediaTypeOptions: { Images: "Images" },
+}));

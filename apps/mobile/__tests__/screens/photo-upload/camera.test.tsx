@@ -1,9 +1,9 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { TestProvider } from "@/test-utils";
 
-const mockParams: { slot?: string } = { slot: "Top of head" };
+const mockParams: { slot?: string } = { slot: "crown" };
 
 jest.mock("expo-router", () => ({
   router: {
@@ -15,18 +15,37 @@ jest.mock("expo-router", () => ({
   useLocalSearchParams: () => mockParams,
 }));
 
+// Override the global expo-camera mock so we can stub takePictureAsync.
+jest.mock("expo-camera", () => {
+  const React = require("react");
+  return {
+    CameraView: React.forwardRef((_props: unknown, ref: React.Ref<unknown>) => {
+      React.useImperativeHandle(ref, () => ({
+        takePictureAsync: jest
+          .fn()
+          .mockResolvedValue({ uri: "file:///captured-photo.jpg" }),
+      }));
+      return null;
+    }),
+    useCameraPermissions: () => [
+      { granted: true, status: "granted" },
+      jest.fn(),
+    ],
+  };
+});
+
 const { router } = require("expo-router");
 
 const CameraScreen = require("../../../app/photo-upload/camera").default;
 
-describe("Photo upload camera screen (simulated)", () => {
+describe("Photo upload camera screen (real expo-camera)", () => {
   beforeEach(() => {
     (router.back as jest.Mock).mockClear();
     useQuestionnaireStore.getState().reset();
   });
 
-  it("writes a mock URI to the store and pops back on Capture", () => {
-    mockParams.slot = "Top of head";
+  it("captures, then writes URI to store and pops back on confirm", async () => {
+    mockParams.slot = "crown";
     const { getByText } = render(
       <TestProvider scenario="new">
         <CameraScreen />
@@ -34,22 +53,29 @@ describe("Photo upload camera screen (simulated)", () => {
     );
     fireEvent.press(getByText("Capture"));
 
+    // Wait for the captured-state preview to appear.
+    await waitFor(() => getByText("Use this photo"));
+    fireEvent.press(getByText("Use this photo"));
+
     const uris = useQuestionnaireStore.getState().photoUris;
-    expect(uris["Top of head"]).toBe("file:///mock-photo-top-of-head.jpg");
+    expect(uris["crown"]).toBe("file:///captured-photo.jpg");
     expect(router.back).toHaveBeenCalled();
   });
 
-  it("still pops back even when no slot param is supplied", () => {
-    mockParams.slot = undefined;
-    const { getByText } = render(
+  it("retake clears the captured preview without writing to store", async () => {
+    mockParams.slot = "hairline";
+    const { getByText, queryByText } = render(
       <TestProvider scenario="new">
         <CameraScreen />
       </TestProvider>,
     );
     fireEvent.press(getByText("Capture"));
+    await waitFor(() => getByText("Retake"));
+    fireEvent.press(getByText("Retake"));
+
+    expect(queryByText("Use this photo")).toBeNull();
     expect(Object.keys(useQuestionnaireStore.getState().photoUris).length).toBe(
       0,
     );
-    expect(router.back).toHaveBeenCalled();
   });
 });

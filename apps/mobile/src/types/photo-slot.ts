@@ -4,4 +4,11 @@
 // duplicate than to plumb through @onlyou/core.
 //
 // Keep in sync with convex/lib/photoSlot.ts → PHOTO_SLOTS.
-export type PhotoSlot = "crown" | "hairline" | "left_temple" | "right_temple";
+export const PHOTO_SLOTS = [
+  "crown",
+  "hairline",
+  "left_temple",
+  "right_temple",
+] as const;
+
+export type PhotoSlot = (typeof PHOTO_SLOTS)[number];

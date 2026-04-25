@@ -1,28 +1,122 @@
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useLocalSearchParams } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import { Image, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
+import type { PhotoSlot } from "@/types/photo-slot";
 
 /**
- * Phase 2 shell camera — simulated. Phase 3 wires expo-camera for real.
- * For now we render a dark full-screen surface with a framing guide and a
- * Capture button that fakes a capture by writing a mock file URI to the
- * questionnaire store under the passed `slot` label, then pops back.
+ * Real expo-camera capture screen for scalp photos. Phase 3B Task 9 —
+ * replaces the Phase 2 mock that wrote a fake `file:///mock-photo-*` URI.
+ *
+ * Flow:
+ *   1. If permission unknown → render nothing while resolving.
+ *   2. If permission denied → render explainer + Grant CTA.
+ *   3. If granted → live camera preview + Capture.
+ *   4. After capture → preview the photo with Retake / Use this photo.
  */
 export default function CameraScreen() {
   const insets = useSafeAreaInsets();
-  const { slot } = useLocalSearchParams<{ slot?: string }>();
+  const { slot } = useLocalSearchParams<{ slot?: PhotoSlot }>();
+  const [perm, requestPerm] = useCameraPermissions();
+  const cameraRef = useRef<CameraView>(null);
+  const [captured, setCaptured] = useState<string | null>(null);
   const setPhotoUri = useQuestionnaireStore((s) => s.setPhotoUri);
 
-  function onCapture() {
-    if (slot) {
-      const safeSlot = slot.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      setPhotoUri(slot, `file:///mock-photo-${safeSlot}.jpg`);
-    }
+  if (!perm) {
+    return <View style={{ flex: 1, backgroundColor: colors.textPrimary }} />;
+  }
+
+  if (!perm.granted) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          padding: 24,
+          paddingTop: insets.top + 24,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "PlayfairDisplay_900Black",
+            fontSize: 24,
+            color: colors.textPrimary,
+            marginBottom: 12,
+          }}
+        >
+          Camera permission needed
+        </Text>
+        <Text
+          style={{
+            fontSize: 13,
+            color: colors.textSecondary,
+            lineHeight: 20,
+            marginBottom: 24,
+          }}
+        >
+          ONLYOU needs access to your camera to capture your scalp photos for
+          the doctor.
+        </Text>
+        <PremiumButton
+          variant="warm"
+          label="Grant permission"
+          onPress={requestPerm}
+        />
+      </View>
+    );
+  }
+
+  async function capture() {
+    if (!cameraRef.current) return;
+    const photo = await cameraRef.current.takePictureAsync({ quality: 0.85 });
+    if (photo?.uri) setCaptured(photo.uri);
+  }
+
+  function confirm() {
+    if (!captured || !slot) return;
+    setPhotoUri(slot, captured);
     router.back();
+  }
+
+  if (captured) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.textPrimary }}>
+        <Image
+          source={{ uri: captured }}
+          style={{ flex: 1 }}
+          resizeMode="contain"
+          accessibilityLabel="Captured photo preview"
+        />
+        <View
+          style={{
+            flexDirection: "row",
+            padding: 16,
+            gap: 12,
+            paddingBottom: insets.bottom + 16,
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <PremiumButton
+              variant="ghost"
+              label="Retake"
+              onPress={() => setCaptured(null)}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <PremiumButton
+              variant="warm"
+              label="Use this photo"
+              onPress={confirm}
+            />
+          </View>
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -37,35 +131,25 @@ export default function CameraScreen() {
           <Text style={{ fontSize: 24, color: colors.white }}>‹</Text>
         </Pressable>
       </View>
-
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <View
-          accessibilityLabel="Camera framing guide"
-          style={{
-            width: 260,
-            height: 260,
-            borderWidth: 2,
-            borderColor: colors.white,
-            borderRadius: 16,
-          }}
-        />
+      <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
+      <View
+        style={{
+          paddingHorizontal: 24,
+          paddingBottom: insets.bottom + 16,
+          paddingTop: 16,
+        }}
+      >
         <Text
           style={{
             fontSize: 12,
             color: colors.white,
-            marginTop: 24,
             textAlign: "center",
+            marginBottom: 12,
           }}
         >
-          {slot ? `${slot} · ` : ""}Center within the frame · good lighting · no
-          filters
+          Center within the frame · good lighting · no filters
         </Text>
-      </View>
-
-      <View
-        style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 16 }}
-      >
-        <PremiumButton variant="warm" label="Capture" onPress={onCapture} />
+        <PremiumButton variant="warm" label="Capture" onPress={capture} />
       </View>
     </View>
   );
