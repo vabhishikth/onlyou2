@@ -1,6 +1,48 @@
 # Checkpoint
 
-## Phase 3B progress (session 2, 2026-04-25) — IN PROGRESS
+## Phase 3B — MERGED to master (2026-04-25, tip `c77bdd8`)
+
+Merge commit `c77bdd8` ("Merge phase-3b: questionnaire + photos + consultations"). Branch `phase-3b` deleted; worktree dir `D:/onlyou2-phase-3b` unregistered (physical dir may linger on disk per Windows file-lock pattern, safe to `rm -rf` after closing processes).
+
+**Post-merge polish commits on master (between merge and close-out):**
+
+- `8631203` route end-of-questionnaire → photo-upload before review
+- `aaf32a6` visual polish — photo tiles, consent box, phone-verify spacing
+- `a2c2fb2` floating-label digit overlap + AI status visibility
+- `f2981b4` PremiumInput floating-label — destructure onChangeText so wrapper isn't clobbered by `{...rest}`
+
+**Live E2E on physical Android (2026-04-25):** PASS. consultation `AI_PROCESSING` reached via stub; 4 photos, questionnaire_responses row, status_history row all observed. Founder visual approval recorded.
+
+**Verification at close-out (2026-04-25, post-`pnpm install`):**
+
+- `pnpm -w typecheck` clean (6/6 packages)
+- `pnpm -w lint` clean (4 pre-existing UI import-order warnings)
+- `pnpm test:convex` 250 passed / 1 skipped
+- `pnpm --filter @onlyou/mobile test` 260/260 (one transient `act()` flake on first run cleared on rerun)
+
+**Close-out actions (this session):**
+
+- `pnpm install` — installed expo-camera/expo-image-picker/expo-apple-authentication/expo-auth-session + google-auth-library + jose. Lockfile updated.
+- Removed stale `package-lock.json` (pnpm repo, npm artifact from initial scaffold) — committed as cleanup.
+- Push `master` → `origin/master` (25 commits ahead).
+- Memory: `project_phase_3b_complete.md` written, MEMORY.md index updated.
+
+**Untracked at close-out:**
+
+- `Screenshot_20260425-092131.png` — physical-device E2E screenshot. Move to `docs/superpowers/phases/3b/e2e/` if retaining; otherwise leave for founder triage. Not committed.
+
+**Carry-forward into Phase 3C (`docs/decisions/2026-04-24-phase-3-decomposition.md` D2):**
+
+- Replace `convex/consultations/aiStub.ts` with real Claude call. Option B contract: questionnaire-only → `{narrative, stage, flags, confidence}`. Schema already has optional `photoAnalysis` / `recommendedTemplateHint` / `redFlags` for forward-compat with Option C (Phase 8).
+- 4 Important + 9 Minor review findings tracked in `docs/DEFERRED.md` under "Phase 3B post-review deferrals (2026-04-25)".
+- Apple-Sign-In nonce wiring (client-side generation) deferred to Phase 8 polish.
+- Social-auth buttons currently TEMP-disabled in Expo Go (commit `a13baa3`); re-enable when dev-build / OAuth client IDs configured.
+
+**Next session:** brainstorm Phase 3C using `superpowers:brainstorming`. Review `docs/DEFERRED.md` first.
+
+---
+
+## Phase 3B progress (session 2, 2026-04-25) — SHIPPED
 
 **Worktree:** `D:\onlyou2-phase-3b` on branch `phase-3b`, 7 commits ahead of master tip `59b16bf`. Execution via `superpowers:subagent-driven-development` skill.
 
