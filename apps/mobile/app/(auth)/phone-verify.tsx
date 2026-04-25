@@ -116,7 +116,10 @@ export default function PhoneVerify() {
               fontSize: 12,
               color: colors.textTertiary,
               lineHeight: 18,
-              marginTop: 12,
+              marginTop: 24,
+              paddingTop: 16,
+              borderTopWidth: 1,
+              borderTopColor: colors.borderLight,
             }}
           >
             {"We'll never share your number. No spam, no marketing calls."}

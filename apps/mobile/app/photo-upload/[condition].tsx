@@ -1,25 +1,44 @@
+import { useConvex } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Camera, Check } from "lucide-react-native";
-import { Pressable, Text, View } from "react-native";
+import { useState } from "react";
+import { Alert, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PhotoSlotBottomSheet } from "@/components/questionnaire/PhotoSlotBottomSheet";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import type { Vertical } from "@/fixtures/patient-states";
+import { pickFromLibrary } from "@/questionnaire/pickFromLibrary";
+import { useAuthStore } from "@/stores/auth-store";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
+import { PHOTO_SLOTS, type PhotoSlot } from "@/types/photo-slot";
 
-const PHOTOS_BY_CONDITION: Partial<Record<Vertical, string[]>> = {
-  "hair-loss": ["Top of head", "Hairline", "Crown", "Problem areas"],
-  weight: ["Full body front", "Full body side"],
+const SLOT_LABELS: Record<PhotoSlot, string> = {
+  crown: "Crown",
+  hairline: "Hairline",
+  left_temple: "Left temple",
+  right_temple: "Right temple",
+};
+
+// Phase 3B locks the canonical 4-slot vocabulary for hair-loss. Other
+// verticals (weight etc.) are out of scope until their own questionnaires
+// land — drop them rather than keeping placeholder labels.
+const SLOTS_BY_CONDITION: Partial<Record<Vertical, readonly PhotoSlot[]>> = {
+  "hair-loss": PHOTO_SLOTS,
 };
 
 export default function PhotoUploadContainer() {
   const insets = useSafeAreaInsets();
   const { condition } = useLocalSearchParams<{ condition: Vertical }>();
-  const shots = PHOTOS_BY_CONDITION[condition] ?? [];
+  const slots = SLOTS_BY_CONDITION[condition] ?? [];
   const photoUris = useQuestionnaireStore((s) => s.photoUris);
+  const consultationId = useQuestionnaireStore((s) => s.consultationId);
+  const token = useAuthStore((s) => s.token);
+  const convex = useConvex();
+  const [activeSlot, setActiveSlot] = useState<PhotoSlot | null>(null);
 
-  const allCaptured = shots.length > 0 && shots.every((s) => !!photoUris[s]);
+  const allCaptured = slots.length > 0 && slots.every((s) => !!photoUris[s]);
 
   function onDone() {
     // Pop the photo-upload modal stack and hand off to the review screen.
@@ -28,6 +47,31 @@ export default function PhotoUploadContainer() {
     router.dismissAll();
     if (condition) {
       router.push(`/questionnaire/${condition}/review`);
+    }
+  }
+
+  function handleSelect(source: "camera" | "library") {
+    const slot = activeSlot;
+    if (!slot) return;
+    setActiveSlot(null);
+    if (source === "camera") {
+      router.push({
+        pathname: "/photo-upload/camera",
+        params: { slot },
+      });
+    } else {
+      // Fire-and-forget: caller stays on the list; the row updates via the
+      // store subscription once the picker resolves and the upload finishes.
+      if (token && consultationId) {
+        pickFromLibrary(slot, { convex, token, consultationId }).catch(
+          (err: unknown) => {
+            Alert.alert(
+              "Upload failed",
+              err instanceof Error ? err.message : String(err),
+            );
+          },
+        );
+      }
     }
   }
 
@@ -75,49 +119,70 @@ export default function PhotoUploadContainer() {
       </Text>
 
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-        {shots.map((shot) => {
-          const captured = !!photoUris[shot];
+        {slots.map((slot, idx) => {
+          const captured = !!photoUris[slot];
+          const label = SLOT_LABELS[slot];
           return (
             <Pressable
-              key={shot}
+              key={slot}
               accessibilityRole="button"
-              accessibilityLabel={`Capture ${shot}`}
-              onPress={() =>
-                router.push({
-                  pathname: "/photo-upload/camera",
-                  params: { slot: shot },
-                })
-              }
+              accessibilityLabel={`Capture ${label}`}
+              onPress={() => setActiveSlot(slot)}
               style={{
                 flexBasis: "48%",
                 flexGrow: 1,
                 aspectRatio: 1,
-                borderRadius: 14,
-                backgroundColor: captured ? colors.accentLight : colors.white,
-                borderWidth: 1.5,
-                borderColor: captured ? colors.accent : colors.border,
+                borderRadius: 16,
+                backgroundColor: captured ? colors.accentLight : colors.warmBg,
+                borderWidth: captured ? 2 : 1,
+                borderColor: captured ? colors.accent : colors.borderLight,
+                borderStyle: captured ? "solid" : "dashed",
                 alignItems: "center",
                 justifyContent: "center",
+                padding: 12,
               }}
             >
+              <Text
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 12,
+                  fontSize: 10,
+                  fontWeight: "700",
+                  letterSpacing: 1.2,
+                  color: captured ? colors.accent : colors.textTertiary,
+                }}
+              >
+                {`${idx + 1}/${slots.length}`}
+              </Text>
               {captured ? (
-                <Check size={28} color={colors.accent} strokeWidth={2.5} />
+                <Check size={36} color={colors.accent} strokeWidth={2.5} />
               ) : (
                 <Camera
-                  size={28}
+                  size={36}
                   color={colors.textSecondary}
-                  strokeWidth={1.75}
+                  strokeWidth={1.5}
                 />
               )}
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: "700",
                   color: colors.textPrimary,
-                  marginTop: 8,
+                  marginTop: 10,
+                  textAlign: "center",
                 }}
               >
-                {shot}
+                {label}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: captured ? colors.accent : colors.textTertiary,
+                  marginTop: 2,
+                }}
+              >
+                {captured ? "Captured" : "Tap to add"}
               </Text>
             </Pressable>
           );
@@ -132,6 +197,15 @@ export default function PhotoUploadContainer() {
         disabled={!allCaptured}
         onPress={onDone}
       />
+
+      {activeSlot ? (
+        <PhotoSlotBottomSheet
+          visible={activeSlot !== null}
+          slot={activeSlot}
+          onSelect={handleSelect}
+          onClose={() => setActiveSlot(null)}
+        />
+      ) : null}
     </View>
   );
 }

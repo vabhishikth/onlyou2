@@ -27,40 +27,42 @@ describe("Photo upload container", () => {
     useQuestionnaireStore.getState().reset();
   });
 
-  it("renders one tile per required shot for hair-loss", () => {
+  it("renders one tile per canonical slot for hair-loss", () => {
     mockParams.condition = "hair-loss";
     const { getByLabelText } = render(
       <TestProvider scenario="new">
         <PhotoUploadContainer />
       </TestProvider>,
     );
-    expect(getByLabelText("Capture Top of head")).toBeTruthy();
-    expect(getByLabelText("Capture Hairline")).toBeTruthy();
     expect(getByLabelText("Capture Crown")).toBeTruthy();
-    expect(getByLabelText("Capture Problem areas")).toBeTruthy();
+    expect(getByLabelText("Capture Hairline")).toBeTruthy();
+    expect(getByLabelText("Capture Left temple")).toBeTruthy();
+    expect(getByLabelText("Capture Right temple")).toBeTruthy();
   });
 
-  it("pushes to camera with the slot when a tile is tapped", () => {
+  it("opens the bottom sheet when a tile is tapped, then routes to camera with the canonical slot id", () => {
     mockParams.condition = "hair-loss";
     const { getByLabelText } = render(
       <TestProvider scenario="new">
         <PhotoUploadContainer />
       </TestProvider>,
     );
-    fireEvent.press(getByLabelText("Capture Top of head"));
+    fireEvent.press(getByLabelText("Capture Crown"));
+    // Sheet rows render the source labels.
+    fireEvent.press(getByLabelText("Take photo"));
     expect(router.push).toHaveBeenCalledWith({
       pathname: "/photo-upload/camera",
-      params: { slot: "Top of head" },
+      params: { slot: "crown" },
     });
   });
 
-  it("disables Done until every required shot is captured, then routes to review", () => {
+  it("disables Done until every canonical slot is captured, then routes to review", () => {
     mockParams.condition = "hair-loss";
-    // Pre-populate three of four slots — still disabled.
+    // Pre-populate three of four canonical slots — still disabled.
     const store = useQuestionnaireStore.getState();
-    store.setPhotoUri("Top of head", "file:///mock-photo-top-of-head.jpg");
-    store.setPhotoUri("Hairline", "file:///mock-photo-hairline.jpg");
-    store.setPhotoUri("Crown", "file:///mock-photo-crown.jpg");
+    store.setPhotoUri("crown", "file:///mock-photo-crown.jpg");
+    store.setPhotoUri("hairline", "file:///mock-photo-hairline.jpg");
+    store.setPhotoUri("left_temple", "file:///mock-photo-left-temple.jpg");
 
     const { getByText, rerender } = render(
       <TestProvider scenario="new">
@@ -73,7 +75,7 @@ describe("Photo upload container", () => {
     // Capture the last photo and re-render.
     useQuestionnaireStore
       .getState()
-      .setPhotoUri("Problem areas", "file:///mock-photo-problem-areas.jpg");
+      .setPhotoUri("right_temple", "file:///mock-photo-right-temple.jpg");
     rerender(
       <TestProvider scenario="new">
         <PhotoUploadContainer />

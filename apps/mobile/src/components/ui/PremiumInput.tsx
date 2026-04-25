@@ -29,6 +29,7 @@ export function PremiumInput({
   defaultValue,
   onFocus,
   onBlur,
+  onChangeText,
   editable = true,
   testID,
   ...rest
@@ -107,7 +108,7 @@ export function PremiumInput({
           defaultValue={defaultValue}
           onChangeText={(t) => {
             setInnerValue(t);
-            rest.onChangeText?.(t);
+            onChangeText?.(t);
           }}
           onFocus={(e) => {
             setFocused(true);
@@ -122,7 +123,9 @@ export function PremiumInput({
             color: editable ? colors.textPrimary : colors.textMuted,
             fontSize: 16,
             fontWeight: "500",
-            paddingTop: 18,
+            paddingTop: 22,
+            // Note: floated label sits at top:10 with fontSize:11 (≈y=21).
+            // TextInput needs paddingTop≥22 to keep digits clear of the label.
           }}
           {...rest}
         />

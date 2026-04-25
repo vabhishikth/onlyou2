@@ -7,7 +7,13 @@ import {
   type QuestionType,
 } from "@/data/questionnaires";
 
-const VALID_TYPES: QuestionType[] = ["single", "multi", "text", "photo"];
+const VALID_TYPES: QuestionType[] = [
+  "number",
+  "single",
+  "multi",
+  "freetext",
+  "photo",
+];
 
 function assertValidQuestion(q: Question) {
   expect(typeof q.id).toBe("string");
@@ -18,9 +24,10 @@ function assertValidQuestion(q: Question) {
   expect(typeof q.required).toBe("boolean");
 
   if (q.type === "single" || q.type === "multi") {
-    expect(Array.isArray(q.options)).toBe(true);
-    expect(q.options!.length).toBeGreaterThan(0);
-    for (const opt of q.options!) {
+    const opts = q.options ?? q.maleOptions ?? q.femaleOptions;
+    expect(Array.isArray(opts)).toBe(true);
+    expect(opts!.length).toBeGreaterThan(0);
+    for (const opt of opts!) {
       expect(typeof opt.value).toBe("string");
       expect(opt.value.length).toBeGreaterThan(0);
       expect(typeof opt.label).toBe("string");

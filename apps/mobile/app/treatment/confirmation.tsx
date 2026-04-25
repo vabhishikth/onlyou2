@@ -68,12 +68,105 @@ export default function Confirmation() {
           textAlign: "center",
           lineHeight: 22,
           maxWidth: 320,
-          marginBottom: 8,
+          marginBottom: 16,
         }}
       >
-        A doctor will review your case within 24 hours — completely free.
-        We&apos;ll notify you when your plan is ready.
+        Our AI is preparing your case for the doctor — usually under a minute. A
+        doctor will then review within 24 hours, completely free. We&apos;ll
+        notify you when your plan is ready.
       </Text>
+
+      <View
+        style={{
+          width: "100%",
+          maxWidth: 360,
+          backgroundColor: colors.warmBg,
+          borderRadius: 14,
+          borderWidth: 1.5,
+          borderColor: colors.borderLight,
+          padding: 16,
+          gap: 10,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <View
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 999,
+              backgroundColor: colors.accent,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{ color: colors.white, fontSize: 11, fontWeight: "900" }}
+            >
+              1
+            </Text>
+          </View>
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 13,
+              color: colors.textPrimary,
+              fontWeight: "600",
+            }}
+          >
+            AI is analyzing your symptoms
+          </Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <View
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 999,
+              backgroundColor: colors.borderLight,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: colors.textTertiary,
+                fontSize: 11,
+                fontWeight: "900",
+              }}
+            >
+              2
+            </Text>
+          </View>
+          <Text style={{ flex: 1, fontSize: 13, color: colors.textSecondary }}>
+            Doctor reviews your case
+          </Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <View
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 999,
+              backgroundColor: colors.borderLight,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: colors.textTertiary,
+                fontSize: 11,
+                fontWeight: "900",
+              }}
+            >
+              3
+            </Text>
+          </View>
+          <Text style={{ flex: 1, fontSize: 13, color: colors.textSecondary }}>
+            Your treatment plan is ready
+          </Text>
+        </View>
+      </View>
 
       <View style={{ flex: 1 }} />
 

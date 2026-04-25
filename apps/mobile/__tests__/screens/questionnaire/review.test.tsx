@@ -1,7 +1,12 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 
+import type { Id } from "../../../../../convex/_generated/dataModel";
+
+import { useAuthStore } from "@/stores/auth-store";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { TestProvider } from "@/test-utils";
+
+const TEST_CONSULT_ID = "test-consultation-id" as Id<"consultations">;
 
 const mockParams: { condition: string } = { condition: "hair-loss" };
 
@@ -24,41 +29,78 @@ describe("Questionnaire review screen", () => {
     (router.push as jest.Mock).mockClear();
     (router.dismissAll as jest.Mock).mockClear();
     useQuestionnaireStore.getState().reset();
+    mockParams.condition = "hair-loss";
+    // Phase 3B: real Submit hook needs both an auth token and a server-issued
+    // consultationId on the store before it will fire the mutation.
+    useAuthStore.setState({ token: "test-token", hydrated: true });
   });
 
-  it("lists all questions from the bank with stored answers", () => {
-    useQuestionnaireStore.getState().start("hair-loss");
-    useQuestionnaireStore.getState().setAnswer("gender", "male");
-    useQuestionnaireStore.getState().setAnswer("duration", "6-12");
-    useQuestionnaireStore.getState().setAnswer("areas", ["temples", "crown"]);
+  it("renders section headings for HL", () => {
+    const s = useQuestionnaireStore.getState();
+    s.start("hair-loss");
+    s.setAnswer("q1_age", "32");
+    s.setAnswer("q2_sex", "male");
+    s.setAnswer("q10_duration", "6_12m");
+    s.setAnswer("q13_scalp_symptoms", ["itching", "flaking"]);
 
-    mockParams.condition = "hair-loss";
     const { getByText } = render(
       <TestProvider scenario="new">
         <Review />
       </TestProvider>,
     );
-    expect(getByText("Review your answers")).toBeTruthy();
-    expect(getByText("How do you identify?")).toBeTruthy();
-    expect(getByText("Male")).toBeTruthy();
-    expect(getByText("6–12 months")).toBeTruthy();
-    expect(getByText("Temples / receding hairline, Crown")).toBeTruthy();
-    // Photo placeholder
-    expect(getByText("Photos to upload")).toBeTruthy();
+    expect(getByText("Basics")).toBeTruthy();
+    expect(getByText("Current symptoms")).toBeTruthy();
   });
 
-  it("Submit dismisses the modal stack and pushes to /treatment/confirmation", () => {
-    useQuestionnaireStore.getState().start("hair-loss");
-    mockParams.condition = "hair-loss";
+  it("Q3 male option label resolved", () => {
+    const s = useQuestionnaireStore.getState();
+    s.start("hair-loss");
+    s.setAnswer("q2_sex", "male");
+    s.setAnswer("q3_location", "receding_hairline");
+
     const { getByText } = render(
       <TestProvider scenario="new">
         <Review />
       </TestProvider>,
     );
+    expect(getByText("Receding hairline")).toBeTruthy();
+  });
+
+  it("tapping a row navigates back to that question", () => {
+    const s = useQuestionnaireStore.getState();
+    s.start("hair-loss");
+    s.setAnswer("q2_sex", "male");
+
+    const { getByLabelText } = render(
+      <TestProvider scenario="new">
+        <Review />
+      </TestProvider>,
+    );
+    fireEvent.press(getByLabelText("Edit What is your biological sex?"));
+    expect(router.push).toHaveBeenCalledWith("/questionnaire/hair-loss/q2_sex");
+  });
+
+  it("Submit gated by consent", async () => {
+    const s = useQuestionnaireStore.getState();
+    s.startHL("hair-loss-v1", "q1_age");
+    s.setAnswer("q2_sex", "male");
+    s.setConsultationId(TEST_CONSULT_ID);
+
+    const { getByText, getByLabelText } = render(
+      <TestProvider scenario="new">
+        <Review />
+      </TestProvider>,
+    );
+
+    // Submit pressed without consent — no navigation.
     fireEvent.press(getByText("Submit assessment"));
-    expect(router.dismissAll).toHaveBeenCalled();
+    expect(router.dismissAll).not.toHaveBeenCalled();
+    expect(router.push).not.toHaveBeenCalledWith("/treatment/confirmation");
+
+    // Tick consent, then submit.
+    fireEvent.press(getByLabelText("I confirm the answers are accurate"));
+    fireEvent.press(getByText("Submit assessment"));
+    await waitFor(() => expect(router.dismissAll).toHaveBeenCalled());
     expect(router.push).toHaveBeenCalledWith("/treatment/confirmation");
-    // Reset should have cleared the store.
-    expect(useQuestionnaireStore.getState().condition).toBeNull();
   });
 });

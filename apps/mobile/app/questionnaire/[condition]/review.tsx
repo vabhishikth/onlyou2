@@ -1,18 +1,45 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PremiumButton } from "@/components/ui/PremiumButton";
+import type { Option, Question } from "@/data/questionnaires";
 import { QUESTION_BANKS } from "@/data/questionnaires";
 import type { Vertical } from "@/fixtures/patient-states";
+import { useSubmitConsultation } from "@/hooks/use-submit-consultation";
+import { getReachableQids } from "@/questionnaire/skipLogic";
 import { useQuestionnaireStore } from "@/stores/questionnaire-store";
 import { colors } from "@/theme/colors";
 
+const SECTION_TITLES: Record<Question["section"], string> = {
+  basics: "Basics",
+  medical_history: "Medical history",
+  current_symptoms: "Current symptoms",
+  lifestyle: "Lifestyle",
+  sexual_health: "Sexual health",
+  treatment_history: "Treatment history",
+};
+
+const SECTION_ORDER: Question["section"][] = [
+  "basics",
+  "medical_history",
+  "current_symptoms",
+  "lifestyle",
+  "sexual_health",
+  "treatment_history",
+];
+
 function labelForAnswer(
-  question: { options?: Array<{ value: string; label: string }> },
+  question: Question,
   value: string,
+  sex: string | null,
 ): string {
-  return question.options?.find((o) => o.value === value)?.label ?? value;
+  let opts: Option[] | undefined = question.options;
+  if (!opts) {
+    opts = sex === "female" ? question.femaleOptions : question.maleOptions;
+  }
+  return opts?.find((o) => o.value === value)?.label ?? value;
 }
 
 export default function QuestionnaireReview() {
@@ -20,13 +47,40 @@ export default function QuestionnaireReview() {
   const { condition } = useLocalSearchParams<{ condition: Vertical }>();
   const questions = QUESTION_BANKS[condition] ?? [];
   const answers = useQuestionnaireStore((s) => s.answers);
+  const consultationId = useQuestionnaireStore((s) => s.consultationId);
   const reset = useQuestionnaireStore((s) => s.reset);
+  const [consent, setConsent] = useState(false);
+  const { submit, submitting, error } = useSubmitConsultation();
 
-  function onSubmit() {
-    // Clear transient state so the next questionnaire starts clean.
-    reset();
-    router.dismissAll();
-    router.push("/treatment/confirmation");
+  const sex =
+    typeof answers.q2_sex === "string" ? (answers.q2_sex as string) : null;
+
+  const reachableSet = useMemo(() => {
+    return new Set(getReachableQids(questions, answers));
+  }, [questions, answers]);
+
+  const grouped = useMemo(() => {
+    const out: Array<{ section: Question["section"]; questions: Question[] }> =
+      [];
+    for (const section of SECTION_ORDER) {
+      const qs = questions.filter(
+        (q) => q.section === section && reachableSet.has(q.id),
+      );
+      if (qs.length > 0) out.push({ section, questions: qs });
+    }
+    return out;
+  }, [questions, reachableSet]);
+
+  async function onSubmit() {
+    if (!consent || !consultationId || submitting) return;
+    try {
+      await submit(consultationId);
+      reset();
+      router.dismissAll();
+      router.push("/treatment/confirmation");
+    } catch {
+      // error captured in hook state; rendered below the button.
+    }
   }
 
   return (
@@ -69,47 +123,125 @@ export default function QuestionnaireReview() {
             marginBottom: 24,
           }}
         >
-          {questions.length} questions answered. Tap Submit when you&apos;re
-          ready — our doctor will review within 24 hours.
+          Tap any answer to edit. Submit when you&apos;re ready — our doctor
+          will review within 24 hours.
         </Text>
 
-        {questions.map((q) => {
-          const value = answers[q.id];
-          let display = "—";
-          if (typeof value === "string" && value.length > 0) {
-            display = labelForAnswer(q, value);
-          } else if (Array.isArray(value) && value.length > 0) {
-            display = value.map((v) => labelForAnswer(q, v)).join(", ");
-          } else if (q.type === "photo") {
-            display = "Photos to upload";
-          }
-          return (
-            <View
-              key={q.id}
+        {grouped.map(({ section, questions: qs }) => (
+          <View key={section} style={{ marginBottom: 24 }}>
+            <Text
               style={{
-                paddingVertical: 14,
-                borderBottomWidth: 1,
-                borderBottomColor: colors.borderLight,
+                fontFamily: "PlayfairDisplay_900Black",
+                fontSize: 18,
+                color: colors.textPrimary,
+                marginBottom: 8,
+                letterSpacing: -0.3,
               }}
             >
+              {SECTION_TITLES[section]}
+            </Text>
+            {qs.map((q) => {
+              const value = answers[q.id];
+              let display = "—";
+              if (typeof value === "string" && value.length > 0) {
+                display = labelForAnswer(q, value, sex);
+              } else if (Array.isArray(value) && value.length > 0) {
+                display = value
+                  .map((v) => labelForAnswer(q, v, sex))
+                  .join(", ");
+              } else if (q.type === "photo") {
+                display = "Photos to upload";
+              }
+              return (
+                <Pressable
+                  key={q.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit ${q.title}`}
+                  onPress={() =>
+                    router.push(`/questionnaire/${condition}/${q.id}`)
+                  }
+                  style={{
+                    paddingVertical: 14,
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.borderLight,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      letterSpacing: 1.2,
+                      textTransform: "uppercase",
+                      color: colors.textTertiary,
+                      fontWeight: "700",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {q.title}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: colors.textPrimary }}>
+                    {display}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
+
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityLabel="I confirm the answers are accurate"
+          accessibilityState={{ checked: consent }}
+          onPress={() => setConsent((c) => !c)}
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            padding: 16,
+            marginTop: 16,
+            borderRadius: 14,
+            borderWidth: 1.5,
+            borderColor: consent ? colors.accentWarm : colors.border,
+            backgroundColor: consent ? colors.accentLight : colors.warmBg,
+          }}
+        >
+          <View
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              borderWidth: 2,
+              borderColor: consent ? colors.accentWarm : colors.textSecondary,
+              backgroundColor: consent ? colors.accentWarm : colors.white,
+              marginRight: 14,
+              marginTop: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {consent ? (
               <Text
                 style={{
-                  fontSize: 11,
-                  letterSpacing: 1.2,
-                  textTransform: "uppercase",
-                  color: colors.textTertiary,
-                  fontWeight: "700",
-                  marginBottom: 4,
+                  color: colors.white,
+                  fontSize: 15,
+                  fontWeight: "900",
+                  lineHeight: 16,
                 }}
               >
-                {q.title}
+                ✓
               </Text>
-              <Text style={{ fontSize: 13, color: colors.textPrimary }}>
-                {display}
-              </Text>
-            </View>
-          );
-        })}
+            ) : null}
+          </View>
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 13,
+              color: colors.textPrimary,
+              lineHeight: 19,
+            }}
+          >
+            I confirm the answers above are accurate and I consent to a doctor
+            reviewing my information.
+          </Text>
+        </Pressable>
       </ScrollView>
 
       <View
@@ -117,9 +249,22 @@ export default function QuestionnaireReview() {
       >
         <PremiumButton
           variant="warm"
-          label="Submit assessment"
+          label={submitting ? "Submitting…" : "Submit assessment"}
           onPress={onSubmit}
+          disabled={!consent || submitting}
         />
+        {error ? (
+          <Text
+            style={{
+              fontSize: 12,
+              color: colors.error,
+              marginTop: 8,
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </Text>
+        ) : null}
       </View>
     </View>
   );

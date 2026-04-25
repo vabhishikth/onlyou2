@@ -5,7 +5,7 @@ import { TestProvider } from "@/test-utils";
 
 const mockParams: { condition: string; qid: string } = {
   condition: "hair-loss",
-  qid: "gender",
+  qid: "q2_sex",
 };
 
 jest.mock("expo-router", () => ({
@@ -31,13 +31,13 @@ describe("Question screen", () => {
 
   it("renders a single-choice question and gates Next until an option is picked", () => {
     mockParams.condition = "hair-loss";
-    mockParams.qid = "gender";
+    mockParams.qid = "q2_sex";
     const { getByText } = render(
       <TestProvider scenario="new">
         <QuestionScreen />
       </TestProvider>,
     );
-    expect(getByText("How do you identify?")).toBeTruthy();
+    expect(getByText("What is your biological sex?")).toBeTruthy();
     // Next should be disabled initially -> pressing does nothing.
     fireEvent.press(getByText("Next"));
     expect(router.push).not.toHaveBeenCalled();
@@ -46,21 +46,8 @@ describe("Question screen", () => {
     fireEvent.press(getByText("Male"));
     fireEvent.press(getByText("Next"));
     expect(router.push).toHaveBeenCalledWith(
-      "/questionnaire/hair-loss/duration",
+      "/questionnaire/hair-loss/q3_location",
     );
-    expect(useQuestionnaireStore.getState().answers.gender).toBe("male");
-  });
-
-  it("branches photo questions to the photo-upload stack", () => {
-    mockParams.condition = "hair-loss";
-    mockParams.qid = "photos"; // last question in the bank, type: photo
-    const { getByText } = render(
-      <TestProvider scenario="new">
-        <QuestionScreen />
-      </TestProvider>,
-    );
-    // Photo is handled elsewhere but canProceed is true immediately.
-    fireEvent.press(getByText("Next"));
-    expect(router.push).toHaveBeenCalledWith("/photo-upload/hair-loss");
+    expect(useQuestionnaireStore.getState().answers.q2_sex).toBe("male");
   });
 });

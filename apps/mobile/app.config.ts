@@ -32,7 +32,28 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
     output: "static",
     favicon: "./assets/favicon.png",
   },
-  plugins: ["expo-router", "expo-font", "expo-splash-screen"],
+  plugins: [
+    "expo-router",
+    "expo-font",
+    "expo-splash-screen",
+    [
+      "expo-camera",
+      {
+        cameraPermission:
+          "ONLYOU needs camera access to take your scalp photos for the doctor.",
+        microphonePermission: false,
+        recordAudioAndroid: false,
+      },
+    ],
+    [
+      "expo-image-picker",
+      {
+        photosPermission:
+          "ONLYOU needs access to your photo library to upload scalp photos.",
+      },
+    ],
+    "expo-apple-authentication",
+  ],
   experiments: {
     typedRoutes: true,
   },
