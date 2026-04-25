@@ -15,8 +15,11 @@ importers:
         specifier: ^2.4.3
         version: 2.4.3
       google-auth-library:
-        specifier: ^10.6.2
+        specifier: 10.6.2
         version: 10.6.2
+      jose:
+        specifier: 6.2.2
+        version: 6.2.2
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -226,7 +229,7 @@ importers:
         specifier: 8.0.8
         version: 8.0.8(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.85.1(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.0))
       expo-auth-session:
-        specifier: ^55.0.15
+        specifier: 55.0.15
         version: 55.0.15(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.85.1(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       expo-camera:
         specifier: 17.0.10
@@ -4721,6 +4724,9 @@ packages:
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
+
+  jose@6.2.2:
+    resolution: {integrity: sha512-d7kPDd34KO/YnzaDOlikGpOurfF0ByC2sEV4cANCtdqLlTfBlw2p14O/5d/zv40gJPbIQxfES3nSx1/oYNyuZQ==}
 
   js-tokens@10.0.0:
     resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
@@ -12110,6 +12116,8 @@ snapshots:
   jiti@1.21.7: {}
 
   jiti@2.6.1: {}
+
+  jose@6.2.2: {}
 
   js-tokens@10.0.0: {}
 

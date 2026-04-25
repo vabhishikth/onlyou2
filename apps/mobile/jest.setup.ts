@@ -36,3 +36,12 @@ jest.mock("expo-auth-session/providers/google", () => ({
     jest.fn(), // promptAsync
   ],
 }));
+
+jest.mock("expo-apple-authentication", () => ({
+  AppleAuthenticationScope: { EMAIL: "EMAIL", FULL_NAME: "FULL_NAME" },
+  AppleAuthenticationButtonType: { SIGN_IN: "SIGN_IN" },
+  AppleAuthenticationButtonStyle: { BLACK: "BLACK" },
+  AppleAuthenticationButton: "AppleAuthenticationButton",
+  signInAsync: jest.fn().mockResolvedValue({ identityToken: null }),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+}));
