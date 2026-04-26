@@ -47,7 +47,6 @@ import type * as biomarker_reclassifyAllReports from "../biomarker/reclassifyAll
 import type * as biomarker_reclassifyForCanonicalId from "../biomarker/reclassifyForCanonicalId.js";
 import type * as biomarker_retryParseLabReport from "../biomarker/retryParseLabReport.js";
 import type * as consultations_aiAssessment from "../consultations/aiAssessment.js";
-import type * as consultations_aiStub from "../consultations/aiStub.js";
 import type * as consultations_photos from "../consultations/photos.js";
 import type * as consultations_submitConsultation from "../consultations/submitConsultation.js";
 import type * as consultations_transitions from "../consultations/transitions.js";
@@ -108,7 +107,6 @@ declare const fullApi: ApiFromModules<{
   "biomarker/reclassifyForCanonicalId": typeof biomarker_reclassifyForCanonicalId;
   "biomarker/retryParseLabReport": typeof biomarker_retryParseLabReport;
   "consultations/aiAssessment": typeof consultations_aiAssessment;
-  "consultations/aiStub": typeof consultations_aiStub;
   "consultations/photos": typeof consultations_photos;
   "consultations/submitConsultation": typeof consultations_submitConsultation;
   "consultations/transitions": typeof consultations_transitions;
