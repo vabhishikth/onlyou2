@@ -73,9 +73,8 @@ describe("logAiAssessmentEvent", () => {
       level: "info",
       event: "ai_assessment_succeeded",
       consultationId: "c123",
-      // @ts-expect-error — narrative is not on AiAssessmentLogFields; tests the runtime PHI guard
+      // @ts-expect-error — narrative/patientName are not on AiAssessmentLogFields; tests the runtime PHI guard
       narrative: "should be dropped",
-      // @ts-expect-error — patientName is not on AiAssessmentLogFields; tests the runtime PHI guard
       patientName: "should be dropped",
     });
     const payload = JSON.parse(consoleLog.mock.calls[0][0] as string);

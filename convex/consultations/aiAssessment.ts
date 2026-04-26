@@ -1,7 +1,14 @@
 import { v } from "convex/values";
 import type { z } from "zod";
 
-import { internalMutation, internalQuery } from "../_generated/server";
+import { internal } from "../_generated/api";
+import { type Id } from "../_generated/dataModel";
+import {
+  internalAction,
+  internalMutation,
+  internalQuery,
+  type ActionCtx,
+} from "../_generated/server";
 import {
   BETA_HEADER_EXTENDED_CACHE,
   computeCostPaisa,
@@ -9,6 +16,7 @@ import {
   MODEL_EXTRACTION,
   type RawClaudeResponse,
 } from "../lib/claude";
+import { logAiAssessmentEvent } from "../lib/telemetry";
 
 import {
   aiAssessmentResponseSchema,
@@ -273,3 +281,162 @@ function classifyError(e: unknown, durationMs: number): AttemptOutcome {
 
 // Re-export so orchestrator + tests can read these.
 export { computeCostPaisa, PROMPT_VERSION_HAIR_LOSS, SONNET_4_6_MODEL };
+
+// ---------- Orchestrator ----------
+
+const MAX_ATTEMPTS = 3;
+const BACKOFF_MS: Record<number, number> = {
+  1: 30_000,
+  2: 120_000,
+  3: 300_000, // unused on attempt 3 (terminal), kept for completeness
+};
+
+async function performAttempt(
+  ctx: ActionCtx,
+  consultationId: Id<"consultations">,
+  attempt: number,
+): Promise<void> {
+  logAiAssessmentEvent({
+    level: "info",
+    event: "ai_assessment_started",
+    consultationId,
+    attempt,
+  });
+
+  const responses = await ctx.runQuery(
+    internal.consultations.aiAssessment.getResponses,
+    { consultationId },
+  );
+
+  const answers = responses.answers as Record<string, unknown>;
+  const demographics: Demographics = {
+    age:
+      typeof answers.q1_age === "number"
+        ? answers.q1_age
+        : Number(answers.q1_age ?? 0),
+    sex: answers.q2_sex === "female" ? "female" : "male",
+  };
+
+  const outcome = await runAttempt({ answers, demographics });
+
+  if (outcome.ok) {
+    const costPaisa = computeCostPaisa({
+      tokensInput: outcome.tokens.input,
+      tokensOutput: outcome.tokens.output,
+      tokensCacheRead: outcome.tokens.cacheRead,
+    });
+
+    await ctx.runMutation(
+      internal.consultations.aiAssessment.upsertAssessment,
+      {
+        consultationId,
+        model: SONNET_4_6_MODEL,
+        promptVersion: PROMPT_VERSION_HAIR_LOSS,
+        attempt,
+        narrative: outcome.response.narrative,
+        stage: outcome.response.stage,
+        flags: outcome.response.flags,
+        confidence: outcome.response.confidence,
+        tokensInput: outcome.tokens.input,
+        tokensOutput: outcome.tokens.output,
+        tokensCacheRead: outcome.tokens.cacheRead,
+        costPaisa,
+        durationMs: outcome.durationMs,
+      },
+    );
+
+    await ctx.runMutation(internal.consultations.transitions.transitionStatus, {
+      consultationId,
+      toStatus: "AI_COMPLETE",
+      kind: "system",
+      reason: "ai-assessment-complete",
+    });
+
+    logAiAssessmentEvent({
+      level: "info",
+      event: "ai_assessment_succeeded",
+      consultationId,
+      attempt,
+      durationMs: outcome.durationMs,
+      tokensInput: outcome.tokens.input,
+      tokensOutput: outcome.tokens.output,
+      tokensCacheRead: outcome.tokens.cacheRead,
+      costPaisa,
+    });
+    return;
+  }
+
+  // Failure path — record AI_FAILED transition + log
+  await ctx.runMutation(internal.consultations.transitions.transitionStatus, {
+    consultationId,
+    toStatus: "AI_FAILED",
+    kind: "system",
+    reason: outcome.failureClass,
+  });
+  logAiAssessmentEvent({
+    level: "error",
+    event: "ai_assessment_failed",
+    consultationId,
+    attempt,
+    failureClass: outcome.failureClass,
+    errorMessage: outcome.errorMessage,
+    durationMs: outcome.durationMs,
+  });
+
+  // Terminal classes never retry.
+  const isTerminal =
+    outcome.failureClass === "client_error" || attempt >= MAX_ATTEMPTS;
+
+  if (isTerminal) {
+    // Skip-AI: AI_FAILED → AI_COMPLETE (existing edge in validTransitions).
+    await ctx.runMutation(internal.consultations.transitions.transitionStatus, {
+      consultationId,
+      toStatus: "AI_COMPLETE",
+      kind: "system",
+      reason: "ai-assessment-skipped-after-failures",
+    });
+    logAiAssessmentEvent({
+      level: "warn",
+      event: "ai_assessment_terminal_skip",
+      consultationId,
+      totalAttempts: attempt,
+    });
+    return;
+  }
+
+  // Otherwise schedule the next retry.
+  await ctx.scheduler.runAfter(
+    BACKOFF_MS[attempt],
+    internal.consultations.aiAssessment.retry,
+    { consultationId, attempt: attempt + 1 },
+  );
+}
+
+export const kickoff = internalAction({
+  args: { consultationId: v.id("consultations") },
+  handler: async (ctx, { consultationId }) => {
+    await ctx.runMutation(internal.consultations.transitions.transitionStatus, {
+      consultationId,
+      toStatus: "AI_PROCESSING",
+      kind: "system",
+      reason: "ai-assessment-start",
+    });
+    await performAttempt(ctx, consultationId, 1);
+  },
+});
+
+export const retry = internalAction({
+  args: {
+    consultationId: v.id("consultations"),
+    attempt: v.number(),
+  },
+  handler: async (ctx, { consultationId, attempt }) => {
+    await ctx.runMutation(internal.consultations.transitions.transitionStatus, {
+      consultationId,
+      toStatus: "AI_PROCESSING",
+      kind: "system",
+      reason: "ai-assessment-retry",
+    });
+    await performAttempt(ctx, consultationId, attempt);
+  },
+});
