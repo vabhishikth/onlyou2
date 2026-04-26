@@ -76,3 +76,59 @@ export function logParseEvent(fields: ParseLogFields): void {
     console.log(serialized);
   }
 }
+
+export type AiAssessmentEvent =
+  | "ai_assessment_started"
+  | "ai_assessment_succeeded"
+  | "ai_assessment_failed"
+  | "ai_assessment_terminal_skip";
+
+export interface AiAssessmentLogFields {
+  level: ParseLogLevel;
+  event: AiAssessmentEvent;
+  consultationId: string;
+  userId?: string;
+  attempt?: number;
+  totalAttempts?: number;
+  durationMs?: number;
+  tokensInput?: number;
+  tokensOutput?: number;
+  tokensCacheRead?: number;
+  costPaisa?: number;
+  failureClass?: string;
+  errorMessage?: string;
+}
+
+const FORBIDDEN_PHI_FIELDS = new Set([
+  "narrative",
+  "questionnaire",
+  "answers",
+  "patientName",
+  "name",
+  "email",
+  "phone",
+]);
+
+export function logAiAssessmentEvent(fields: AiAssessmentLogFields): void {
+  const { userId, ...rest } = fields;
+  const safeRest: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rest)) {
+    if (FORBIDDEN_PHI_FIELDS.has(k)) continue;
+    safeRest[k] = v;
+  }
+  const payload: Record<string, unknown> = {
+    ...safeRest,
+    ts: Date.now(),
+  };
+  if (userId) {
+    payload.hashedUserId = hashUserId(userId);
+  }
+  const serialized = JSON.stringify(payload);
+  if (fields.level === "error") {
+    console.error(serialized);
+  } else if (fields.level === "warn") {
+    console.warn(serialized);
+  } else {
+    console.log(serialized);
+  }
+}
