@@ -27,6 +27,40 @@ export const MODEL_EXTRACTION = "claude-sonnet-4-6"; // vision-capable Sonnet
 export const MODEL_NARRATIVE = "claude-sonnet-4-6"; // Sonnet short-form
 export const BETA_HEADER_EXTENDED_CACHE = "extended-cache-ttl-2025-04-11";
 
+// Test seam — every Claude call site goes through this factory so the
+// SDK constructor is mockable from a single import.
+export function getAnthropicClient(): Anthropic {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
+
+// Sonnet 4.6 list pricing as of Jan 2026. Update if Anthropic adjusts pricing.
+// Verified: https://platform.claude.com/docs/en/docs/about-claude/models
+export const SONNET_4_6_RATES = {
+  inputUsdPerMillion: 3,
+  outputUsdPerMillion: 15,
+  cacheReadUsdPerMillion: 0.3,
+  // Fixed exchange rate for deterministic per-call cost recording.
+  // ₹83.33 / USD = 8333 paisa / USD.
+  usdToPaisa: 8333,
+} as const;
+
+export function computeCostPaisa(args: {
+  tokensInput: number;
+  tokensOutput: number;
+  tokensCacheRead: number;
+}): number {
+  const inputUsd =
+    (args.tokensInput / 1_000_000) * SONNET_4_6_RATES.inputUsdPerMillion;
+  const outputUsd =
+    (args.tokensOutput / 1_000_000) * SONNET_4_6_RATES.outputUsdPerMillion;
+  const cacheUsd =
+    (args.tokensCacheRead / 1_000_000) *
+    SONNET_4_6_RATES.cacheReadUsdPerMillion;
+  return Math.round(
+    (inputUsd + outputUsd + cacheUsd) * SONNET_4_6_RATES.usdToPaisa,
+  );
+}
+
 // ---------- Extraction ----------
 
 export interface ExtractionInput {
@@ -577,9 +611,7 @@ export const FEW_SHOT_EXAMPLES: Array<{
 export async function callExtraction(
   input: ExtractionInput,
 ): Promise<ExtractionResponse> {
-  const client = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
+  const client = getAnthropicClient();
 
   // Assemble messages: few-shot pairs (if any), then per-parse PDF.
   // Cache breakpoint is placed on the system prompt block — always stable,
@@ -686,7 +718,7 @@ Rules:
 export async function callNarrative(
   input: NarrativeInput,
 ): Promise<NarrativeResponse> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = getAnthropicClient();
   const markerSummary = input.classifiedMarkers
     .map((m) => `- ${m.name}: ${m.status}`)
     .join("\n");
@@ -797,7 +829,7 @@ export async function callAutoDraftRange(args: {
   labPrintedRange: string | null;
   canonicalIdGuess: string | null;
 }): Promise<AutoDraftRangeOutput> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = getAnthropicClient();
   const userMessage = JSON.stringify({
     name_on_report: args.nameOnReport,
     raw_unit: args.rawUnit,
