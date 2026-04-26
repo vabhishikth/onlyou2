@@ -362,4 +362,52 @@ export default defineSchema({
   consultation_status_history: defineTable(statusHistoryFields)
     .index("by_consultation", ["consultationId"])
     .index("by_consultation_changed", ["consultationId", "changedAt"]),
+
+  // ─── Phase 3C new tables ───────────────────────────────────────────
+  ai_assessments: defineTable({
+    consultationId: v.id("consultations"),
+
+    // Provenance
+    model: v.string(),
+    promptVersion: v.string(),
+    attempt: v.number(),
+
+    // Option B output
+    narrative: v.string(),
+    stage: v.object({
+      scale: v.union(
+        v.literal("norwood"),
+        v.literal("ludwig"),
+        v.literal("unclassified"),
+      ),
+      value: v.string(),
+      confidence: v.number(),
+    }),
+    flags: v.array(
+      v.object({
+        code: v.string(),
+        severity: v.union(
+          v.literal("info"),
+          v.literal("caution"),
+          v.literal("red_flag"),
+        ),
+        message: v.string(),
+      }),
+    ),
+    confidence: v.number(),
+
+    // Option C forward-compat (always undefined in 3C)
+    photoAnalysis: v.optional(v.string()),
+    recommendedTemplateHint: v.optional(v.string()),
+    redFlags: v.optional(v.array(v.string())),
+
+    // Cost telemetry
+    tokensInput: v.number(),
+    tokensOutput: v.number(),
+    tokensCacheRead: v.number(),
+    costPaisa: v.number(),
+    durationMs: v.number(),
+
+    createdAt: v.number(),
+  }).index("by_consultation", ["consultationId"]),
 });
