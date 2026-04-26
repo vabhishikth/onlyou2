@@ -1,0 +1,25 @@
+{
+  "demographics": { "age": 45, "sex": "male" },
+  "answers": {
+    "q1_age": 45,
+    "q2_sex": "male",
+    "q3_pattern_male": ["specific patches"],
+    "q4_age_of_onset": 45,
+    "q5_family_history": "None",
+    "q7_telogen_triggers": "None",
+    "q8_medical_history": "None",
+    "q9_current_medications": "None",
+    "q11_duration": "2 months, sudden onset",
+    "q12_self_severity": "Severe in patch",
+    "q13_progression": "Active progression",
+    "q14_scalp_symptoms": "Pain, redness, bumps in patch area",
+    "q15_shedding_pattern": "Sudden patch loss",
+    "q16_hair_quality": "Normal outside patch",
+    "q17_non_scalp_loss": "No"
+  },
+  "expectations": {
+    "stage_scale_in": ["unclassified", "norwood"],
+    "must_contain_flag_code": "SCARRING_ALOPECIA_SUSPECT",
+    "min_overall_confidence": 0.5
+  }
+}

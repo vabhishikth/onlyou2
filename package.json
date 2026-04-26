@@ -18,6 +18,7 @@
     "prepare": "husky",
     "test:convex": "vitest run --config ./vitest.config.ts",
     "test:seed": "vitest run convex/__tests__/biomarker/seed-validation.test.ts",
+    "test:claude:ai": "pnpm vitest run convex/__tests__/test-claude/aiAssessment.test.ts --no-isolate",
     "test:claude:conditional": "tsx scripts/run-test-claude-if-key.ts",
     "test": "pnpm test:convex && pnpm test:seed && pnpm test:claude:conditional",
     "seed:biomarker-ranges": "tsx scripts/seed-biomarker-ranges.ts",

@@ -1,0 +1,34 @@
+{
+  "demographics": { "age": 38, "sex": "female" },
+  "answers": {
+    "q1_age": 38,
+    "q2_sex": "female",
+    "q3_pattern_female": "Widening part, diffuse thinning at crown",
+    "q4_age_of_onset": 35,
+    "q5_family_history": "Mother and maternal aunt — Ludwig II",
+    "q6_family_age_onset": "Mother around age 40",
+    "q7_telogen_triggers": "Pregnancy 18 months ago",
+    "q8_medical_history": "PCOS diagnosed 2018",
+    "q9_current_medications": "None",
+    "q10_allergies": "None",
+    "q11_duration": "3 years, gradual",
+    "q12_self_severity": "Moderate",
+    "q13_progression": "Stable last 6 months",
+    "q14_scalp_symptoms": "None",
+    "q15_shedding_pattern": "Diffuse thinning at part",
+    "q16_hair_quality": "Finer at the part line",
+    "q17_non_scalp_loss": "No",
+    "q18_stress": "Moderate",
+    "q19_diet": "Mixed, mostly vegetarian",
+    "q20_sleep": "6 hours",
+    "q21_smoking": "No",
+    "q26_prior_treatments": "Topical minoxidil 6 months, mild improvement",
+    "q27_treatment_response": "Mild improvement",
+    "q28_treatment_goals": "Restore part density"
+  },
+  "expectations": {
+    "stage_scale": "ludwig",
+    "must_contain_flag_code": "FINASTERIDE_CONTRAINDICATED_FEMALE_CHILDBEARING",
+    "min_overall_confidence": 0.4
+  }
+}

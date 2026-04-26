@@ -1,0 +1,39 @@
+{
+  "demographics": { "age": 32, "sex": "male" },
+  "answers": {
+    "q1_age": 32,
+    "q2_sex": "male",
+    "q3_pattern_male": ["crown", "hairline"],
+    "q4_age_of_onset": 27,
+    "q5_family_history": "Maternal grandfather and father — both Norwood IV+",
+    "q6_family_age_onset": "Father started losing hair around age 30",
+    "q7_telogen_triggers": "None",
+    "q8_medical_history": "None significant",
+    "q9_current_medications": "None",
+    "q10_allergies": "None",
+    "q11_duration": "5 years, gradual progression",
+    "q12_self_severity": "Moderate",
+    "q13_progression": "Active progression",
+    "q14_scalp_symptoms": "None",
+    "q15_shedding_pattern": "Thinning with miniaturization",
+    "q16_hair_quality": "Thinner, finer at affected areas",
+    "q17_non_scalp_loss": "No",
+    "q18_stress": "Moderate",
+    "q19_diet": "Mixed, regular",
+    "q20_sleep": "7 hours",
+    "q21_smoking": "No",
+    "q22_morning_erections": "Daily",
+    "q23_libido": "Normal",
+    "q24_concern_finasteride": "Somewhat concerned",
+    "q25_partner_pregnancy": "Not applicable",
+    "q26_prior_treatments": "None",
+    "q27_treatment_response": "N/A",
+    "q28_treatment_goals": "Slow further hair loss"
+  },
+  "expectations": {
+    "stage_scale": "norwood",
+    "stage_value_pattern": "^(III|IV)",
+    "must_not_contain_red_flag": true,
+    "min_overall_confidence": 0.5
+  }
+}
