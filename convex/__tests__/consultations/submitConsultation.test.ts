@@ -62,7 +62,7 @@ describe("consultations.submitConsultation.submitConsultation", () => {
     ).rejects.toThrow(/missing_photos|4 photos/i);
   });
 
-  it("happy path — writes questionnaire_responses + schedules ai stub", async () => {
+  it("happy path — writes questionnaire_responses + schedules ai assessment", async () => {
     vi.useFakeTimers();
     const t = convexTest(schema, modules);
     const { userId, token, consultationId } = await seed(t, [...PHOTO_SLOTS]);
@@ -83,10 +83,24 @@ describe("consultations.submitConsultation.submitConsultation", () => {
     expect(responses).toHaveLength(1);
     expect(responses[0].schemaVersion).toBe("hair-loss-v1");
     expect(responses[0].userId).toBe(userId);
-    // Run the scheduler to flush the ai stub (runAfter(0) needs timer advancement).
     await t.finishAllScheduledFunctions(vi.runAllTimers);
+    // Without ANTHROPIC_API_KEY in the test env, kickoff fails 3 attempts then
+    // takes the terminal skip-AI edge (AI_FAILED → AI_COMPLETE). Either way the
+    // status_history must show AI_PROCESSING was reached, proving submitConsultation
+    // scheduled the kickoff.
+    const history = await t.run((ctx) =>
+      ctx.db
+        .query("consultation_status_history")
+        .withIndex("by_consultation", (q) =>
+          q.eq("consultationId", consultationId),
+        )
+        .collect(),
+    );
+    expect(history.some((h) => h.toStatus === "AI_PROCESSING")).toBe(true);
     const consultation = await t.run((ctx) => ctx.db.get(consultationId));
-    expect(consultation?.status).toBe("AI_PROCESSING");
+    expect(["AI_PROCESSING", "AI_FAILED", "AI_COMPLETE"]).toContain(
+      consultation?.status,
+    );
     vi.useRealTimers();
   });
 

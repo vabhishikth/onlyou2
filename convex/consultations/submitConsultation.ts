@@ -85,10 +85,9 @@ export const submitConsultation = mutation({
       completedAt: Date.now(),
     });
 
-    // Phase 3B stub — Phase 3C ships the real Claude pre-assessment call.
     await ctx.scheduler.runAfter(
       0,
-      internal.consultations.aiStub.kickoffAiStub,
+      internal.consultations.aiAssessment.kickoff,
       { consultationId: args.consultationId },
     );
 
